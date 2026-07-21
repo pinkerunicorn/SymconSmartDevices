@@ -1,0 +1,19 @@
+{
+    "id": "{B3A63109-386C-4597-B74D-CC308E8B6DDB}",
+    "name": "Airthings Wave Plus",
+    "type": 3,
+    "vendor": "Airthings",
+    "author": "Florian Graßinger",
+    "aliases": [
+        "Wave Plus"
+    ],
+    "parentRequirements": [
+        "{043EA491-0325-4ADD-8FC2-A30C8EEB4D3F}"
+    ],
+    "childRequirements": [],
+    "implemented": [
+        "{7F7632D9-FA40-4F38-8DEA-C83CD4325A32}"
+    ],
+    "url": "https://github.com/pinkerunicorn/",
+    "prefix": "AIRTHINGS"
+}

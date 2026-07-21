@@ -1,0 +1,30 @@
+{
+    "id": "{EDCF07BB-E90E-4F3D-8A71-9257CBA74C40}",
+    "name": "SonyBeamer",
+    "type": 3,
+    "vendor": "SmartVillaKunterbunt",
+    "aliases": [
+        "Sony VPL-VW590ES",
+        "Beamer"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "SONY",
+    "properties": {
+        "Host": {
+            "type": "string",
+            "default": "192.168.1.100"
+        },
+        "Port": {
+            "type": "integer",
+            "default": 53595
+        },
+        "UpdateInterval": {
+            "type": "integer",
+            "default": 20
+        }
+    },
+    "author": "Florian Graßinger",
+    "url": "https://github.com/pinkerunicorn/"
+}

@@ -1,0 +1,24 @@
+{
+    "elements": [
+        {
+            "type": "ValidationTextBox",
+            "name": "MQTTBaseTopic",
+            "caption": "MQTT Base Topic (z.B. airthings-gateway)"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "Timeout",
+            "caption": "Timeout-Warnung (in Minuten)",
+            "minimum": 0,
+            "maximum": 1440,
+            "suffix": " min"
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Manuelles Update anfragen",
+            "onClick": "AIRTHINGS_RequestUpdate($id);"
+        }
+    ]
+}
