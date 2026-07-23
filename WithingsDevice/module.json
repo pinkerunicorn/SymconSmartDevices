@@ -2,7 +2,7 @@
     "id": "{A34C4F00-11DE-4B2E-9F4D-934C7A3959FE}",
     "name": "WithingsDevice",
     "type": 3,
-    "vendor": "",
+    "vendor": "Florian Graßinger",
     "aliases": [],
     "parentRequirements": [],
     "childRequirements": [],
