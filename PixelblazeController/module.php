@@ -19,22 +19,26 @@ class PixelblazeController extends IPSModuleStrict
         $this->RegisterAttributeString('ProgramMap', '[]');
 
         // Variablen
-        $this->RegisterVariableBoolean('Power', '💡 Status', '', 10);
-        IPS_SetIcon($this->GetIDForIdent('Power'), 'Power');
+        $this->RegisterVariableBoolean('Power', '💡 Status', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+            'ICON' => 'Power'
+        ], 10);
         $this->EnableAction('Power');
 
-        $this->RegisterVariableInteger('Brightness', '🔆 Helligkeit', '', 20);
-        IPS_SetIcon($this->GetIDForIdent('Brightness'), 'Sun');
+        $this->RegisterVariableInteger('Brightness', '🔆 Helligkeit', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'ICON' => 'Sun',
+            'MIN' => 0.0,
+            'MAX' => 100.0,
+            'STEP' => 1.0,
+            'SUFFIX' => ' %'
+        ], 20);
         $this->EnableAction('Brightness');
             
-            
-
-        $this->RegisterVariableInteger('ActiveProgram', 'Programm', '', 30);
-        IPS_SetIcon($this->GetIDForIdent('ActiveProgram'), 'Script');
+        $this->RegisterVariableInteger('ActiveProgram', 'Programm', ['ICON' => 'Script'], 30);
         $this->EnableAction('ActiveProgram');
 
-        $this->RegisterVariableString('ActiveProgramName', 'Aktuelles Programm (Name)', '', 35);
-        IPS_SetIcon($this->GetIDForIdent('ActiveProgramName'), 'Information');
+        $this->RegisterVariableString('ActiveProgramName', 'Aktuelles Programm (Name)', ['ICON' => 'Information'], 35);
 
         // Timer für Auto-Reconnect
         $this->RegisterTimer('ReconnectTimer', 0, 'PB_Reconnect($_IPS[\'TARGET\']);');
@@ -63,11 +67,7 @@ class PixelblazeController extends IPSModuleStrict
             $this->UnregisterVariable('ActiveProgramID');
         }
 
-        // Self-Healing: Reset all corrupted presentations
-        if (function_exists('IPS_SetVariableCustomPresentation')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), []);
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Brightness'), []);
-        }
+
 
         $interval = $this->ReadPropertyInteger('AutoReconnectInterval');
         $this->SetTimerInterval('ReconnectTimer', $interval * 1000);
@@ -79,19 +79,7 @@ class PixelblazeController extends IPSModuleStrict
             $this->FetchState();
         }
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON' => 'Power'
-        ]);
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Brightness'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-            'ICON' => 'Sun',
-            'MIN' => 0.0,
-            'MAX' => 100.0,
-            'STEP' => 1.0,
-            'SUFFIX' => ' %'
-        ]);
 
         $mapRaw = $this->ReadAttributeString('ProgramMap');
         $map = json_decode($mapRaw, true);
@@ -126,7 +114,7 @@ class PixelblazeController extends IPSModuleStrict
         return true;
     }
 
-    public function RequestAction(string $Ident, $Value): void
+    public function RequestAction(string $Ident, mixed $Value): void
     {
         switch ($Ident) {
             case 'Power':

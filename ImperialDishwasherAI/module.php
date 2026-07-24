@@ -26,29 +26,30 @@ class ImperialDishwasherAI extends IPSModuleStrict {
         if ($vid && IPS_GetVariable($vid)['VariableType'] !== 3) {
             $this->UnregisterVariable('Status');
         }
-        $this->RegisterVariableString('Status', 'Status', '', 1);
-        IPS_SetIcon($this->GetIDForIdent('Status'), 'Information');
-
-        $this->RegisterVariableString('CurrentPhase', 'Aktuelle Phase', '', 2);
-        IPS_SetIcon($this->GetIDForIdent('CurrentPhase'), 'Script');
-
-        $this->RegisterVariableInteger('ActiveSince', 'Aktiv Seit', '', 3);
-        IPS_SetIcon($this->GetIDForIdent('ActiveSince'), 'Clock');
-
-        $this->RegisterVariableString('LastGeminiPrompt', 'Letzter KI Prompt', '', 4);
-        IPS_SetIcon($this->GetIDForIdent('LastGeminiPrompt'), 'Information');
-
-        $this->RegisterVariableString('LastGeminiResponse', 'Letzte KI Antwort', '', 5);
-        IPS_SetIcon($this->GetIDForIdent('LastGeminiResponse'), 'Information');
-
-        $this->RegisterVariableInteger('RemainingTime', 'Restlaufzeit', '', 6);
-        IPS_SetIcon($this->GetIDForIdent('RemainingTime'), 'Clock');
-
-        $this->RegisterVariableInteger('ExpectedEnd', 'Erwartetes Ende', '', 7);
-        IPS_SetIcon($this->GetIDForIdent('ExpectedEnd'), 'Clock');
-
-        $this->RegisterVariableInteger('Progress', 'Fortschritt', '', 8);
-        IPS_SetIcon($this->GetIDForIdent('Progress'), 'Motion');
+        $this->RegisterVariableString('Status', 'Status', ['ICON' => 'Information'], 1);
+        $this->RegisterVariableString('CurrentPhase', 'Aktuelle Phase', ['ICON' => 'Script'], 2);
+        $this->RegisterVariableInteger('ActiveSince', 'Aktiv Seit', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_DATE_TIME,
+            'ICON'         => 'Clock'
+        ], 3);
+        $this->RegisterVariableString('LastGeminiPrompt', 'Letzter KI Prompt', ['ICON' => 'Information'], 4);
+        $this->RegisterVariableString('LastGeminiResponse', 'Letzte KI Antwort', ['ICON' => 'Information'], 5);
+        $this->RegisterVariableInteger('RemainingTime', 'Restlaufzeit', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Clock',
+            'SUFFIX'       => ' Sek'
+        ], 6);
+        $this->RegisterVariableInteger('ExpectedEnd', 'Erwartetes Ende', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_DATE_TIME,
+            'ICON'         => 'Clock'
+        ], 7);
+        $this->RegisterVariableInteger('Progress', 'Fortschritt', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'ICON'         => 'Motion',
+            'SUFFIX'       => '%',
+            'MIN'          => 0,
+            'MAX'          => 100
+        ], 8);
 
         // Timer
         $this->RegisterTimer('DataCollectorTimer', 0, 'IDW_CollectData($_IPS[\'TARGET\']);');
@@ -61,8 +62,7 @@ class ImperialDishwasherAI extends IPSModuleStrict {
         IPS_SetHidden($this->GetIDForIdent('LastSessionData'), true);
 
         // Vestaboard: Kurzzusammenfassung für VestaboardGenerator
-        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', '', 101);
-        IPS_SetIcon($this->GetIDForIdent('VestaboardMessage'), 'Script');
+        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', ['ICON' => 'Script'], 101);
     }
 
     public function ApplyChanges(): void {
@@ -76,30 +76,12 @@ class ImperialDishwasherAI extends IPSModuleStrict {
             $this->RegisterMessage($powerVarID, VM_UPDATE);
         }
 
-        // Custom Presentation (IPS 8) für Datumsanzeige
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveSince'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_DATE_TIME,
-            'ICON'         => 'Clock'
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ExpectedEnd'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_DATE_TIME,
-            'ICON'         => 'Clock'
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('RemainingTime'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'SUFFIX'       => ' Sek'
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Progress'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-            'SUFFIX'       => '%',
-            'MIN'          => 0,
-            'MAX'          => 100
-        ]);
+
 
         $this->MaintainTimer();
     }
 
-    public function RequestAction(string $Ident, $Value): void {
+    public function RequestAction(string $Ident, mixed $Value): void {
         if ($Ident === 'Status') {
             if ($Value === 'Aus') {
                 $this->SetValue('Status', 'Aus');

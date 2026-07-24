@@ -19,77 +19,53 @@ class LyngdorfMP60 extends IPSModuleStrict
         $this->SetBuffer('ReceiveBuffer', '');
 
         // Variablen registrieren
-        $this->RegisterVariableBoolean('Power', '⚡ Power', '', 1);
-        IPS_SetIcon($this->GetIDForIdent('Power'), 'Power');
-        $this->EnableAction('Power');
-
-        $this->RegisterVariableFloat('Volume', '🔊 Lautstärke', '', 2);
-        IPS_SetIcon($this->GetIDForIdent('Volume'), 'Intensity');
-        $this->EnableAction('Volume');
-
-        $this->RegisterVariableBoolean('Mute', '🔇 Mute', '', 3);
-        IPS_SetIcon($this->GetIDForIdent('Mute'), 'Speaker');
-        $this->EnableAction('Mute');
-
-        $this->RegisterVariableInteger('Source', '🎵 Quelle', 'LYNG.Source', 4);
-        IPS_SetIcon($this->GetIDForIdent('Source'), 'TV');
-        $this->EnableAction('Source');
-
-        $this->RegisterVariableInteger('AudioMode', '🎛 Audio Mode', 'LYNG.AudioMode', 5);
-        IPS_SetIcon($this->GetIDForIdent('AudioMode'), 'Sound');
-        $this->EnableAction('AudioMode');
-
-        $this->RegisterVariableInteger('Voicing', '🗣 Voicing', '', 6);
-        IPS_SetIcon($this->GetIDForIdent('Voicing'), 'Speaker');
-        $this->EnableAction('Voicing');
-
-        $this->RegisterVariableString('AudioTypeIn', '📥 Audio Type In', '', 7);
-        IPS_SetIcon($this->GetIDForIdent('AudioTypeIn'), 'Information');
-        $this->RegisterVariableString('AudioTypeOut', '📤 Audio Type Out', '', 8);
-        IPS_SetIcon($this->GetIDForIdent('AudioTypeOut'), 'Information');
-    }
-
-    public function ApplyChanges(): void
-    {
-        parent::ApplyChanges();
-
-        // Self-Healing: Reset all corrupted presentations before re-applying
-        foreach (['Power','Volume','Mute','Source','AudioMode','Voicing','AudioTypeIn','AudioTypeOut'] as $_ident) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent($_ident), []);
-        }
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
+        $this->RegisterVariableBoolean('Power', '⚡ Power', [
             'PRESENTATION'=> VARIABLE_PRESENTATION_SWITCH,
             'ICON'        => 'Power'
-        ]);
+        ], 1);
+        $this->EnableAction('Power');
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Mute'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_SWITCH,
-            'ICON'        => 'Speaker'
-        ]);
-
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Volume'), [
+        $this->RegisterVariableFloat('Volume', '🔊 Lautstärke', [
             'PRESENTATION'=> VARIABLE_PRESENTATION_SLIDER,
             'ICON'        => 'Intensity',
             'SUFFIX'      => 'dB',
             'MIN'         => -99.9,
             'MAX'         => 24.0,
             'STEP'        => 0.5
-        ]);
+        ], 2);
+        $this->EnableAction('Volume');
 
-                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Source'), [
-                'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'TV'
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('AudioMode'), [
-                'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'Sound'
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Voicing'), [
-                'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'Speaker'
-        ]);
+        $this->RegisterVariableBoolean('Mute', '🔇 Mute', [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_SWITCH,
+            'ICON'        => 'Speaker'
+        ], 3);
+        $this->EnableAction('Mute');
+
+        $this->RegisterVariableInteger('Source', '🎵 Quelle', [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'TV'
+        ], 4);
+        $this->EnableAction('Source');
+
+        $this->RegisterVariableInteger('AudioMode', '🎛 Audio Mode', [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'Sound'
+        ], 5);
+        $this->EnableAction('AudioMode');
+
+        $this->RegisterVariableInteger('Voicing', '🗣 Voicing', [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'Speaker'
+        ], 6);
+        $this->EnableAction('Voicing');
+
+        $this->RegisterVariableString('AudioTypeIn', '📥 Audio Type In', ['ICON' => 'Information'], 7);
+        $this->RegisterVariableString('AudioTypeOut', '📤 Audio Type Out', ['ICON' => 'Information'], 8);
+    }
+
+    public function ApplyChanges(): void
+    {
+        parent::ApplyChanges();
 
         if ($this->HasActiveParent()) {
             $this->UpdateData();
@@ -120,7 +96,7 @@ class LyngdorfMP60 extends IPSModuleStrict
         }
     }
 
-    public function RequestAction(string $Ident, $Value): void
+    public function RequestAction(string $Ident, mixed $Value): void
     {
         switch ($Ident) {
             case 'Power':
@@ -190,19 +166,6 @@ class LyngdorfMP60 extends IPSModuleStrict
 
     public function UpdateData(): void
     {
-                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Source'), [
-                'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'TV'
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('AudioMode'), [
-                'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'Sound'
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Voicing'), [
-                'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'Speaker'
-        ]);
-
         if ($this->HasActiveParent()) {
             $this->SendCommand('!VERB(1)');
             $this->SendCommand('!POWER?');

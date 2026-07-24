@@ -20,16 +20,19 @@ class RoonZone extends IPSModuleStrict
         $this->RegisterPropertyString('ZoneName', '');
 
         // Variablen registrieren
-        $this->RegisterVariableInteger('State', 'ℹ Status', '', 1);
+        $this->RegisterVariableInteger('State', 'ℹ Status', 'Roon.State', 1);
         IPS_SetIcon($this->GetIDForIdent('State'), 'Information');
-        $this->RegisterVariableString('Title', '🎵 Titel', '', 2);
-        IPS_SetIcon($this->GetIDForIdent('Title'), 'Melody');
-        $this->RegisterVariableString('Artist', '🎤 Künstler', '', 3);
-        IPS_SetIcon($this->GetIDForIdent('Artist'), 'User');
-        $this->RegisterVariableString('Album', '💿 Album', '', 4);
-        IPS_SetIcon($this->GetIDForIdent('Album'), 'Database');
-        $this->RegisterVariableInteger('Volume', '🔊 Lautstärke', '', 5);
-        IPS_SetIcon($this->GetIDForIdent('Volume'), 'Intensity');
+        $this->RegisterVariableString('Title', '🎵 Titel', ['ICON' => 'Melody'], 2);
+        $this->RegisterVariableString('Artist', '🎤 Künstler', ['ICON' => 'User'], 3);
+        $this->RegisterVariableString('Album', '💿 Album', ['ICON' => 'Database'], 4);
+        $this->RegisterVariableInteger('Volume', '🔊 Lautstärke', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'ICON' => 'Intensity',
+            'MIN'          => 0,
+            'MAX'          => 100,
+            'STEP'         => 1,
+            'SUFFIX'       => '%'
+        ], 5);
 
         // Aktionen für die Bedienung freigeben
         $this->EnableAction('State');
@@ -62,13 +65,6 @@ class RoonZone extends IPSModuleStrict
             IPS_SetVariableProfileAssociation('Roon.State', 4, 'Next', '', -1);
         }
         IPS_SetVariableCustomProfile($this->GetIDForIdent('State'), 'Roon.State');
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Volume'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-            'MIN'          => 0,
-            'MAX'          => 100,
-            'STEP'         => 1,
-            'SUFFIX'       => '%'
-        ]);
     }
 
     public function ReceiveData(string $JSONString): string
@@ -129,7 +125,7 @@ class RoonZone extends IPSModuleStrict
         }
     }
 
-    public function RequestAction(string $Ident, $Value): void
+    public function RequestAction(string $Ident, mixed $Value): void
     {
         switch ($Ident) {
             case 'State':

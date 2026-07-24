@@ -174,7 +174,7 @@ class GoogleSonosTTS extends IPSModuleStrict
 
     private function OnHouseModeChanged(int $mode, bool $isAbsence, bool $isSleep): void {}
 
-    public function PlayMessage(string $Text, bool $isAlarm = false)
+    public function PlayMessage(string $Text, bool $isAlarm = false): string|bool
     {
         if (!$isAlarm && $this->IsAbsent()) {
             $this->SLog('INFO', 'TTS unterdrückt (Abwesenheit)', $Text);

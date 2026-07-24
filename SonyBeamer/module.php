@@ -39,8 +39,10 @@ class SonyBeamer extends IPSModuleStrict
         $this->RegisterTimer('UpdateTimer', 0, 'SONY_UpdateStatus($_IPS[\'TARGET\']);');
 
         // Variablen registrieren
-        $this->RegisterVariableBoolean('Power', '📺 Status', '', 10);
-        IPS_SetIcon($this->GetIDForIdent('Power'), 'Power');
+        $this->RegisterVariableBoolean('Power', '📺 Status', [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_SWITCH,
+            'ICON'        => 'Power'
+        ], 10);
         $this->EnableAction('Power');
 
         // Alte String-Variablen entfernen, falls vorhanden
@@ -61,12 +63,20 @@ class SonyBeamer extends IPSModuleStrict
         IPS_SetIcon($this->GetIDForIdent('PictureMode'), 'TV');
         $this->EnableAction('PictureMode');
 
-        $this->RegisterVariableInteger('OperationTime', '⏱ Betriebsstunden', '', 40);
-        IPS_SetIcon($this->GetIDForIdent('OperationTime'), 'Clock');
-        $this->RegisterVariableInteger('LightSourceTime', '💡 Lampenstunden', '', 50);
-        IPS_SetIcon($this->GetIDForIdent('LightSourceTime'), 'Bulb');
-        $this->RegisterVariableString('Warning', 'Warnungen', '', 60);
-        IPS_SetIcon($this->GetIDForIdent('Warning'), 'Warning');
+        $this->RegisterVariableInteger('OperationTime', '⏱ Betriebsstunden', [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'=> 'Clock',
+            'SUFFIX'=> 'h'
+        ], 40);
+        $this->RegisterVariableInteger('LightSourceTime', '💡 Lampenstunden', [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'=> 'Bulb',
+            'SUFFIX'=> 'h'
+        ], 50);
+        $this->RegisterVariableString('Warning', 'Warnungen', [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'=> 'Warning'
+        ], 60);
     }
 
     public function ApplyChanges(): void{
@@ -77,29 +87,9 @@ class SonyBeamer extends IPSModuleStrict
         $this->SetTimerInterval('UpdateTimer', $interval * 1000);
 
         // Self-Healing: Reset all corrupted presentations before re-applying
-        foreach (['Power','Input','PictureMode','OperationTime','LightSourceTime','Warning'] as $_ident) {
+        foreach (['Input','PictureMode'] as $_ident) {
             IPS_SetVariableCustomPresentation($this->GetIDForIdent($_ident), []);
         }
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_SWITCH,
-            'ICON'        => 'Power'
-        ]);
-        
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('OperationTime'), [
-                'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'Clock',
-            'SUFFIX'=> 'h'
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('LightSourceTime'), [
-                'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'Bulb',
-            'SUFFIX'=> 'h'
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Warning'), [
-                'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'Warning'
-        ]);
         
         // Input Profil
         if (IPS_VariableProfileExists('Sony.Input') && IPS_GetVariableProfile('Sony.Input')['ProfileType'] !== 1) {
@@ -151,7 +141,7 @@ class SonyBeamer extends IPSModuleStrict
         IPS_LogMessage('SmartVillaKunterbunt', 'SonyBeamer: '. $Message);
     }
 
-    public function RequestAction(string $Ident, $Value): void{
+    public function RequestAction(string $Ident, mixed $Value): void{
         switch ($Ident) {
             case 'Power':
                 if ($Value) {

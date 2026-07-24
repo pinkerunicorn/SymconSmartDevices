@@ -7,12 +7,6 @@ class XeroxPrinter extends IPSModuleStrict
     public function Create(): void
     {
         parent::Create();
-        if (function_exists('IPS_SetVariableCustomPresentation')) {
-            foreach(['LastUpdate'] as $ident) {
-                $id = @IPS_GetObjectIDByIdent($ident, $this->InstanceID);
-                if ($id !== false) @IPS_SetVariableCustomPresentation($id, []);
-            }
-        }
 
         // Eigenschaften registrieren
         $this->RegisterPropertyString('Host', '10.1.20.30');
@@ -35,16 +29,12 @@ class XeroxPrinter extends IPSModuleStrict
         $this->RegisterTimer('UpdateTimer', 0, 'XEROX_UpdateStatus($_IPS[\'TARGET\']);');
 
         // Feste Variablen
-        $this->RegisterVariableInteger('LastUpdate', '⏱ Letztes erfolgreiches Update', '', 999);
-        IPS_SetIcon($this->GetIDForIdent('LastUpdate'), 'Clock');
+        $this->RegisterVariableInteger('LastUpdate', '⏱ Letztes erfolgreiches Update', ['ICON' => 'Clock'], 999);
     }
 
     public function ApplyChanges(): void{
         parent::ApplyChanges();
 
-        
-        // Set LastUpdate Icon
-        IPS_SetIcon($this->GetIDForIdent('LastUpdate'), 'Clock');
 
         // OID Liste auslesen und Variablen anlegen
         $oidList = json_decode($this->ReadPropertyString('OIDList'), true);
@@ -67,8 +57,7 @@ class XeroxPrinter extends IPSModuleStrict
                     $icon = 'Drop';
                 }
                 
-                $this->RegisterVariableFloat($ident, $name, '', $index * 10);
-                IPS_SetIcon($this->GetIDForIdent($ident), $icon);
+                $this->RegisterVariableFloat($ident, $name, ['ICON' => $icon], $index * 10);
                 $keepVariables[] = $ident;
             }
         }

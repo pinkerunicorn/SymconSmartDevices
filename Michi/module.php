@@ -19,73 +19,46 @@ class Michi extends IPSModuleStrict
 
 
         // Variablen registrieren
-        $this->RegisterVariableBoolean('Power', 'Power', '', 10);
-        IPS_SetIcon($this->GetIDForIdent('Power'), 'Power');
-        $this->EnableAction('Power');
-
-        $this->RegisterVariableInteger('Dimmer', 'Display Helligkeit', '', 20);
-        IPS_SetIcon($this->GetIDForIdent('Dimmer'), 'Bulb');
-        $this->EnableAction('Dimmer');
-
-        $this->RegisterVariableString('Model', 'Modell', '', 30);
-        IPS_SetIcon($this->GetIDForIdent('Model'), 'Information');
-        
-        $this->RegisterVariableString('Version', 'Software Version', '', 40);
-        IPS_SetIcon($this->GetIDForIdent('Version'), 'Information');
-        
-        $this->RegisterVariableString('IP', 'IP-Adresse', '', 50);
-        IPS_SetIcon($this->GetIDForIdent('IP'), 'Network');
-        
-        $this->RegisterVariableString('MAC', 'MAC-Adresse', '', 60);
-        IPS_SetIcon($this->GetIDForIdent('MAC'), 'Network');
-    }
-
-    public function ApplyChanges(): void{
-        parent::ApplyChanges();
-
-        // Self-Healing: Reset all corrupted presentations
-        if (function_exists('IPS_SetVariableCustomPresentation')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), []);
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), []);
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Model'), []);
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Version'), []);
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('IP'), []);
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('MAC'), []);
-        }
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
+        $this->RegisterVariableBoolean('Power', 'Power', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
             'ICON'         => 'Power'
-        ]);
+        ], 10);
+        $this->EnableAction('Power');
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), [
+        $this->RegisterVariableInteger('Dimmer', 'Display Helligkeit', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
             'ICON'         => 'Bulb',
             'MIN'          => 0,
             'MAX'          => 100,
             'STEP'         => 25,
             'SUFFIX'       => '%'
-        ]);
+        ], 20);
+        $this->EnableAction('Dimmer');
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Model'), [
+        $this->RegisterVariableString('Model', 'Modell', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Information'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Version'), [
+        ], 30);
+        
+        $this->RegisterVariableString('Version', 'Software Version', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Information'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('IP'), [
+        ], 40);
+        
+        $this->RegisterVariableString('IP', 'IP-Adresse', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Network'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('MAC'), [
+        ], 50);
+        
+        $this->RegisterVariableString('MAC', 'MAC-Adresse', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Network'
-        ]);
+        ], 60);
+    }
+
+    public function ApplyChanges(): void{
+        parent::ApplyChanges();
+
 
         // Timer setzen
         $interval = $this->ReadPropertyInteger('UpdateInterval');
@@ -109,7 +82,7 @@ class Michi extends IPSModuleStrict
         $this->SendCommand("mac?");
     }
 
-    public function RequestAction(string $Ident, $Value): void{
+    public function RequestAction(string $Ident, mixed $Value): void{
         switch ($Ident) {
             case 'Power':
                 if ($Value) {

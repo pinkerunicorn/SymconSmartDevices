@@ -15,26 +15,16 @@ class AirthingsWavePlus extends IPSModuleStrict
         $this->SetReceiveDataFilter('.*' . preg_quote($this->ReadPropertyString('MQTTBaseTopic')) . '.*');
 
         // Variables
-        $this->RegisterVariableBoolean('Online', 'Online');
-        IPS_SetIcon($this->GetIDForIdent('Online'), 'Network');
-        $this->RegisterVariableBoolean('Alarm', 'Alarm');
-        IPS_SetIcon($this->GetIDForIdent('Alarm'), 'Warning');
-        $this->RegisterVariableFloat('AirTemp', 'Temperatur');
-        IPS_SetIcon($this->GetIDForIdent('AirTemp'), 'Temperature');
-        $this->RegisterVariableFloat('AirHum', 'Luftfeuchtigkeit');
-        IPS_SetIcon($this->GetIDForIdent('AirHum'), 'Drop');
-        $this->RegisterVariableFloat('AirPress', 'Luftdruck');
-        IPS_SetIcon($this->GetIDForIdent('AirPress'), 'Cloud');
-        $this->RegisterVariableFloat('AirBatt', 'Batterie');
-        IPS_SetIcon($this->GetIDForIdent('AirBatt'), 'Battery');
-        $this->RegisterVariableInteger('AirCO2', 'CO2');
-        IPS_SetIcon($this->GetIDForIdent('AirCO2'), 'Cloud');
-        $this->RegisterVariableInteger('AirVOC', 'VOC');
-        IPS_SetIcon($this->GetIDForIdent('AirVOC'), 'Cloud');
-        $this->RegisterVariableInteger('AirRadonST', 'Radon (Short Term)');
-        IPS_SetIcon($this->GetIDForIdent('AirRadonST'), 'Cloud');
-        $this->RegisterVariableInteger('AirRadonLT', 'Radon (Long Term)');
-        IPS_SetIcon($this->GetIDForIdent('AirRadonLT'), 'Cloud');
+        $this->RegisterVariableBoolean('Online', 'Online', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Network']);
+        $this->RegisterVariableBoolean('Alarm', 'Alarm', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Alert']);
+        $this->RegisterVariableFloat('AirTemp', 'Temperatur', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' °C', 'ICON' => 'Temperature']);
+        $this->RegisterVariableFloat('AirHum', 'Luftfeuchtigkeit', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' %', 'ICON' => 'Drops']);
+        $this->RegisterVariableFloat('AirPress', 'Luftdruck', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' hPa', 'ICON' => 'Gauge']);
+        $this->RegisterVariableFloat('AirBatt', 'Batterie', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' %', 'ICON' => 'Battery']);
+        $this->RegisterVariableInteger('AirCO2', 'CO2', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' ppm', 'ICON' => 'Wind']);
+        $this->RegisterVariableInteger('AirVOC', 'VOC', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' ppb', 'ICON' => 'Wind']);
+        $this->RegisterVariableInteger('AirRadonST', 'Radon (Short Term)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Bq/m³', 'ICON' => 'Radiation']);
+        $this->RegisterVariableInteger('AirRadonLT', 'Radon (Long Term)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Bq/m³', 'ICON' => 'Radiation']);
         
         // Timer
         $this->RegisterTimer('WatchdogTimer', 0, 'AIRTHINGS_WatchdogTriggered($_IPS[\'TARGET\']);');
@@ -49,9 +39,6 @@ class AirthingsWavePlus extends IPSModuleStrict
         $topic = $this->ReadPropertyString('MQTTBaseTopic');
         $this->SetReceiveDataFilter('.*' . preg_quote($topic) . '.*');
 
-        // Apply Symcon 8 Custom Presentations (instead of Legacy Profiles)
-        $this->UpdatePresentations();
-        
         // Reset Watchdog Timer if enabled
         $this->ResetWatchdog();
     }
@@ -72,95 +59,6 @@ class AirthingsWavePlus extends IPSModuleStrict
             $this->SetTimerInterval('WatchdogTimer', $timeout * 60 * 1000);
         } else {
             $this->SetTimerInterval('WatchdogTimer', 0);
-        }
-    }
-
-    private function UpdatePresentations(): void
-    {
-        // Online Status
-        if (@IPS_GetObjectIDByIdent('Online', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Online'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Network'
-            ]);
-        }
-        
-        // Alarm Status
-        if (@IPS_GetObjectIDByIdent('Alarm', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Alarm'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Alert'
-            ]);
-        }
-
-        // Temperatur
-        if (@IPS_GetObjectIDByIdent('AirTemp', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AirTemp'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'SUFFIX'       => ' °C',
-                'ICON'         => 'Temperature'
-            ]);
-        }
-        
-        // Luftfeuchtigkeit
-        if (@IPS_GetObjectIDByIdent('AirHum', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AirHum'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'SUFFIX'       => ' %',
-                'ICON'         => 'Drops'
-            ]);
-        }
-        
-        // Luftdruck
-        if (@IPS_GetObjectIDByIdent('AirPress', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AirPress'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'SUFFIX'       => ' hPa',
-                'ICON'         => 'Gauge'
-            ]);
-        }
-
-        // Batterie (wird als % dargestellt)
-        if (@IPS_GetObjectIDByIdent('AirBatt', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AirBatt'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'SUFFIX'       => ' %', 
-                'ICON'         => 'Battery'
-            ]);
-        }
-
-        // CO2
-        if (@IPS_GetObjectIDByIdent('AirCO2', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AirCO2'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'SUFFIX'       => ' ppm',
-                'ICON'         => 'Wind'
-            ]);
-        }
-
-        // VOC
-        if (@IPS_GetObjectIDByIdent('AirVOC', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AirVOC'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'SUFFIX'       => ' ppb',
-                'ICON'         => 'Wind'
-            ]);
-        }
-
-        // Radon ST / LT
-        if (@IPS_GetObjectIDByIdent('AirRadonST', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AirRadonST'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'SUFFIX'       => ' Bq/m³',
-                'ICON'         => 'Radiation'
-            ]);
-        }
-        if (@IPS_GetObjectIDByIdent('AirRadonLT', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AirRadonLT'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'SUFFIX'       => ' Bq/m³',
-                'ICON'         => 'Radiation'
-            ]);
         }
     }
 

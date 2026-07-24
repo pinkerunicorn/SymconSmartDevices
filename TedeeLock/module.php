@@ -16,16 +16,44 @@ class TedeeLock extends IPSModuleStrict
         
         $this->RegisterAttributeInteger('DetectedLockID', 0);
 
-        $this->RegisterVariableInteger('LockState', 'Schloss Status', '', 1);
-        IPS_SetIcon($this->GetIDForIdent('LockState'), 'Information');
-        $this->RegisterVariableInteger('BatteryLevel', 'Batterie', '', 2);
-        IPS_SetIcon($this->GetIDForIdent('BatteryLevel'), 'Battery');
-        $this->RegisterVariableBoolean('IsCharging', 'Wird geladen', '', 3);
-        IPS_SetIcon($this->GetIDForIdent('IsCharging'), 'Plug');
+        $this->RegisterVariableInteger('LockState', 'Schloss Status', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+            'ICON' => 'Information',
+            'VALUES' => [
+                ['VALUE' => 0, 'STRING' => 'Unkalibriert', 'ICON' => 'Warning', 'COLOR' => 0xFF0000],
+                ['VALUE' => 1, 'STRING' => 'Kalibriert...', 'ICON' => 'TurnLeft', 'COLOR' => 0x00FF00],
+                ['VALUE' => 2, 'STRING' => 'Entriegelt', 'ICON' => 'LockOpen', 'COLOR' => 0x00FF00],
+                ['VALUE' => 3, 'STRING' => 'Halb-Verriegelt', 'ICON' => 'Warning', 'COLOR' => 0xFFA500],
+                ['VALUE' => 4, 'STRING' => 'Entriegelt...', 'ICON' => 'LockOpen', 'COLOR' => 0x00FF00],
+                ['VALUE' => 5, 'STRING' => 'Verriegelt...', 'ICON' => 'LockClosed', 'COLOR' => 0xFF0000],
+                ['VALUE' => 6, 'STRING' => 'Verriegelt', 'ICON' => 'LockClosed', 'COLOR' => 0xFF0000],
+                ['VALUE' => 7, 'STRING' => 'Falle gezogen', 'ICON' => 'Door', 'COLOR' => 0x0000FF],
+                ['VALUE' => 8, 'STRING' => 'Falle zieht...', 'ICON' => 'Door', 'COLOR' => 0x0000FF],
+                ['VALUE' => 9, 'STRING' => 'Unbekannt', 'ICON' => 'Information', 'COLOR' => -1],
+                ['VALUE' => 18, 'STRING' => 'Update...', 'ICON' => 'Gear', 'COLOR' => 0x00FF00],
+            ]
+        ], 1);
+        $this->RegisterVariableInteger('BatteryLevel', 'Batterie', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Battery',
+            'SUFFIX' => ' %'
+        ], 2);
+        $this->RegisterVariableBoolean('IsCharging', 'Wird geladen', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Plug'
+        ], 3);
         
         // Control variable
-        $this->RegisterVariableInteger('LockControl', 'Steuerung', '', 0);
-        IPS_SetIcon($this->GetIDForIdent('LockControl'), 'Gear');
+        $this->RegisterVariableInteger('LockControl', 'Steuerung', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+            'ICON' => 'Gear',
+            'VALUES' => [
+                ['VALUE' => 0, 'STRING' => 'Entriegeln', 'ICON' => 'LockOpen', 'COLOR' => -1],
+                ['VALUE' => 1, 'STRING' => 'Verriegeln', 'ICON' => 'LockClosed', 'COLOR' => -1],
+                ['VALUE' => 2, 'STRING' => 'Falle ziehen', 'ICON' => 'Door', 'COLOR' => -1],
+                ['VALUE' => 3, 'STRING' => 'Entriegeln & Falle ziehen', 'ICON' => 'LockOpen', 'COLOR' => -1],
+            ]
+        ], 0);
         $this->EnableAction('LockControl');
     }
 
@@ -45,39 +73,7 @@ class TedeeLock extends IPSModuleStrict
         
         
 
-        $this->MaintainVariable('LockState', 'Schloss Status', 1, '', 1, true);
-        $this->MaintainVariable('LockControl', 'Steuerung', 1, '', 0, true);
 
-        if (!IPS_VariableProfileExists('Tedee.LockState')) {
-            IPS_CreateVariableProfile('Tedee.LockState', 1);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 0, 'Unkalibriert', 'Warning', 0xFF0000);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 1, 'Kalibriert...', 'TurnLeft', 0x00FF00);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 2, 'Entriegelt', 'LockOpen', 0x00FF00);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 3, 'Halb-Verriegelt', 'Warning', 0xFFA500);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 4, 'Entriegelt...', 'LockOpen', 0x00FF00);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 5, 'Verriegelt...', 'LockClosed', 0xFF0000);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 6, 'Verriegelt', 'LockClosed', 0xFF0000);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 7, 'Falle gezogen', 'Door', 0x0000FF);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 8, 'Falle zieht...', 'Door', 0x0000FF);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 9, 'Unbekannt', 'Information', -1);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 18, 'Update...', 'Gear', 0x00FF00);
-        }
-        IPS_SetVariableCustomProfile($this->GetIDForIdent('LockState'), 'Tedee.LockState');
-
-        if (!IPS_VariableProfileExists('Tedee.LockControl')) {
-            IPS_CreateVariableProfile('Tedee.LockControl', 1);
-        }
-        IPS_SetVariableProfileAssociation('Tedee.LockControl', 0, 'Entriegeln', 'LockOpen', -1);
-        IPS_SetVariableProfileAssociation('Tedee.LockControl', 1, 'Verriegeln', 'LockClosed', -1);
-        IPS_SetVariableProfileAssociation('Tedee.LockControl', 2, 'Falle ziehen', 'Door', -1);
-        IPS_SetVariableProfileAssociation('Tedee.LockControl', 3, 'Entriegeln & Falle ziehen', 'LockOpen', -1);
-        IPS_SetVariableCustomProfile($this->GetIDForIdent('LockControl'), 'Tedee.LockControl');
-
-        if (function_exists('IPS_SetVariableCustomPresentation')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('BatteryLevel'), [
-                'SUFFIX' => ' %'
-            ]);
-        }
 
 // Register Webhook Endpoint in Symcon
         $this->RegisterHook("Tedee_" . $this->InstanceID);
@@ -248,7 +244,7 @@ class TedeeLock extends IPSModuleStrict
         $this->SendDebug('Webhook', "Registrierung an Bridge HTTP: $httpCode | Resp: $response", 0);
     }
 
-    public function RequestAction(string $Ident, $Value): void
+    public function RequestAction(string $Ident, mixed $Value): void
     {
         if ($Ident === 'LockControl') {
             if ($Value == 0) {

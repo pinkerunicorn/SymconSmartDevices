@@ -30,8 +30,7 @@ class VestaboardGenerator extends IPSModuleStrict {
         $this->RegisterTimer("VestaboardWakeupTimer", 0, 'VESTA_Wakeup($_IPS[\'TARGET\']);');
 
         for ($i = 1; $i <= 6; $i++) {
-            $this->RegisterVariableString("Line{$i}", "Zeile {$i}", "", $i);
-            IPS_SetIcon($this->GetIDForIdent("Line{$i}"), 'List');
+            $this->RegisterVariableString("Line{$i}", "Zeile {$i}", ['ICON' => 'List'], $i);
         }
     }
 

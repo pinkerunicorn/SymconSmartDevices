@@ -40,8 +40,8 @@ class WithingsDevice extends IPSModuleStrict {
 
         $this->RegisterTimer("FetchTimer", 0, 'WITHINGS_FetchMeasurements($_IPS[\'TARGET\']);');
 
-        $this->MaintainVariable("LastMeasurement", "⏱ Letzte Messung", 3, "", 0, true);
-        $this->MaintainVariable("DailyReport", "🧠 Gemini Analyse", 3, "", 1, true);
+        $this->RegisterVariableString("LastMeasurement", "⏱ Letzte Messung", ['ICON' => 'Clock'], 0);
+        $this->RegisterVariableString("DailyReport", "🧠 Gemini Analyse", "", 1);
     }
 
     public function ApplyChanges(): void{
@@ -63,10 +63,6 @@ class WithingsDevice extends IPSModuleStrict {
         $interval = $this->ReadPropertyInteger("FetchInterval");
         $this->SetTimerInterval("FetchTimer", $interval * 60 * 1000);
 
-        $varID = @IPS_GetObjectIDByIdent("LastMeasurement", $this->InstanceID);
-        if ($varID !== false) {
-            IPS_SetIcon($varID, "Clock");
-        }
 
         $this->UpdatePresentations();
     }
@@ -97,7 +93,7 @@ class WithingsDevice extends IPSModuleStrict {
         return true;
     }
 
-    private function GetRedirectURI() {
+    private function GetRedirectURI(): string {
         $cc_ids = IPS_GetInstanceListByModuleID("{9486D575-BE8C-4ED8-B5B5-20930E26DE6F}");
         if (count($cc_ids) > 0) {
             $url = CC_GetConnectURL($cc_ids[0]);
@@ -109,7 +105,7 @@ class WithingsDevice extends IPSModuleStrict {
         return "http://". $_SERVER['HTTP_HOST'] . "/hook/smartwithings";
     }
 
-    public function GetAuthURL() {
+    public function GetAuthURL(): void {
         $clientId = $this->ReadPropertyString("ClientID");
         if ($clientId == "") {
             echo "Fehler: Client ID ist leer.";
@@ -152,7 +148,7 @@ class WithingsDevice extends IPSModuleStrict {
         }
     }
 
-    private function RefreshToken() {
+    private function RefreshToken(): bool {
         $refreshToken = $this->ReadAttributeString("RefreshToken");
         if ($refreshToken == "") {
             $this->SendDebug("OAuth", "Kein Refresh Token vorhanden. Bitte neu authentifizieren.", 0);
@@ -173,7 +169,7 @@ class WithingsDevice extends IPSModuleStrict {
         return $this->RequestTokens($postData);
     }
 
-    private function RequestTokens($postData) {
+    private function RequestTokens(array $postData): bool {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://wbsapi.withings.net/v2/oauth2");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -207,7 +203,7 @@ class WithingsDevice extends IPSModuleStrict {
         $this->SLog('INFO', $text);
     }
 
-    public function FetchMeasurements() {
+    public function FetchMeasurements(): void {
         $accessToken = $this->ReadAttributeString("AccessToken");
         if ($accessToken == "") {
             $this->SLog('ERROR', 'Kein Access Token vorhanden. Bitte autorisieren.');
@@ -319,7 +315,7 @@ class WithingsDevice extends IPSModuleStrict {
         $this->SendDebug("Fetch", "Abruf erfolgreich beendet (". $pages . "Seiten).", 0);
     }
 
-    private function GetMeasurementConfig($type) {
+    private function GetMeasurementConfig(int $type): array {
         $name = "Messwert Typ ". $type;
         $suffix = "";
         $icon = "";
@@ -372,7 +368,7 @@ class WithingsDevice extends IPSModuleStrict {
         ];
     }
 
-    private function UpdatePresentations() {
+    private function UpdatePresentations(): void {
         $children = IPS_GetChildrenIDs($this->InstanceID);
         foreach ($children as $childID) {
             $obj = IPS_GetObject($childID);
@@ -395,7 +391,7 @@ class WithingsDevice extends IPSModuleStrict {
         }
     }
 
-    private function ProcessMeasurement($measure, $timestamp) {
+    private function ProcessMeasurement(array $measure, int $timestamp): void {
         if (!isset($measure['type']) || !isset($measure['value'])) {
             return;
         }
@@ -441,7 +437,7 @@ class WithingsDevice extends IPSModuleStrict {
         }
     }
 
-    public function EvaluateWithGemini() {
+    public function EvaluateWithGemini(): void {
         // SmartGeminiIO auto-discover
         $geminiInstances = IPS_GetInstanceListByModuleID('{4C8B2A6D-9E3F-4A7B-8C5D-1F6E2A3B7C4D}');
         if (empty($geminiInstances)) {
@@ -517,7 +513,7 @@ class WithingsDevice extends IPSModuleStrict {
         IPS_RunScriptText($script);
     }
 
-    public function ProcessGeminiResult(string $report) {
+    public function ProcessGeminiResult(string $report): void {
         if (empty($report)) {
             $this->SLog('ERROR', 'SmartGeminiIO lieferte keine Antwort.');
             return;
