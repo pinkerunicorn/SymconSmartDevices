@@ -97,30 +97,9 @@ class VestaboardGenerator extends IPSModuleStrict {
             $this->RegisterMessage($activeViewId, VM_UPDATE);
         }
         
-        // Migration zu HouseModeVariableID
-        $houseModeId = $this->ReadPropertyInteger("HouseModeVariableID");
-        if ($houseModeId == 0) {
-            $oldAbsenceId = $this->ReadPropertyInteger("AbsenceModeVariableID");
-            $oldHeimkinoId = $this->ReadPropertyInteger("HeimkinoModeVariableID");
-            
-            $newId = 0;
-            if ($oldAbsenceId > 0) {
-                $newId = $oldAbsenceId;
-            } elseif ($oldHeimkinoId > 0) {
-                $newId = $oldHeimkinoId;
-            }
-            
-            if ($newId > 0) {
-                IPS_SetProperty($this->InstanceID, "HouseModeVariableID", $newId);
-                IPS_SetProperty($this->InstanceID, "AbsenceModeVariableID", 0);
-                IPS_SetProperty($this->InstanceID, "HeimkinoModeVariableID", 0);
-                IPS_ApplyChanges($this->InstanceID);
-                return;
-            }
-        }
-        
         
         $this->ApplyHouseModeSubscription();
+
         
         $this->UpdateSleepTimer();
         $this->UpdateWakeupTimer();
