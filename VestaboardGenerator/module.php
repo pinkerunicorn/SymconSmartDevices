@@ -1,7 +1,10 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_HouseModeAware.php';
+
 class VestaboardGenerator extends IPSModuleStrict {
+    use HouseModeAware_Trait;
 
     public function Create(): void {
         parent::Create();
@@ -11,7 +14,7 @@ class VestaboardGenerator extends IPSModuleStrict {
         $this->RegisterPropertyInteger("InstIdVestaboardLocal", 0); // Die InstanzID vom Vestaboard Local Modul
         $this->RegisterPropertyInteger("ManualUpdateTriggerID", 0); // Trigger für manuelles Update
         $this->RegisterPropertyInteger("ActiveViewVariableID", 0); // Trigger für Multi-View
-        $this->RegisterPropertyInteger("HouseModeVariableID", 0); // Globale Haus-Modus Variable
+        $this->RegisterHouseModeAwareness();
         $this->RegisterPropertyInteger("HeimkinoModeVariableID", 0); // Veraltet
         $this->RegisterPropertyString("HeimkinoModeValues", "3"); // Die IDs des Heimkino-Modus (kommagetrennt)
         $this->RegisterPropertyInteger("AbsenceModeVariableID", 0); // Veraltet
@@ -116,9 +119,8 @@ class VestaboardGenerator extends IPSModuleStrict {
             }
         }
         
-        if ($houseModeId > 0 && IPS_VariableExists($houseModeId)) {
-            $this->RegisterMessage($houseModeId, VM_UPDATE);
-        }
+        
+        $this->ApplyHouseModeSubscription();
         
         $this->UpdateSleepTimer();
         $this->UpdateWakeupTimer();
@@ -185,6 +187,13 @@ class VestaboardGenerator extends IPSModuleStrict {
 
     public function UpdateBoard(bool $force = false): void {
         $this->DoUpdateBoard($force, false);
+    }
+
+    private function OnHouseModeChanged(int $mode, bool $isAbsence, bool $isSleep): void
+    {
+        // VestaboardGenerator nutzt eigene Logik in MessageSink/DoUpdateBoard
+        $forceUpdate = !$isAbsence;
+        $this->DoUpdateBoard($forceUpdate);
     }
 
     /**
@@ -665,7 +674,7 @@ class VestaboardGenerator extends IPSModuleStrict {
 
     public function GetConfigurationForm(): string
     {
-        return <<<'EOT'
+        $json = <<<'EOT'
 {
     "elements": [
 
@@ -972,6 +981,39 @@ class VestaboardGenerator extends IPSModuleStrict {
     ]
 }
 EOT;
+        $form = json_decode($json, true);
+
+        $modes = [];
+        foreach ($this->GetAvailableHouseModes() as $m) {
+            $modes[] = ['label' => $m['Name'], 'value' => (string)$m['Value']];
+        }
+
+        if (isset($form['elements']) && is_array($form['elements'])) {
+            foreach ($form['elements'] as &$el) {
+                if (isset($el['type']) && $el['type'] === 'ExpansionPanel' && isset($el['items'])) {
+                    foreach ($el['items'] as &$item) {
+                        if (isset($item['name']) && $item['name'] === 'HeimkinoModeValues') {
+                            $item = [
+                                "type" => "Select",
+                                "name" => "HeimkinoModeValues",
+                                "caption" => "Heimkino Modus (ID aus Haus-Modus Profil)",
+                                "options" => $modes
+                            ];
+                        }
+                        if (isset($item['name']) && $item['name'] === 'AbsenceModeValues') {
+                            $item = [
+                                "type" => "Select",
+                                "name" => "AbsenceModeValues",
+                                "caption" => "Abwesenheits Modus (ID aus Haus-Modus Profil)",
+                                "options" => $modes
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+
+        return json_encode($form);
     }
 }
 

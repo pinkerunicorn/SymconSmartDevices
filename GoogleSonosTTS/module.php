@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_HouseModeAware.php';
+
 class GoogleSonosTTS extends IPSModuleStrict
 {
+    use HouseModeAware_Trait;
     public function Create(): void{
         // Never delete this line!
         parent::Create();
@@ -21,6 +24,8 @@ class GoogleSonosTTS extends IPSModuleStrict
         // Register Timers
         $this->RegisterTimer("CleanupTimer", 0, 'GSTTS_CleanupCache($_IPS[\'TARGET\']);');
         $this->RegisterTimer("ResumeRoonTimer", 0, 'GSTTS_ResumeRoon($_IPS[\'TARGET\']);');
+        
+        $this->RegisterHouseModeAwareness();
     }
 
     public function ApplyChanges(): void{
@@ -54,6 +59,7 @@ class GoogleSonosTTS extends IPSModuleStrict
 
         // Set Timer Interval to 24 hours (86400000 ms) in ApplyChanges
         $this->SetTimerInterval("CleanupTimer", 86400000);
+        $this->ApplyHouseModeSubscription();
     }
 
     public function ClearCache(): void
@@ -162,8 +168,23 @@ class GoogleSonosTTS extends IPSModuleStrict
         }
     }
 
-    public function PlayMessage(string $Text)
+    public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void {
+        if ($this->HandleHouseModeMessage($SenderID, $Message, $Data)) return;
+    }
+
+    private function OnHouseModeChanged(int $mode, bool $isAbsence, bool $isSleep): void {}
+
+    public function PlayMessage(string $Text, bool $isAlarm = false)
     {
+        if (!$isAlarm && $this->IsAbsent()) {
+            $this->SLog('INFO', 'TTS unterdrückt (Abwesenheit)', $Text);
+            return false;
+        }
+        if (!$isAlarm && $this->IsSleep()) {
+            $this->SLog('INFO', 'TTS unterdrückt (Schlafmodus)', $Text);
+            return false;
+        }
+
         $this->SendDebug("GoogleTTS", "Starte Sprachausgabe mit Text: " . $Text, 0);
 
         $apiKey = $this->ReadPropertyString("ApiKey");
@@ -465,6 +486,15 @@ class GoogleSonosTTS extends IPSModuleStrict
                     "value": "en-US-Wavenet-D"
                 }
             ]
+        },
+        {
+            "type": "Label",
+            "caption": "Haus-Modus anbinden (für automatische Stummschaltung)"
+        },
+        {
+            "type": "SelectVariable",
+            "name": "HouseModeVariableID",
+            "caption": "Haus-Modus Variable"
         },
         {
             "type": "Label",
