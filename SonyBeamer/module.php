@@ -39,10 +39,7 @@ class SonyBeamer extends IPSModuleStrict
         $this->RegisterTimer('UpdateTimer', 0, 'SONY_UpdateStatus($_IPS[\'TARGET\']);');
 
         // Variablen registrieren
-        $this->RegisterVariableBoolean('Power', '📺 Status', [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_SWITCH,
-            'ICON'        => 'Power'
-        ], 10);
+        $this->RegisterVariableBoolean('Power', '📺 Status', '', 10);
         $this->EnableAction('Power');
 
         // Alte String-Variablen entfernen, falls vorhanden
@@ -55,28 +52,15 @@ class SonyBeamer extends IPSModuleStrict
             $this->UnregisterVariable('PictureMode');
         }
 
-        $this->RegisterVariableInteger('Input', '🔌 Eingang', 'Sony.Input', 20);
-        IPS_SetIcon($this->GetIDForIdent('Input'), 'Plug');
+        $this->RegisterVariableInteger('Input', '🔌 Eingang', '', 20);
         $this->EnableAction('Input');
 
-        $this->RegisterVariableInteger('PictureMode', '🖼 Bildmodus', 'Sony.PictureMode', 30);
-        IPS_SetIcon($this->GetIDForIdent('PictureMode'), 'TV');
+        $this->RegisterVariableInteger('PictureMode', '🖼 Bildmodus', '', 30);
         $this->EnableAction('PictureMode');
 
-        $this->RegisterVariableInteger('OperationTime', '⏱ Betriebsstunden', [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'Clock',
-            'SUFFIX'=> 'h'
-        ], 40);
-        $this->RegisterVariableInteger('LightSourceTime', '💡 Lampenstunden', [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'Bulb',
-            'SUFFIX'=> 'h'
-        ], 50);
-        $this->RegisterVariableString('Warning', 'Warnungen', [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'Warning'
-        ], 60);
+        $this->RegisterVariableInteger('OperationTime', '⏱ Betriebsstunden', '', 40);
+        $this->RegisterVariableInteger('LightSourceTime', '💡 Lampenstunden', '', 50);
+        $this->RegisterVariableString('Warning', 'Warnungen', '', 60);
     }
 
     public function ApplyChanges(): void{
@@ -86,54 +70,67 @@ class SonyBeamer extends IPSModuleStrict
         if ($interval < 5) $interval = 5;
         $this->SetTimerInterval('UpdateTimer', $interval * 1000);
 
-        // Self-Healing: Reset all corrupted presentations before re-applying
-        foreach (['Input','PictureMode'] as $_ident) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent($_ident), []);
-        }
-        
-        // Input Profil
-        if (IPS_VariableProfileExists('Sony.Input') && IPS_GetVariableProfile('Sony.Input')['ProfileType'] !== 1) {
-            IPS_DeleteVariableProfile('Sony.Input');
-        }
-        if (!IPS_VariableProfileExists('Sony.Input')) {
-            IPS_CreateVariableProfile('Sony.Input', 1); // 1 = Integer
-            IPS_SetVariableProfileAssociation('Sony.Input', 0, 'HDMI 1', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.Input', 1, 'HDMI 2', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.Input', 2, 'Video 1', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.Input', 3, 'Component', '', -1);
-        }
-        IPS_SetVariableCustomProfile($this->GetIDForIdent('Input'), 'Sony.Input');
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Input'), [
-                'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'Plug'
-        ]);
-        
-        // Picture Mode Profil
-        if (IPS_VariableProfileExists('Sony.PictureMode') && IPS_GetVariableProfile('Sony.PictureMode')['ProfileType'] !== 1) {
-            IPS_DeleteVariableProfile('Sony.PictureMode');
-        }
-        if (!IPS_VariableProfileExists('Sony.PictureMode')) {
-            IPS_CreateVariableProfile('Sony.PictureMode', 1); // 1 = Integer
-            IPS_SetVariableProfileAssociation('Sony.PictureMode', 0, 'Dynamic', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.PictureMode', 1, 'Standard', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.PictureMode', 2, 'Brightness Priority', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.PictureMode', 3, 'Cinema Film 1', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.PictureMode', 4, 'Cinema Film 2', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.PictureMode', 5, 'Reference', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.PictureMode', 6, 'TV', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.PictureMode', 7, 'Photo', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.PictureMode', 8, 'Game', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.PictureMode', 9, 'Bright Cinema', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.PictureMode', 10, 'Bright TV', '', -1);
-            IPS_SetVariableProfileAssociation('Sony.PictureMode', 11, 'User', '', -1);
-        }
-        IPS_SetVariableCustomProfile($this->GetIDForIdent('PictureMode'), 'Sony.PictureMode');
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('PictureMode'), [
-                'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'=> 'TV'
-        ]);
+        $this->SetupVariablePresentations();
 
         $this->UpdateVisibility(!$this->GetValue('Power'));
+    }
+
+    private function SetupVariablePresentations(): void
+    {
+        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
+        $switchPres = defined('VARIABLE_PRESENTATION_SWITCH') ? VARIABLE_PRESENTATION_SWITCH : 3;
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
+            'PRESENTATION' => $switchPres,
+            'ICON' => 'Power'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Input'), [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Plug',
+            'ASSOCIATIONS' => [
+                [0, 'HDMI 1', '', -1],
+                [1, 'HDMI 2', '', -1],
+                [2, 'Video 1', '', -1],
+                [3, 'Component', '', -1],
+            ]
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('PictureMode'), [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'TV',
+            'ASSOCIATIONS' => [
+                [0, 'Dynamic', '', -1],
+                [1, 'Standard', '', -1],
+                [2, 'Brightness Priority', '', -1],
+                [3, 'Cinema Film 1', '', -1],
+                [4, 'Cinema Film 2', '', -1],
+                [5, 'Reference', '', -1],
+                [6, 'TV', '', -1],
+                [7, 'Photo', '', -1],
+                [8, 'Game', '', -1],
+                [9, 'Bright Cinema', '', -1],
+                [10, 'Bright TV', '', -1],
+                [11, 'User', '', -1],
+            ]
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('OperationTime'), [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Clock',
+            'SUFFIX' => 'h'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('LightSourceTime'), [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Bulb',
+            'SUFFIX' => 'h'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Warning'), [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Warning'
+        ]);
     }
 
     protected function Log(string $Message): void

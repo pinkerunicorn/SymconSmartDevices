@@ -20,19 +20,11 @@ class RoonZone extends IPSModuleStrict
         $this->RegisterPropertyString('ZoneName', '');
 
         // Variablen registrieren
-        $this->RegisterVariableInteger('State', 'ℹ Status', 'Roon.State', 1);
-        IPS_SetIcon($this->GetIDForIdent('State'), 'Information');
-        $this->RegisterVariableString('Title', '🎵 Titel', ['ICON' => 'Melody'], 2);
-        $this->RegisterVariableString('Artist', '🎤 Künstler', ['ICON' => 'User'], 3);
-        $this->RegisterVariableString('Album', '💿 Album', ['ICON' => 'Database'], 4);
-        $this->RegisterVariableInteger('Volume', '🔊 Lautstärke', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-            'ICON' => 'Intensity',
-            'MIN'          => 0,
-            'MAX'          => 100,
-            'STEP'         => 1,
-            'SUFFIX'       => '%'
-        ], 5);
+        $this->RegisterVariableInteger('State', 'ℹ Status', '', 1);
+        $this->RegisterVariableString('Title', '🎵 Titel', '', 2);
+        $this->RegisterVariableString('Artist', '🎤 Künstler', '', 3);
+        $this->RegisterVariableString('Album', '💿 Album', '', 4);
+        $this->RegisterVariableInteger('Volume', '🔊 Lautstärke', '', 5);
 
         // Aktionen für die Bedienung freigeben
         $this->EnableAction('State');
@@ -56,15 +48,48 @@ class RoonZone extends IPSModuleStrict
         // Filter setzen (mit preg_quote für Sonderzeichen-Sicherheit)
         $this->SetReceiveDataFilter('.*' . preg_quote($topicZone, '/') . '.*');
 
-        if (!IPS_VariableProfileExists('Roon.State')) {
-            IPS_CreateVariableProfile('Roon.State', 1);
-            IPS_SetVariableProfileAssociation('Roon.State', 0, 'Previous', '', -1);
-            IPS_SetVariableProfileAssociation('Roon.State', 1, 'Stop', '', -1);
-            IPS_SetVariableProfileAssociation('Roon.State', 2, 'Play', '', -1);
-            IPS_SetVariableProfileAssociation('Roon.State', 3, 'Pause', '', -1);
-            IPS_SetVariableProfileAssociation('Roon.State', 4, 'Next', '', -1);
-        }
-        IPS_SetVariableCustomProfile($this->GetIDForIdent('State'), 'Roon.State');
+        $this->SetupVariablePresentations();
+    }
+
+    private function SetupVariablePresentations(): void
+    {
+        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('State'), [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Information',
+            'ASSOCIATIONS' => [
+                [0, 'Previous', '', -1],
+                [1, 'Stop', '', -1],
+                [2, 'Play', '', -1],
+                [3, 'Pause', '', -1],
+                [4, 'Next', '', -1],
+            ]
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Title'), [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Melody'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Artist'), [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'User'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Album'), [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Database'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Volume'), [
+            'PRESENTATION' => defined('VARIABLE_PRESENTATION_SLIDER') ? VARIABLE_PRESENTATION_SLIDER : 2,
+            'ICON' => 'Intensity',
+            'MIN' => 0,
+            'MAX' => 100,
+            'STEP' => 1,
+            'SUFFIX' => '%'
+        ]);
     }
 
     public function ReceiveData(string $JSONString): string
