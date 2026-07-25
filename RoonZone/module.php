@@ -19,12 +19,40 @@ class RoonZone extends IPSModuleStrict
 
         $this->RegisterPropertyString('ZoneName', '');
 
+        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
+
         // Variablen registrieren
-        $this->RegisterVariableInteger('State', 'ℹ Status', '', 1);
-        $this->RegisterVariableString('Title', '🎵 Titel', '', 2);
-        $this->RegisterVariableString('Artist', '🎤 Künstler', '', 3);
-        $this->RegisterVariableString('Album', '💿 Album', '', 4);
-        $this->RegisterVariableInteger('Volume', '🔊 Lautstärke', '', 5);
+        $this->RegisterVariableInteger('State', 'ℹ Status', [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Information',
+            'ASSOCIATIONS' => [
+                [0, 'Previous', '', -1],
+                [1, 'Stop', '', -1],
+                [2, 'Play', '', -1],
+                [3, 'Pause', '', -1],
+                [4, 'Next', '', -1],
+            ]
+        ], 1);
+        $this->RegisterVariableString('Title', '🎵 Titel', [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Melody'
+        ], 2);
+        $this->RegisterVariableString('Artist', '🎤 Künstler', [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'User'
+        ], 3);
+        $this->RegisterVariableString('Album', '💿 Album', [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Database'
+        ], 4);
+        $this->RegisterVariableInteger('Volume', '🔊 Lautstärke', [
+            'PRESENTATION' => defined('VARIABLE_PRESENTATION_SLIDER') ? VARIABLE_PRESENTATION_SLIDER : 2,
+            'ICON' => 'Intensity',
+            'MIN' => 0,
+            'MAX' => 100,
+            'STEP' => 1,
+            'SUFFIX' => '%'
+        ], 5);
 
         // Aktionen für die Bedienung freigeben
         $this->EnableAction('State');
@@ -47,50 +75,9 @@ class RoonZone extends IPSModuleStrict
 
         // Filter setzen (mit preg_quote für Sonderzeichen-Sicherheit)
         $this->SetReceiveDataFilter('.*' . preg_quote($topicZone, '/') . '.*');
-
-        $this->SetupVariablePresentations();
     }
 
-    private function SetupVariablePresentations(): void
-    {
-        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('State'), [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'Information',
-            'ASSOCIATIONS' => [
-                [0, 'Previous', '', -1],
-                [1, 'Stop', '', -1],
-                [2, 'Play', '', -1],
-                [3, 'Pause', '', -1],
-                [4, 'Next', '', -1],
-            ]
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Title'), [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'Melody'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Artist'), [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'User'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Album'), [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'Database'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Volume'), [
-            'PRESENTATION' => defined('VARIABLE_PRESENTATION_SLIDER') ? VARIABLE_PRESENTATION_SLIDER : 2,
-            'ICON' => 'Intensity',
-            'MIN' => 0,
-            'MAX' => 100,
-            'STEP' => 1,
-            'SUFFIX' => '%'
-        ]);
-    }
 
     public function ReceiveData(string $JSONString): string
     {

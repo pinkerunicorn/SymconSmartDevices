@@ -53,41 +53,62 @@ class SmartFountain extends IPSModuleStrict
             $this->RegisterMessage($powerMeterID, VM_UPDATE);
         }
 
+        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
+        $switchPres = defined('VARIABLE_PRESENTATION_SWITCH') ? VARIABLE_PRESENTATION_SWITCH : 3;
+        $sliderPres = defined('VARIABLE_PRESENTATION_SLIDER') ? VARIABLE_PRESENTATION_SLIDER : 2;
+
+        $percentPresentation = [
+            'PRESENTATION' => $sliderPres,
+            'ICON' => 'Intensity',
+            'MIN' => 0,
+            'MAX' => 100,
+            'STEP' => 1,
+            'SUFFIX' => ' %'
+        ];
+
         // --- Variables ---
-        $this->MaintainVariable('Active', 'Aktiv', 0, '', 10, true);
+        $this->MaintainVariable('Active', 'Aktiv', 0, [
+            'PRESENTATION' => $switchPres,
+            'ICON' => 'Power'
+        ], 10, true);
         $this->EnableAction('Active');
 
-        $this->MaintainVariable('PumpSpeed', 'Pumpengeschwindigkeit', 1, '', 20, true);
+        $this->MaintainVariable('PumpSpeed', 'Pumpengeschwindigkeit', 1, $percentPresentation, 20, true);
         $this->EnableAction('PumpSpeed');
 
-        $this->MaintainVariable('Choreography', 'Muster', 1, 'SFTN.Choreography', 30, true);
+        $this->MaintainVariable('Choreography', 'Muster', 1, [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Menu',
+            'ASSOCIATIONS' => [
+                [0, 'Manuell', '', -1],
+                [1, 'Sinuswelle', '', -1],
+                [2, 'Puls', '', -1],
+                [3, 'Atmen', '', -1],
+                [4, 'Zufall', '', -1],
+                [5, 'Treppe', '', -1],
+                [6, 'Herzschlag', '', -1],
+                [7, 'Zufalls-Mix', '', -1],
+            ]
+        ], 30, true);
         $this->EnableAction('Choreography');
 
         // Alte Variable entfernen, falls sie existiert
-        $this->MaintainVariable('ChoreographyActive', 'Choreografie aktiv', 0, '', 40, false);
+        $this->MaintainVariable('ChoreographyActive', 'Choreografie aktiv', 0, [
+            'PRESENTATION' => $switchPres,
+            'ICON' => 'Power'
+        ], 40, false);
 
-        $this->MaintainVariable('ChoreographySpeed', 'Geschwindigkeit', 1, 'SFTN.Percent', 50, true);
+        $this->MaintainVariable('ChoreographySpeed', 'Geschwindigkeit', 1, $percentPresentation, 50, true);
         $this->EnableAction('ChoreographySpeed');
 
-        $this->MaintainVariable('ChoreographyIntensity', 'Intensität', 1, '', 60, true);
+        $this->MaintainVariable('ChoreographyIntensity', 'Intensität', 1, $percentPresentation, 60, true);
         $this->EnableAction('ChoreographyIntensity');
 
-        $this->MaintainVariable('CurrentPower', 'Aktuelle Leistung', 2, '', 70, $powerMeterID > 0);
-
-        $this->SetupVariablePresentations();
-
-        if (!IPS_VariableProfileExists('SFTN.Choreography')) {
-            IPS_CreateVariableProfile('SFTN.Choreography', 1);
-            IPS_SetVariableProfileIcon('SFTN.Choreography', 'Menu');
-        }
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 0, 'Manuell', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 1, 'Sinuswelle', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 2, 'Puls', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 3, 'Atmen', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 4, 'Zufall', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 5, 'Treppe', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 6, 'Herzschlag', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 7, 'Zufalls-Mix', '', 0x000000);
+        $this->MaintainVariable('CurrentPower', 'Aktuelle Leistung', 2, [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Electricity',
+            'SUFFIX' => ' W'
+        ], 70, $powerMeterID > 0);
 
         // Set Default Values if unset
         if ($this->GetValue('ChoreographySpeed') == 0) {
@@ -101,56 +122,7 @@ class SmartFountain extends IPSModuleStrict
         $this->UpdateTimerState();
     }
 
-    private function SetupVariablePresentations(): void
-    {
-        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
-        $switchPres = defined('VARIABLE_PRESENTATION_SWITCH') ? VARIABLE_PRESENTATION_SWITCH : 3;
-        $sliderPres = defined('VARIABLE_PRESENTATION_SLIDER') ? VARIABLE_PRESENTATION_SLIDER : 2;
-        
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Active'), [
-            'PRESENTATION' => $switchPres,
-            'ICON' => 'Power'
-        ]);
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ChoreographyActive'), [
-            'PRESENTATION' => $switchPres,
-            'ICON' => 'Power'
-        ]);
-
-        $percentPresentation = [
-            'PRESENTATION' => $sliderPres,
-            'ICON' => 'Intensity',
-            'MIN' => 0,
-            'MAX' => 100,
-            'STEP' => 1,
-            'SUFFIX' => ' %'
-        ];
-        
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('PumpSpeed'), $percentPresentation);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ChoreographySpeed'), $percentPresentation);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ChoreographyIntensity'), $percentPresentation);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('CurrentPower'), [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'Electricity',
-            'SUFFIX' => ' W'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Choreography'), [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'Menu',
-            'ASSOCIATIONS' => [
-                [0, 'Manuell', '', -1],
-                [1, 'Sinuswelle', '', -1],
-                [2, 'Puls', '', -1],
-                [3, 'Atmen', '', -1],
-                [4, 'Zufall', '', -1],
-                [5, 'Treppe', '', -1],
-                [6, 'Herzschlag', '', -1],
-                [7, 'Zufalls-Mix', '', -1],
-            ]
-        ]);
-    }
 
     public function RequestAction(string $Ident, mixed $Value): void
     {

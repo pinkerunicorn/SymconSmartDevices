@@ -16,12 +16,46 @@ class TedeeLock extends IPSModuleStrict
         
         $this->RegisterAttributeInteger('DetectedLockID', 0);
 
-        $this->RegisterVariableInteger('LockState', 'Schloss Status', '', 1);
-        $this->RegisterVariableInteger('BatteryLevel', 'Batterie', '', 2);
-        $this->RegisterVariableBoolean('IsCharging', 'Wird geladen', '', 3);
+        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
+
+        $this->RegisterVariableInteger('LockState', 'Schloss Status', [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Information',
+            'ASSOCIATIONS' => [
+                [0, 'Unkalibriert', 'Warning', 0xFF0000],
+                [1, 'Kalibriert...', 'TurnLeft', 0x00FF00],
+                [2, 'Entriegelt', 'LockOpen', 0x00FF00],
+                [3, 'Halb-Verriegelt', 'Warning', 0xFFA500],
+                [4, 'Entriegelt...', 'LockOpen', 0x00FF00],
+                [5, 'Verriegelt...', 'LockClosed', 0xFF0000],
+                [6, 'Verriegelt', 'LockClosed', 0xFF0000],
+                [7, 'Falle gezogen', 'Door', 0x0000FF],
+                [8, 'Falle zieht...', 'Door', 0x0000FF],
+                [9, 'Unbekannt', 'Information', -1],
+                [18, 'Update...', 'Gear', 0x00FF00],
+            ]
+        ], 1);
+        $this->RegisterVariableInteger('BatteryLevel', 'Batterie', [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Battery',
+            'SUFFIX' => ' %'
+        ], 2);
+        $this->RegisterVariableBoolean('IsCharging', 'Wird geladen', [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Plug'
+        ], 3);
         
         // Control variable
-        $this->RegisterVariableInteger('LockControl', 'Steuerung', '', 0);
+        $this->RegisterVariableInteger('LockControl', 'Steuerung', [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Gear',
+            'ASSOCIATIONS' => [
+                [0, 'Entriegeln', 'LockOpen', -1],
+                [1, 'Verriegeln', 'LockClosed', -1],
+                [2, 'Falle ziehen', 'Door', -1],
+                [3, 'Entriegeln & Falle ziehen', 'LockOpen', -1],
+            ]
+        ], 0);
         $this->EnableAction('LockControl');
     }
 
@@ -39,7 +73,6 @@ class TedeeLock extends IPSModuleStrict
         // Register Webhook Endpoint in Symcon
         $this->RegisterHook("Tedee_" . $this->InstanceID);
 
-        $this->SetupVariablePresentations();
 
         // Fetch initial status once upon apply
         $this->UpdateStatus();
@@ -49,51 +82,6 @@ class TedeeLock extends IPSModuleStrict
         if (!empty($baseUrl)) {
             $this->RegisterWebhookAtBridge();
         }
-    }
-
-    private function SetupVariablePresentations(): void
-    {
-        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('LockState'), [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'Information',
-            'ASSOCIATIONS' => [
-                [0, 'Unkalibriert', 'Warning', 0xFF0000],
-                [1, 'Kalibriert...', 'TurnLeft', 0x00FF00],
-                [2, 'Entriegelt', 'LockOpen', 0x00FF00],
-                [3, 'Halb-Verriegelt', 'Warning', 0xFFA500],
-                [4, 'Entriegelt...', 'LockOpen', 0x00FF00],
-                [5, 'Verriegelt...', 'LockClosed', 0xFF0000],
-                [6, 'Verriegelt', 'LockClosed', 0xFF0000],
-                [7, 'Falle gezogen', 'Door', 0x0000FF],
-                [8, 'Falle zieht...', 'Door', 0x0000FF],
-                [9, 'Unbekannt', 'Information', -1],
-                [18, 'Update...', 'Gear', 0x00FF00],
-            ]
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('BatteryLevel'), [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'Battery',
-            'SUFFIX' => ' %'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('IsCharging'), [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'Plug'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('LockControl'), [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'Gear',
-            'ASSOCIATIONS' => [
-                [0, 'Entriegeln', 'LockOpen', -1],
-                [1, 'Verriegeln', 'LockClosed', -1],
-                [2, 'Falle ziehen', 'Door', -1],
-                [3, 'Entriegeln & Falle ziehen', 'LockOpen', -1],
-            ]
-        ]);
     }
 
 

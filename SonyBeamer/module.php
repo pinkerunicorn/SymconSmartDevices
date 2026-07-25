@@ -38,8 +38,14 @@ class SonyBeamer extends IPSModuleStrict
         // Timer fr Polling
         $this->RegisterTimer('UpdateTimer', 0, 'SONY_UpdateStatus($_IPS[\'TARGET\']);');
 
+        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
+        $switchPres = defined('VARIABLE_PRESENTATION_SWITCH') ? VARIABLE_PRESENTATION_SWITCH : 3;
+
         // Variablen registrieren
-        $this->RegisterVariableBoolean('Power', '📺 Status', '', 10);
+        $this->RegisterVariableBoolean('Power', '📺 Status', [
+            'PRESENTATION' => $switchPres,
+            'ICON' => 'Power'
+        ], 10);
         $this->EnableAction('Power');
 
         // Alte String-Variablen entfernen, falls vorhanden
@@ -52,40 +58,7 @@ class SonyBeamer extends IPSModuleStrict
             $this->UnregisterVariable('PictureMode');
         }
 
-        $this->RegisterVariableInteger('Input', '🔌 Eingang', '', 20);
-        $this->EnableAction('Input');
-
-        $this->RegisterVariableInteger('PictureMode', '🖼 Bildmodus', '', 30);
-        $this->EnableAction('PictureMode');
-
-        $this->RegisterVariableInteger('OperationTime', '⏱ Betriebsstunden', '', 40);
-        $this->RegisterVariableInteger('LightSourceTime', '💡 Lampenstunden', '', 50);
-        $this->RegisterVariableString('Warning', 'Warnungen', '', 60);
-    }
-
-    public function ApplyChanges(): void{
-        parent::ApplyChanges();
-
-        $interval = $this->ReadPropertyInteger('UpdateInterval');
-        if ($interval < 5) $interval = 5;
-        $this->SetTimerInterval('UpdateTimer', $interval * 1000);
-
-        $this->SetupVariablePresentations();
-
-        $this->UpdateVisibility(!$this->GetValue('Power'));
-    }
-
-    private function SetupVariablePresentations(): void
-    {
-        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
-        $switchPres = defined('VARIABLE_PRESENTATION_SWITCH') ? VARIABLE_PRESENTATION_SWITCH : 3;
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
-            'PRESENTATION' => $switchPres,
-            'ICON' => 'Power'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Input'), [
+        $this->RegisterVariableInteger('Input', '🔌 Eingang', [
             'PRESENTATION' => $valPres,
             'ICON' => 'Plug',
             'ASSOCIATIONS' => [
@@ -94,9 +67,10 @@ class SonyBeamer extends IPSModuleStrict
                 [2, 'Video 1', '', -1],
                 [3, 'Component', '', -1],
             ]
-        ]);
+        ], 20);
+        $this->EnableAction('Input');
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('PictureMode'), [
+        $this->RegisterVariableInteger('PictureMode', '🖼 Bildmodus', [
             'PRESENTATION' => $valPres,
             'ICON' => 'TV',
             'ASSOCIATIONS' => [
@@ -113,25 +87,37 @@ class SonyBeamer extends IPSModuleStrict
                 [10, 'Bright TV', '', -1],
                 [11, 'User', '', -1],
             ]
-        ]);
+        ], 30);
+        $this->EnableAction('PictureMode');
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('OperationTime'), [
+        $this->RegisterVariableInteger('OperationTime', '⏱ Betriebsstunden', [
             'PRESENTATION' => $valPres,
             'ICON' => 'Clock',
             'SUFFIX' => 'h'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('LightSourceTime'), [
+        ], 40);
+        $this->RegisterVariableInteger('LightSourceTime', '💡 Lampenstunden', [
             'PRESENTATION' => $valPres,
             'ICON' => 'Bulb',
             'SUFFIX' => 'h'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Warning'), [
+        ], 50);
+        $this->RegisterVariableString('Warning', 'Warnungen', [
             'PRESENTATION' => $valPres,
             'ICON' => 'Warning'
-        ]);
+        ], 60);
     }
+
+    public function ApplyChanges(): void{
+        parent::ApplyChanges();
+
+        $interval = $this->ReadPropertyInteger('UpdateInterval');
+        if ($interval < 5) $interval = 5;
+        $this->SetTimerInterval('UpdateTimer', $interval * 1000);
+
+
+        $this->UpdateVisibility(!$this->GetValue('Power'));
+    }
+
+
 
     protected function Log(string $Message): void
     {
