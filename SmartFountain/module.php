@@ -63,10 +63,10 @@ class SmartFountain extends IPSModuleStrict
         $this->MaintainVariable('Choreography', 'Muster', 1, 'SFTN.Choreography', 30, true);
         $this->EnableAction('Choreography');
 
-        $this->MaintainVariable('ChoreographyActive', 'Choreografie aktiv', 0, '', 40, true);
-        $this->EnableAction('ChoreographyActive');
+        // Alte Variable entfernen, falls sie existiert
+        $this->MaintainVariable('ChoreographyActive', 'Choreografie aktiv', 0, '', 40, false);
 
-        $this->MaintainVariable('ChoreographySpeed', 'Geschwindigkeit', 1, '', 50, true);
+        $this->MaintainVariable('ChoreographySpeed', 'Geschwindigkeit', 1, 'SFTN.Percent', 50, true);
         $this->EnableAction('ChoreographySpeed');
 
         $this->MaintainVariable('ChoreographyIntensity', 'Intensität', 1, '', 60, true);
@@ -168,16 +168,8 @@ class SmartFountain extends IPSModuleStrict
             case 'Choreography':
                 if ($Value == 0) {
                     $this->StopChoreography();
-                    $this->SetValue($Ident, 0);
                 } else {
                     $this->StartChoreography($Value);
-                }
-                break;
-            case 'ChoreographyActive':
-                if ($Value) {
-                    $this->StartChoreography($this->GetValue('Choreography'));
-                } else {
-                    $this->StopChoreography();
                 }
                 break;
             case 'ChoreographySpeed':
@@ -223,7 +215,7 @@ class SmartFountain extends IPSModuleStrict
     public function Deactivate(): void
     {
         $this->SetValue('Active', false);
-        $this->SetValue('ChoreographyActive', false);
+        $this->SetValue('Choreography', 0);
         $this->UpdateTimerState();
         $this->SLogInfo('Fountain Deactivated');
         // Stop directly
@@ -241,7 +233,6 @@ class SmartFountain extends IPSModuleStrict
             $this->Activate();
         }
         $this->SetValue('Choreography', $mode);
-        $this->SetValue('ChoreographyActive', true);
         // Save start time for pattern generation
         $this->SetBuffer('ChoreographyStartTime', (string)microtime(true));
         
@@ -254,14 +245,14 @@ class SmartFountain extends IPSModuleStrict
 
     public function StopChoreography(): void
     {
-        $this->SetValue('ChoreographyActive', false);
+        $this->SetValue('Choreography', 0);
         $this->UpdateTimerState();
         $this->SLogInfo('Choreography stopped');
     }
 
     public function Tick(): void
     {
-        if (!$this->GetValue('Active') || !$this->GetValue('ChoreographyActive')) {
+        if (!$this->GetValue('Active') || $this->GetValue('Choreography') == 0) {
             $this->UpdateTimerState();
             return;
         }
@@ -428,7 +419,7 @@ class SmartFountain extends IPSModuleStrict
 
     private function UpdateTimerState(): void
     {
-        if ($this->GetValue('Active') && $this->GetValue('ChoreographyActive')) {
+        if ($this->GetValue('Active') && $this->GetValue('Choreography') > 0) {
             $interval = $this->ReadPropertyInteger('ChoreographyIntervalMs');
             $this->SetTimerInterval('ChoreographyTimer', $interval);
         } else {
