@@ -118,7 +118,7 @@ class SmartFountain extends IPSModuleStrict
         $this->UpdateTimerState();
     }
 
-    public function RequestAction($Ident, $Value)
+    public function RequestAction(string $Ident, mixed $Value): void
     {
         switch ($Ident) {
             case 'Active':
@@ -148,7 +148,7 @@ class SmartFountain extends IPSModuleStrict
         }
     }
 
-    public function MessageSink($TimeStamp, $SenderID, $Message, $Data): void
+    public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void
     {
         if ($Message === VM_UPDATE && $SenderID === $this->ReadPropertyInteger('PowerMeterID')) {
             $this->SetValue('CurrentPower', $Data[0]);
