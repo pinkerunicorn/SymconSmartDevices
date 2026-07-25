@@ -1,0 +1,15 @@
+{
+    "id": "{7A3B2E4D-9F1C-4B8A-D6E2-C5F4A3B2C1D0}",
+    "name": "SmartFountain",
+    "type": 3,
+    "vendor": "Florian Graßinger",
+    "aliases": [
+        "SmartFountain"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "SFTN",
+    "author": "Florian Graßinger",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices"
+}
