@@ -19,26 +19,13 @@ class LyngdorfMP60 extends IPSModuleStrict
         $this->SetBuffer('ReceiveBuffer', '');
 
         // Variablen registrieren
-        $this->RegisterVariableBoolean('Power', '⚡ Power', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON'         => 'Power'
-        ], 1);
+        $this->RegisterVariableBoolean('Power', '⚡ Power', '', 1);
         $this->EnableAction('Power');
 
-        $this->RegisterVariableFloat('Volume', '🔊 Lautstärke', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-            'ICON'         => 'Intensity',
-            'SUFFIX'       => 'dB',
-            'MIN'          => -99.9,
-            'MAX'          => 24.0,
-            'STEP'         => 0.5
-        ], 2);
+        $this->RegisterVariableFloat('Volume', '🔊 Lautstärke', '', 2);
         $this->EnableAction('Volume');
 
-        $this->RegisterVariableBoolean('Mute', '🔇 Mute', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON'         => 'Speaker'
-        ], 3);
+        $this->RegisterVariableBoolean('Mute', '🔇 Mute', '', 3);
         $this->EnableAction('Mute');
 
         $this->RegisterVariableInteger('Source', '🎵 Quelle', '', 4);
@@ -50,16 +37,8 @@ class LyngdorfMP60 extends IPSModuleStrict
         $this->RegisterVariableInteger('Voicing', '🗣 Voicing', '', 6);
         $this->EnableAction('Voicing');
 
-        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
-
-        $this->RegisterVariableString('AudioTypeIn', '📥 Audio Type In', [
-            'PRESENTATION' => $valPres,
-            'ICON'         => 'Information'
-        ], 7);
-        $this->RegisterVariableString('AudioTypeOut', '📤 Audio Type Out', [
-            'PRESENTATION' => $valPres,
-            'ICON'         => 'Information'
-        ], 8);
+        $this->RegisterVariableString('AudioTypeIn', '📥 Audio Type In', '', 7);
+        $this->RegisterVariableString('AudioTypeOut', '📤 Audio Type Out', '', 8);
     }
 
     public function ApplyChanges(): void
@@ -77,6 +56,8 @@ class LyngdorfMP60 extends IPSModuleStrict
 
         // Regelmäßiges Polling (alle 30 Sekunden) als Fallback
         $this->RegisterTimer('UpdatePolling', 30000, 'LYNG_UpdateData($_IPS[\'TARGET\']);');
+        
+        $this->SetupVariablePresentations();
     }
 
     protected function Log(string $text): void
@@ -301,7 +282,41 @@ class LyngdorfMP60 extends IPSModuleStrict
         }
     }
 
+    private function SetupVariablePresentations(): void
+    {
+        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
 
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+            'ICON'         => 'Power'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Volume'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'ICON'         => 'Intensity',
+            'SUFFIX'       => 'dB',
+            'MIN'          => -99.9,
+            'MAX'          => 24.0,
+            'STEP'         => 0.5
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Mute'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+            'ICON'         => 'Speaker'
+        ]);
+
+        // Dynamically updated variables will have their presentations refreshed during UpdateDynamicProfile
+        // Just setting initial values for strings
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('AudioTypeIn'), [
+            'PRESENTATION' => $valPres,
+            'ICON'         => 'Information'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('AudioTypeOut'), [
+            'PRESENTATION' => $valPres,
+            'ICON'         => 'Information'
+        ]);
+    }
 
 
 
@@ -341,12 +356,11 @@ class LyngdorfMP60 extends IPSModuleStrict
             $associations[] = [$idx, $val, $icon, -1];
         }
 
-        $id = $this->GetIDForIdent($ident);
-        $this->RegisterVariableInteger($ident, IPS_GetName($id), [
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent($ident), [
             'PRESENTATION' => defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1,
             'ICON' => $icon,
             'ASSOCIATIONS' => $associations
-        ], IPS_GetObject($id)['ObjectPosition']);
+        ]);
     }
 
     public function GetConfigurationForm(): string

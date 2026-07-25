@@ -18,35 +18,17 @@ class PixelblazeController extends IPSModuleStrict
         // Internes Attribut für die Programmliste (Map von Index -> String ID)
         $this->RegisterAttributeString('ProgramMap', '[]');
 
-        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
-
         // Variablen
-        $this->RegisterVariableBoolean('Power', '💡 Status', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON' => 'Power'
-        ], 10);
+        $this->RegisterVariableBoolean('Power', '💡 Status', '', 10);
         $this->EnableAction('Power');
 
-        $this->RegisterVariableInteger('Brightness', '🔆 Helligkeit', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-            'ICON' => 'Sun',
-            'MIN' => 0.0,
-            'MAX' => 100.0,
-            'STEP' => 1.0,
-            'SUFFIX' => ' %'
-        ], 20);
+        $this->RegisterVariableInteger('Brightness', '🔆 Helligkeit', '', 20);
         $this->EnableAction('Brightness');
             
-        $this->RegisterVariableInteger('ActiveProgram', 'Programm', [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'Script'
-        ], 30);
+        $this->RegisterVariableInteger('ActiveProgram', 'Programm', '', 30);
         $this->EnableAction('ActiveProgram');
 
-        $this->RegisterVariableString('ActiveProgramName', 'Aktuelles Programm (Name)', [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'Information'
-        ], 35);
+        $this->RegisterVariableString('ActiveProgramName', 'Aktuelles Programm (Name)', '', 35);
 
         // Timer für Auto-Reconnect
         $this->RegisterTimer('ReconnectTimer', 0, 'PB_Reconnect($_IPS[\'TARGET\']);');
@@ -89,6 +71,8 @@ class PixelblazeController extends IPSModuleStrict
 
 
 
+        $this->SetupVariablePresentations();
+
         $mapRaw = $this->ReadAttributeString('ProgramMap');
         $map = json_decode($mapRaw, true);
         
@@ -97,12 +81,11 @@ class PixelblazeController extends IPSModuleStrict
             foreach ($map as $i => $prog) {
                 $associations[] = [$i, $prog['name'], '', -1];
             }
-            $id = $this->GetIDForIdent('ActiveProgram');
-            $this->RegisterVariableInteger('ActiveProgram', IPS_GetName($id), [
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveProgram'), [
                 'PRESENTATION' => defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1,
                 'ICON' => 'Script',
                 'ASSOCIATIONS' => $associations
-            ], IPS_GetObject($id)['ObjectPosition']);
+            ]);
         }
         
         $this->UpdateVisibility($this->GetValue('Power'));
@@ -123,7 +106,34 @@ class PixelblazeController extends IPSModuleStrict
         }
     }
 
+    private function SetupVariablePresentations(): void
+    {
+        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
 
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+            'ICON' => 'Power'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Brightness'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'ICON' => 'Sun',
+            'MIN' => 0.0,
+            'MAX' => 100.0,
+            'STEP' => 1.0,
+            'SUFFIX' => ' %'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveProgram'), [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Script'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveProgramName'), [
+            'PRESENTATION' => $valPres,
+            'ICON' => 'Information'
+        ]);
+    }
 
     protected function LogMessage(string $Message, int $Type = KL_MESSAGE): bool
     {
@@ -347,12 +357,11 @@ class PixelblazeController extends IPSModuleStrict
                 $associations[] = [$i, $prog['name'], '', -1];
             }
             
-            $id = $this->GetIDForIdent('ActiveProgram');
-            $this->RegisterVariableInteger('ActiveProgram', IPS_GetName($id), [
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveProgram'), [
                 'PRESENTATION' => defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1,
                 'ICON' => 'Script',
                 'ASSOCIATIONS' => $associations
-            ], IPS_GetObject($id)['ObjectPosition']);
+            ]);
 
             $this->LogMessage(count($programs) . " Programme geladen und als Dropdown hinterlegt.", KL_MESSAGE);
         }
