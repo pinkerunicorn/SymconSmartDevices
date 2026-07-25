@@ -107,15 +107,21 @@ class SmartFountain extends IPSModuleStrict
         $switchPres = defined('VARIABLE_PRESENTATION_SWITCH') ? VARIABLE_PRESENTATION_SWITCH : 3;
         $sliderPres = defined('VARIABLE_PRESENTATION_SLIDER') ? VARIABLE_PRESENTATION_SLIDER : 2;
         
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Active'), [
-            'PRESENTATION' => $switchPres,
-            'ICON' => 'Power'
-        ]);
+        $varID = @$this->GetIDForIdent('Active');
+        if ($varID !== false && $varID > 0) {
+            IPS_SetVariableCustomPresentation($varID, [
+                'PRESENTATION' => $switchPres,
+                'ICON' => 'Power'
+            ]);
+        }
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ChoreographyActive'), [
-            'PRESENTATION' => $switchPres,
-            'ICON' => 'Power'
-        ]);
+        $varID = @$this->GetIDForIdent('ChoreographyActive');
+        if ($varID !== false && $varID > 0) {
+            IPS_SetVariableCustomPresentation($varID, [
+                'PRESENTATION' => $switchPres,
+                'ICON' => 'Power'
+            ]);
+        }
 
         $percentPresentation = [
             'PRESENTATION' => $sliderPres,
@@ -126,30 +132,37 @@ class SmartFountain extends IPSModuleStrict
             'SUFFIX' => ' %'
         ];
         
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('PumpSpeed'), $percentPresentation);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ChoreographySpeed'), $percentPresentation);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ChoreographyIntensity'), $percentPresentation);
+        $varID = @$this->GetIDForIdent('PumpSpeed');
+        if ($varID !== false && $varID > 0) {
+            IPS_SetVariableCustomPresentation($varID, $percentPresentation);
+        }
+        
+        $varID = @$this->GetIDForIdent('ChoreographySpeed');
+        if ($varID !== false && $varID > 0) {
+            IPS_SetVariableCustomPresentation($varID, $percentPresentation);
+        }
+        
+        $varID = @$this->GetIDForIdent('ChoreographyIntensity');
+        if ($varID !== false && $varID > 0) {
+            IPS_SetVariableCustomPresentation($varID, $percentPresentation);
+        }
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('CurrentPower'), [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'Electricity',
-            'SUFFIX' => ' W'
-        ]);
+        $varID = @$this->GetIDForIdent('CurrentPower');
+        if ($varID !== false && $varID > 0) {
+            IPS_SetVariableCustomPresentation($varID, [
+                'PRESENTATION' => $valPres,
+                'ICON' => 'Electricity',
+                'SUFFIX' => ' W'
+            ]);
+        }
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Choreography'), [
-            'PRESENTATION' => $valPres,
-            'ICON' => 'Menu',
-            'ASSOCIATIONS' => [
-                [0, 'Manuell', '', -1],
-                [1, 'Sinuswelle', '', -1],
-                [2, 'Puls', '', -1],
-                [3, 'Atmen', '', -1],
-                [4, 'Zufall', '', -1],
-                [5, 'Treppe', '', -1],
-                [6, 'Herzschlag', '', -1],
-                [7, 'Zufalls-Mix', '', -1],
-            ]
-        ]);
+        $varID = @$this->GetIDForIdent('Choreography');
+        if ($varID !== false && $varID > 0) {
+            IPS_SetVariableCustomPresentation($varID, [
+                'PRESENTATION' => $valPres,
+                'ICON' => 'Menu'
+            ]);
+        }
     }
 
     public function RequestAction(string $Ident, mixed $Value): void
