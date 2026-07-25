@@ -44,6 +44,7 @@ class SmartFountain extends IPSModuleStrict
             IPS_SetVariableProfileAssociation('SFTN.Choreography', 4, 'Zufall', '', 0x000000);
             IPS_SetVariableProfileAssociation('SFTN.Choreography', 5, 'Treppe', '', 0x000000);
             IPS_SetVariableProfileAssociation('SFTN.Choreography', 6, 'Herzschlag', '', 0x000000);
+            IPS_SetVariableProfileAssociation('SFTN.Choreography', 7, 'Zufalls-Mix', '', 0x000000);
         }
 
         if (!IPS_VariableProfileExists('SFTN.Percent')) {
@@ -133,6 +134,9 @@ class SmartFountain extends IPSModuleStrict
                 break;
             case 'Choreography':
                 $this->SetValue($Ident, $Value);
+                if ($Value == 0) {
+                    $this->StopChoreography();
+                }
                 break;
             case 'ChoreographyActive':
                 if ($Value) {
@@ -193,6 +197,11 @@ class SmartFountain extends IPSModuleStrict
 
     public function StartChoreography(int $mode): void
     {
+        if ($mode === 0) {
+            $this->StopChoreography();
+            return;
+        }
+
         if (!$this->GetValue('Active')) {
             $this->Activate();
         }
@@ -200,6 +209,10 @@ class SmartFountain extends IPSModuleStrict
         $this->SetValue('ChoreographyActive', true);
         // Save start time for pattern generation
         $this->SetBuffer('ChoreographyStartTime', (string)microtime(true));
+        
+        // Reset Mix buffers for mode 7
+        $this->SetBuffer('MixMode', '0');
+        
         $this->UpdateTimerState();
         $this->SLogInfo("Choreography $mode started");
     }
@@ -349,6 +362,21 @@ class SmartFountain extends IPSModuleStrict
                 $p1 = exp(-pow($cycle - $t1, 2) / $var);
                 $p2 = exp(-pow($cycle - $t2, 2) / $var) * 0.7;
                 return max($p1, $p2);
+
+            case 7: // Zufalls-Mix
+                $currentMixMode = (int)$this->GetBuffer('MixMode');
+                $mixStartTime = (float)$this->GetBuffer('MixStartTime');
+                
+                // Change pattern every 20 seconds
+                if ($currentMixMode == 0 || ($t - $mixStartTime) > 20.0) {
+                    $currentMixMode = mt_rand(1, 6);
+                    $mixStartTime = $t;
+                    $this->SetBuffer('MixMode', (string)$currentMixMode);
+                    $this->SetBuffer('MixStartTime', (string)$mixStartTime);
+                }
+                
+                $childT = $t - $mixStartTime; 
+                return $this->CalculatePattern($currentMixMode, $childT);
 
             default:
                 return 0.0;
