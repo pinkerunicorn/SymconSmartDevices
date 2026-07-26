@@ -16,6 +16,8 @@ class SmartFountain extends IPSModuleStrict
         // --- Properties ---
         $this->RegisterPropertyInteger('PumpTargetID', 0);
         $this->RegisterPropertyInteger('PowerMeterID', 0);
+        $this->RegisterPropertyInteger('WledDeviceID', 0);
+
         
         $this->RegisterPropertyInteger('MinPumpPercent', 5);
         $this->RegisterPropertyInteger('MaxPumpPercent', 100);
@@ -231,6 +233,7 @@ class SmartFountain extends IPSModuleStrict
         $this->SLogInfo('Fountain Deactivated');
         // Stop directly
         $this->SetSpeed(0);
+        $this->UpdateWLEDState(0);
     }
 
     public function StartChoreography(int $mode): void
@@ -252,6 +255,7 @@ class SmartFountain extends IPSModuleStrict
         
         $this->UpdateTimerState();
         $this->SLogInfo("Choreography $mode started");
+        $this->UpdateWLEDState($mode);
     }
 
     public function StopChoreography(): void
@@ -259,6 +263,7 @@ class SmartFountain extends IPSModuleStrict
         $this->SetValue('Choreography', 0);
         $this->UpdateTimerState();
         $this->SLogInfo('Choreography stopped');
+        $this->UpdateWLEDState(0);
     }
 
     public function Tick(): void
@@ -428,6 +433,69 @@ class SmartFountain extends IPSModuleStrict
         }
     }
 
+    private function UpdateWLEDState(int $choreography): void
+    {
+        $wledID = $this->ReadPropertyInteger('WledDeviceID');
+        if ($wledID <= 1 || !@IPS_InstanceExists($wledID)) {
+            return; // Kein WLED konfiguriert
+        }
+
+        if (!$this->GetValue('Active')) {
+            @WLED_SetState($wledID, false);
+            return;
+        }
+
+        @WLED_SetState($wledID, true);
+
+        // Map Symcon intensity (0-100) to WLED brightness/intensity (0-255)
+        $intensity = $this->GetValue('ChoreographyIntensity');
+        $wledBrightness = (int)round(($intensity / 100) * 255);
+        @WLED_SetBrightness($wledID, $wledBrightness);
+
+        // Speed (0-100) to WLED speed (0-255)
+        $speed = $this->GetValue('ChoreographySpeed');
+        $wledSpeed = (int)round(($speed / 100) * 255);
+
+        switch ($choreography) {
+            case 0: // Manuell - Statisch Warmweiß / Gold
+                @WLED_SetEffect($wledID, 0); // Solid
+                @WLED_SetColor($wledID, 0xFF9900); // Amber/Gold
+                break;
+            case 1: // Sinuswelle - Breathe, Blue
+                @WLED_SetEffect($wledID, 2); // Breathe
+                @WLED_SetColor($wledID, 0x0044FF); // Blue
+                @WLED_SetSpeed($wledID, $wledSpeed);
+                break;
+            case 2: // Puls - Heartbeat, Red
+                @WLED_SetEffect($wledID, 65); // Heartbeat
+                @WLED_SetColor($wledID, 0xFF0000); // Red
+                @WLED_SetSpeed($wledID, $wledSpeed);
+                break;
+            case 3: // Atmen - Fade, Cyan
+                @WLED_SetEffect($wledID, 12); // Fade (or similar slow effect)
+                @WLED_SetColor($wledID, 0x00FFFF); // Cyan
+                @WLED_SetSpeed($wledID, $wledSpeed);
+                break;
+            case 4: // Zufall - Chase Random
+                @WLED_SetEffect($wledID, 74); // Chase Random
+                @WLED_SetSpeed($wledID, $wledSpeed);
+                break;
+            case 5: // Treppe - Rainbow
+                @WLED_SetEffect($wledID, 11); // Rainbow
+                @WLED_SetSpeed($wledID, $wledSpeed);
+                break;
+            case 6: // Herzschlag - Heartbeat, Magenta
+                @WLED_SetEffect($wledID, 65); // Heartbeat
+                @WLED_SetColor($wledID, 0xFF00FF); // Magenta
+                @WLED_SetSpeed($wledID, $wledSpeed);
+                break;
+            case 7: // Zufalls-Mix
+                @WLED_SetEffect($wledID, 9); // Colorful (Dynamic colors)
+                @WLED_SetSpeed($wledID, $wledSpeed);
+                break;
+        }
+    }
+
     private function UpdateTimerState(): void
     {
         if ($this->GetValue('Active') && $this->GetValue('Choreography') > 0) {
@@ -456,6 +524,11 @@ class SmartFountain extends IPSModuleStrict
             "type": "SelectVariable",
             "name": "PowerMeterID",
             "caption": "Leistungsmessung (optional, Shelly Power)"
+        },
+        {
+            "type": "SelectInstance",
+            "name": "WledDeviceID",
+            "caption": "WLED Instanz (KaiS WLED Modul, optional)"
         },
         {
             "type": "Label",
