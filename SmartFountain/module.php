@@ -22,8 +22,6 @@ class SmartFountain extends IPSModuleStrict
         $this->RegisterPropertyInteger('SoftStartMs', 200);
         $this->RegisterPropertyInteger('SoftStopMs', 500);
         
-        $this->RegisterPropertyInteger('BasinDiameterCm', 100);
-        $this->RegisterPropertyInteger('BasinDepthCm', 30);
         $this->RegisterPropertyInteger('ChoreographyIntervalMs', 100);
 
         // --- Timers ---
