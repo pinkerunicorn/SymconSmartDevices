@@ -18,6 +18,10 @@
                             "caption": "Gemini Modell",
                             "options": [
                                 {
+                                    "caption": "Gemini 3.6 Flash",
+                                    "value": "gemini-3.6-flash"
+                                },
+                                {
                                     "caption": "Gemini 3.5 Flash",
                                     "value": "gemini-3.5-flash"
                                 },
