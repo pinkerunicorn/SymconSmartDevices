@@ -1,63 +1,29 @@
 {
     "elements": [
         {
-            "type": "ExpansionPanel",
-            "caption": "Gemini AI Konfiguration",
+            "type": "Label",
+            "caption": "ImperialDishwasherAI — KI-gestützte Spülmaschinen-Überwachung\n\nDer API-Key und das Modell werden zentral über die SmartGeminiIO Instanz konfiguriert.\nBitte zuerst eine SmartGeminiIO Instanz erstellen und dort den API-Key und das gewünschte Modell eintragen."
+        },
+        {
+            "type": "SelectVariable",
+            "name": "PowerVariableID",
+            "caption": "Leistungsmessung Spülmaschine (Watt)"
+        },
+        {
+            "type": "RowLayout",
             "items": [
                 {
-                    "type": "RowLayout",
-                    "items": [
-                        {
-                            "type": "ValidationTextBox",
-                            "name": "GeminiApiKey",
-                            "caption": "Gemini API-Schlüssel"
-                        },
-                        {
-                            "type": "Select",
-                            "name": "GeminiModel",
-                            "caption": "Gemini Modell",
-                            "options": [
-                                {
-                                    "caption": "Gemini 3.6 Flash",
-                                    "value": "gemini-3.6-flash"
-                                },
-                                {
-                                    "caption": "Gemini 3.5 Flash",
-                                    "value": "gemini-3.5-flash"
-                                },
-                                {
-                                    "caption": "Gemini 2.5 Flash",
-                                    "value": "gemini-2.5-flash"
-                                }
-                            ]
-                        }
-                    ]
+                    "type": "NumberSpinner",
+                    "name": "StartThreshold",
+                    "caption": "Einschaltschwelle (Watt)",
+                    "digits": 1
                 },
                 {
                     "type": "NumberSpinner",
                     "name": "AnalysisInterval",
-                    "caption": "Analyse Intervall (in Minuten)",
-                    "minimum": 1,
+                    "caption": "KI-Analyse Intervall (Minuten)",
+                    "minimum": 5,
                     "maximum": 60
-                }
-            ]
-        },
-        {
-            "type": "ExpansionPanel",
-            "caption": "Hardware Anbindung",
-            "items": [
-                {
-                    "type": "SelectVariable",
-                    "name": "PowerVariableID",
-                    "caption": "Leistung (Watt) Variable (HmIP-PSM)"
-                },
-                {
-                    "type": "NumberSpinner",
-                    "name": "StartThreshold",
-                    "caption": "Start-Schwellwert (Watt)",
-                    "digits": 2,
-                    "minimum": 0,
-                    "maximum": 5000
                 }
             ]
         }
@@ -65,8 +31,17 @@
     "actions": [
         {
             "type": "Button",
-            "caption": "Jetzt Analyse triggern",
+            "caption": "📊 Jetzt analysieren",
             "onClick": "IDW_AnalyzeData($id);"
+        },
+        {
+            "type": "Button",
+            "caption": "📋 Daten sammeln",
+            "onClick": "IDW_CollectData($id);"
         }
+    ],
+    "status": [
+        {"code": 102, "icon": "active",   "caption": "Überwachung aktiv."},
+        {"code": 104, "icon": "inactive", "caption": "Inaktiv."}
     ]
 }
