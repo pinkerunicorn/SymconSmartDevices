@@ -74,10 +74,6 @@ class PixelblazeController extends IPSModuleStrict
 
         $fetchInterval = $this->ReadPropertyInteger('FetchStateInterval');
         $this->SetTimerInterval('FetchStateTimer', $fetchInterval * 1000);
-        
-        if ($this->HasActiveParent()) {
-            $this->FetchState();
-        }
 
 
 

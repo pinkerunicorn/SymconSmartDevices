@@ -67,10 +67,6 @@ class LyngdorfMP60 extends IPSModuleStrict
     {
         parent::ApplyChanges();
 
-        if ($this->HasActiveParent()) {
-            $this->UpdateData();
-        }
-
         $parentId = IPS_GetInstance($this->InstanceID)['ConnectionID'];
         if ($parentId > 0) {
             $this->RegisterMessage($parentId, 10505 /* IM_CHANGESTATUS */);

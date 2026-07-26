@@ -77,7 +77,6 @@ class XeroxPrinter extends IPSModuleStrict
         $interval = $this->ReadPropertyInteger('UpdateInterval');
         if ($interval > 0) {
             $this->SetTimerInterval('UpdateTimer', $interval * 1000);
-            $this->UpdateStatus();
         } else {
             $this->SetTimerInterval('UpdateTimer', 0);
         }

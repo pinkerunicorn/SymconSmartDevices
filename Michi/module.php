@@ -59,27 +59,16 @@ class Michi extends IPSModuleStrict
     public function ApplyChanges(): void{
         parent::ApplyChanges();
 
-
         // Timer setzen
         $interval = $this->ReadPropertyInteger('UpdateInterval');
         if ($interval > 0) {
             $this->SetTimerInterval('UpdateTimer', $interval * 1000);
-            $this->RequestStatus();
         } else {
             $this->SetTimerInterval('UpdateTimer', 0);
         }
 
         // Initiale Sichtbarkeit der Variablen setzen
         $this->UpdatePowerState($this->GetValue('Power'));
-
-        // Statische Infos (Version, Modell, IP, MAC) abfragen
-        $this->SendCommand("version?");
-        usleep(200000);
-        $this->SendCommand("model?");
-        usleep(200000);
-        $this->SendCommand("ip?");
-        usleep(200000);
-        $this->SendCommand("mac?");
     }
 
     public function RequestAction(string $Ident, mixed $Value): void{
