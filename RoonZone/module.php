@@ -20,7 +20,10 @@ class RoonZone extends IPSModuleStrict
         $this->RegisterPropertyString('ZoneName', '');
 
         // Variablen registrieren
-        $this->RegisterVariableInteger('State', 'ℹ Status', 'Roon.State', 1);
+        $this->RegisterVariableInteger('State', 'ℹ Status', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'PROFILE'      => 'Roon.State'
+        ], 1);
         IPS_SetIcon($this->GetIDForIdent('State'), 'Information');
         $this->RegisterVariableString('Title', '🎵 Titel', ['ICON' => 'Melody'], 2);
         $this->RegisterVariableString('Artist', '🎤 Künstler', ['ICON' => 'User'], 3);
@@ -71,6 +74,7 @@ class RoonZone extends IPSModuleStrict
     {
         try {
             $data = json_decode($JSONString, true);
+            if (!is_array($data)) return 'NOK';
             if (!isset($data['Topic']) || !isset($data['Payload'])) {
                 return 'NOK';
             }

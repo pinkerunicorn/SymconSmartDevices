@@ -55,11 +55,17 @@ class SonyBeamer extends IPSModuleStrict
             $this->UnregisterVariable('PictureMode');
         }
 
-        $this->RegisterVariableInteger('Input', '🔌 Eingang', 'Sony.Input', 20);
+        $this->RegisterVariableInteger('Input', '🔌 Eingang', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'PROFILE'      => 'Sony.Input'
+        ], 20);
         IPS_SetIcon($this->GetIDForIdent('Input'), 'Plug');
         $this->EnableAction('Input');
 
-        $this->RegisterVariableInteger('PictureMode', '🖼 Bildmodus', 'Sony.PictureMode', 30);
+        $this->RegisterVariableInteger('PictureMode', '🖼 Bildmodus', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'PROFILE'      => 'Sony.PictureMode'
+        ], 30);
         IPS_SetIcon($this->GetIDForIdent('PictureMode'), 'TV');
         $this->EnableAction('PictureMode');
 

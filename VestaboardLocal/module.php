@@ -70,6 +70,11 @@ class VestaboardLocal extends IPSModuleStrict {
         
         $compiledBoardJson = curl_exec($chCloud);
         $cloudHttpCode = curl_getinfo($chCloud, CURLINFO_HTTP_CODE);
+        if ($compiledBoardJson === false || $cloudHttpCode >= 400) {
+            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: ' . "Cloud-Kompilierung fehlgeschlagen! HTTP Code: $cloudHttpCode | Fehler: " . curl_error($chCloud));
+            curl_close($chCloud);
+            return false;
+        }
         curl_close($chCloud);
 
         // Prüfen, ob die Cloud ein sauberes JSON-Array zurückgeliefert hat
@@ -96,14 +101,13 @@ class VestaboardLocal extends IPSModuleStrict {
         curl_setopt($chLocal, CURLOPT_CONNECTTIMEOUT, 5);
 
         $responseLocal = curl_exec($chLocal);
-        
-        if (curl_errno($chLocal)) {
-            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: ' . "Lokaler cURL Fehler: " . curl_error($chLocal));
+        $localHttpCode = curl_getinfo($chLocal, CURLINFO_HTTP_CODE);
+        if ($responseLocal === false || $localHttpCode >= 400) {
+            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: ' . "Lokaler API Fehler! HTTP Code: $localHttpCode | Fehler: " . curl_error($chLocal));
             curl_close($chLocal);
             return false;
-        } else {
-            $localHttpCode = curl_getinfo($chLocal, CURLINFO_HTTP_CODE);
-            curl_close($chLocal);
+        }
+        curl_close($chLocal);
             
             if ($localHttpCode >= 200 && $localHttpCode < 300) {
                 // IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: ' . "Erfolgreich kompiliert und lokal gesendet.");

@@ -31,7 +31,10 @@ class TedeeLock extends IPSModuleStrict
             IPS_SetVariableProfileAssociation('Tedee.LockState', 9, 'Unbekannt', 'Information', -1);
             IPS_SetVariableProfileAssociation('Tedee.LockState', 18, 'Update...', 'Gear', 0x00FF00);
         }
-        $this->RegisterVariableInteger('LockState', 'Schloss Status', 'Tedee.LockState', 1);
+        $this->RegisterVariableInteger('LockState', 'Schloss Status', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'PROFILE'      => 'Tedee.LockState'
+        ], 1);
         $this->RegisterVariableInteger('BatteryLevel', 'Batterie', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Battery',
@@ -51,7 +54,10 @@ class TedeeLock extends IPSModuleStrict
             IPS_SetVariableProfileAssociation('Tedee.LockControl', 2, 'Falle ziehen', 'Door', -1);
             IPS_SetVariableProfileAssociation('Tedee.LockControl', 3, 'Entriegeln & Falle ziehen', 'LockOpen', -1);
         }
-        $this->RegisterVariableInteger('LockControl', 'Steuerung', 'Tedee.LockControl', 0);
+        $this->RegisterVariableInteger('LockControl', 'Steuerung', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'PROFILE'      => 'Tedee.LockControl'
+        ], 0);
         $this->EnableAction('LockControl');
     }
 
@@ -280,7 +286,12 @@ class TedeeLock extends IPSModuleStrict
         curl_setopt($ch, CURLOPT_HTTPHEADER, $this->GetAuthHeaders());
 
         $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($response === false || $httpCode >= 400) {
+            $this->SendDebug('UpdateStatus', "Error HTTP $httpCode | " . curl_error($ch), 0);
+            curl_close($ch);
+            return;
+        }
         curl_close($ch);
 
         if ($httpCode == 200 && $response) {
@@ -360,7 +371,12 @@ class TedeeLock extends IPSModuleStrict
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
         $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($response === false || $httpCode >= 400) {
+            $this->SendDebug('SendCommand', "Error HTTP $httpCode | " . curl_error($ch), 0);
+            curl_close($ch);
+            return;
+        }
         curl_close($ch);
 
         $this->SendDebug('SendCommand', "Action: $action, HTTP: $httpCode, Resp: $response", 0);

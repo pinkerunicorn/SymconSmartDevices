@@ -66,6 +66,10 @@ class AirthingsWavePlus extends IPSModuleStrict
     {
         try {
             $data = json_decode($JSONString);
+            if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+                $this->SLog('ERROR', 'Ungültige JSON-Daten empfangen', json_last_error_msg());
+                return 'NOK';
+            }
             
             // Standard MQTT Splitter payload structure in IP-Symcon
             if (!isset($data->Topic) || !isset($data->Payload)) {

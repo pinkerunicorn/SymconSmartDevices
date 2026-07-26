@@ -41,7 +41,9 @@ class WithingsDevice extends IPSModuleStrict {
         $this->RegisterTimer("FetchTimer", 0, 'WITHINGS_FetchMeasurements($_IPS[\'TARGET\']);');
 
         $this->RegisterVariableString("LastMeasurement", "⏱ Letzte Messung", ['ICON' => 'Clock'], 0);
-        $this->RegisterVariableString("DailyReport", "🧠 Gemini Analyse", "", 1);
+        $this->RegisterVariableString("DailyReport", "🧠 Gemini Analyse", [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION
+        ], 1);
     }
 
     public function ApplyChanges(): void{
@@ -177,8 +179,9 @@ class WithingsDevice extends IPSModuleStrict {
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         $response = curl_exec($ch);
-        if ($response === false) {
-            $this->SLog('ERROR', 'API-Anfrage fehlgeschlagen', curl_error($ch));
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($response === false || $httpCode >= 400) {
+            $this->SLog('ERROR', 'API-Anfrage fehlgeschlagen', "HTTP $httpCode | Fehler: " . curl_error($ch));
             curl_close($ch);
             return false;
         }
@@ -246,8 +249,9 @@ class WithingsDevice extends IPSModuleStrict {
             ]);
             curl_setopt($ch, CURLOPT_TIMEOUT, 15);
             $response = curl_exec($ch);
-            if ($response === false) {
-                $this->SLog('ERROR', 'API-Anfrage fehlgeschlagen', curl_error($ch));
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            if ($response === false || $httpCode >= 400) {
+                $this->SLog('ERROR', 'API-Anfrage fehlgeschlagen', "HTTP $httpCode | Fehler: " . curl_error($ch));
                 curl_close($ch);
                 break;
             }

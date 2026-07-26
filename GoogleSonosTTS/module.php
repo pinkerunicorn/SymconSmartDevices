@@ -119,6 +119,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         $ids = IPS_GetInstanceListByModuleID("{015A6EB8-D6E5-4B93-B496-0D3F77AE9FE1}");
         if (sizeof($ids) > 0) {
             $hooks = json_decode(IPS_GetProperty($ids[0], "Hooks"), true);
+            if (!is_array($hooks)) $hooks = [];
             $found = false;
             foreach ($hooks as $index => $hook) {
                 if ($hook['Hook'] == $HookPath) {
@@ -314,12 +315,12 @@ class GoogleSonosTTS extends IPSModuleStrict
             curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 
             $response = curl_exec($ch);
-            if ($response === false) {
-                $this->SLog('ERROR', 'API-Anfrage fehlgeschlagen', curl_error($ch));
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            if ($response === false || $httpCode >= 400) {
+                $this->SLog('ERROR', 'TTS API-Fehler', "HTTP $httpCode | " . curl_error($ch));
                 curl_close($ch);
                 return false;
             }
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
 
             $this->SendDebug("GoogleTTS", "Google API HTTP Code: " . $httpCode, 0);
