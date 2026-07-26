@@ -108,20 +108,23 @@ class VestaboardLocal extends IPSModuleStrict {
             return false;
         }
         curl_close($chLocal);
-            
-            if ($localHttpCode >= 200 && $localHttpCode < 300) {
-                // IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: ' . "Erfolgreich kompiliert und lokal gesendet.");
-                return true;
-            } else {
-                IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: ' . "Lokaler API Fehler! HTTP Code: " . $localHttpCode . " Response: " . $responseLocal);
-                return false;
-            }
+
+        if ($localHttpCode >= 200 && $localHttpCode < 300) {
+            return true;
+        } else {
+            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: ' . "Lokaler API Fehler! HTTP Code: " . $localHttpCode . " Response: " . $responseLocal);
+            return false;
         }
     }
 
     protected function LogMessage(string $Message, int $Type): bool
     {
-        IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: ' . $Message);
+        $level = match(true) {
+            $Type >= IS_EBASE => 'ERROR',
+            $Type >= IS_WBASE => 'WARNING',
+            default           => 'INFO',
+        };
+        IPS_LogMessage('VestaboardLocal', "$level: $Message");
         return true;
     }
 
