@@ -17,6 +17,7 @@ class SmartFountain extends IPSModuleStrict
         $this->RegisterPropertyInteger('PumpTargetID', 0);
         $this->RegisterPropertyInteger('PowerMeterID', 0);
         $this->RegisterPropertyInteger('WledDeviceID', 0);
+        $this->RegisterPropertyInteger('WledGardenID', 0);
 
         
         $this->RegisterPropertyInteger('MinPumpPercent', 5);
@@ -436,62 +437,69 @@ class SmartFountain extends IPSModuleStrict
     private function UpdateWLEDState(int $choreography): void
     {
         $wledID = $this->ReadPropertyInteger('WledDeviceID');
-        if ($wledID <= 1 || !@IPS_InstanceExists($wledID)) {
-            return; // Kein WLED konfiguriert
-        }
+        $gardenID = $this->ReadPropertyInteger('WledGardenID');
+        
+        $hasWled = ($wledID > 1 && @IPS_InstanceExists($wledID));
+        $hasGarden = ($gardenID > 1 && @IPS_InstanceExists($gardenID));
 
-        if (!$this->GetValue('Active')) {
-            @WLED_SetState($wledID, false);
+        if (!$hasWled && !$hasGarden) {
             return;
         }
 
-        @WLED_SetState($wledID, true);
+        if (!$this->GetValue('Active')) {
+            if ($hasWled) @WLED_SetState($wledID, false);
+            if ($hasGarden) @WLED_SetState($gardenID, false);
+            return;
+        }
+
+        if ($hasWled) @WLED_SetState($wledID, true);
+        if ($hasGarden) @WLED_SetState($gardenID, true);
 
         // Map Symcon intensity (0-100) to WLED brightness/intensity (0-255)
         $intensity = $this->GetValue('ChoreographyIntensity');
         $wledBrightness = (int)round(($intensity / 100) * 255);
-        @WLED_SetBrightness($wledID, $wledBrightness);
+        $gardenBrightness = (int)round(($wledBrightness * 0.7)); // Garten etwas dunkler (70%)
+
+        if ($hasWled) @WLED_SetBrightness($wledID, $wledBrightness);
+        if ($hasGarden) @WLED_SetBrightness($gardenID, $gardenBrightness);
 
         // Speed (0-100) to WLED speed (0-255)
         $speed = $this->GetValue('ChoreographySpeed');
         $wledSpeed = (int)round(($speed / 100) * 255);
+        $gardenSpeed = (int)round(($wledSpeed * 0.3)); // Garten viel langsamer (30%)
 
         switch ($choreography) {
             case 0: // Manuell - Statisch Warmweiß / Gold
-                @WLED_SetEffect($wledID, 0); // Solid
-                @WLED_SetColor($wledID, 0xFF9900); // Amber/Gold
+                if ($hasWled) { @WLED_SetEffect($wledID, 0); @WLED_SetColor($wledID, 0xFF9900); }
+                if ($hasGarden) { @WLED_SetEffect($gardenID, 0); @WLED_SetColor($gardenID, 0xFF7700); }
                 break;
             case 1: // Sinuswelle - Breathe, Blue
-                @WLED_SetEffect($wledID, 2); // Breathe
-                @WLED_SetColor($wledID, 0x0044FF); // Blue
-                @WLED_SetSpeed($wledID, $wledSpeed);
+                if ($hasWled) { @WLED_SetEffect($wledID, 2); @WLED_SetColor($wledID, 0x0044FF); @WLED_SetSpeed($wledID, $wledSpeed); }
+                if ($hasGarden) { @WLED_SetEffect($gardenID, 2); @WLED_SetColor($gardenID, 0x001155); @WLED_SetSpeed($gardenID, $gardenSpeed); } // Dunkelblaues, langsames Atmen
                 break;
             case 2: // Puls - Heartbeat, Red
-                @WLED_SetEffect($wledID, 65); // Heartbeat
-                @WLED_SetColor($wledID, 0xFF0000); // Red
-                @WLED_SetSpeed($wledID, $wledSpeed);
+                if ($hasWled) { @WLED_SetEffect($wledID, 65); @WLED_SetColor($wledID, 0xFF0000); @WLED_SetSpeed($wledID, $wledSpeed); }
+                if ($hasGarden) { @WLED_SetEffect($gardenID, 0); @WLED_SetColor($gardenID, 0x440000); } // Statisch, dunkles Rot als Kontrast
                 break;
             case 3: // Atmen - Fade, Cyan
-                @WLED_SetEffect($wledID, 12); // Fade (or similar slow effect)
-                @WLED_SetColor($wledID, 0x00FFFF); // Cyan
-                @WLED_SetSpeed($wledID, $wledSpeed);
+                if ($hasWled) { @WLED_SetEffect($wledID, 12); @WLED_SetColor($wledID, 0x00FFFF); @WLED_SetSpeed($wledID, $wledSpeed); }
+                if ($hasGarden) { @WLED_SetEffect($gardenID, 12); @WLED_SetColor($gardenID, 0x004488); @WLED_SetSpeed($gardenID, $gardenSpeed); } // Sehr langsames dunkles Türkis
                 break;
             case 4: // Zufall - Chase Random
-                @WLED_SetEffect($wledID, 74); // Chase Random
-                @WLED_SetSpeed($wledID, $wledSpeed);
+                if ($hasWled) { @WLED_SetEffect($wledID, 74); @WLED_SetSpeed($wledID, $wledSpeed); }
+                if ($hasGarden) { @WLED_SetEffect($gardenID, 9); @WLED_SetSpeed($gardenID, 20); } // Colorloop (sehr langsam, beruhigend)
                 break;
             case 5: // Treppe - Rainbow
-                @WLED_SetEffect($wledID, 11); // Rainbow
-                @WLED_SetSpeed($wledID, $wledSpeed);
+                if ($hasWled) { @WLED_SetEffect($wledID, 11); @WLED_SetSpeed($wledID, $wledSpeed); }
+                if ($hasGarden) { @WLED_SetEffect($gardenID, 11); @WLED_SetSpeed($gardenID, 15); } // Regenbogen extrem langsam im Garten
                 break;
             case 6: // Herzschlag - Heartbeat, Magenta
-                @WLED_SetEffect($wledID, 65); // Heartbeat
-                @WLED_SetColor($wledID, 0xFF00FF); // Magenta
-                @WLED_SetSpeed($wledID, $wledSpeed);
+                if ($hasWled) { @WLED_SetEffect($wledID, 65); @WLED_SetColor($wledID, 0xFF00FF); @WLED_SetSpeed($wledID, $wledSpeed); }
+                if ($hasGarden) { @WLED_SetEffect($gardenID, 2); @WLED_SetColor($gardenID, 0x440044); @WLED_SetSpeed($gardenID, $gardenSpeed); } // Langsames Atmen in tiefem Lila
                 break;
             case 7: // Zufalls-Mix
-                @WLED_SetEffect($wledID, 9); // Colorful (Dynamic colors)
-                @WLED_SetSpeed($wledID, $wledSpeed);
+                if ($hasWled) { @WLED_SetEffect($wledID, 9); @WLED_SetSpeed($wledID, $wledSpeed); }
+                if ($hasGarden) { @WLED_SetEffect($gardenID, 9); @WLED_SetSpeed($gardenID, 20); } // Colorloop langsam
                 break;
         }
     }
@@ -528,7 +536,12 @@ class SmartFountain extends IPSModuleStrict
         {
             "type": "SelectInstance",
             "name": "WledDeviceID",
-            "caption": "WLED Instanz (KaiS WLED Modul, optional)"
+            "caption": "WLED: Springbrunnen LED-Ring"
+        },
+        {
+            "type": "SelectInstance",
+            "name": "WledGardenID",
+            "caption": "WLED: Garten DMX-Spots (optional)"
         },
         {
             "type": "Label",
