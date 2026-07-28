@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+
 class AirthingsWavePlus extends IPSModuleStrict
 {
+    use SmartLog_Trait;
+
     public function Create(): void
     {
         // Never delete this line!
