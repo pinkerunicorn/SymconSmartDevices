@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 class RoonZone extends IPSModuleStrict
 {
+    use SmartLog_Trait;
     private const TRANSPORT_COMMANDS = [
         0 => 'previous',
         1 => 'stop',
@@ -196,17 +198,6 @@ class RoonZone extends IPSModuleStrict
     {
         // Den exakten Zonen-Namen zurückgeben — roon-extension-mqtt erlaubt Leerzeichen
         return $zoneName;
-    }
-
-    private function SLog(string $level, string $message, string $details = ''): void
-    {
-        $source = static::class;
-        $slogInstances = @IPS_GetInstanceListByModuleID('{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}');
-        if (is_array($slogInstances) && count($slogInstances) > 0) {
-            @SLOG_Log($slogInstances[0], $level, $source, $message, $details);
-        } else {
-            IPS_LogMessage('SmartVillaKunterbunt', $source . ': ' . $message);
-        }
     }
 
     protected function LogMessage(string $Message, int $Type): bool

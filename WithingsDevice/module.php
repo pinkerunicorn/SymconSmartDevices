@@ -1,7 +1,10 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+
 class WithingsDevice extends IPSModuleStrict {
+    use SmartLog_Trait;
 
     private const MEASURE_WEIGHT = 1;
     private const MEASURE_HEIGHT = 4;
@@ -529,17 +532,6 @@ class WithingsDevice extends IPSModuleStrict {
         $smtpID = $this->ReadPropertyInteger('SMTPInstanceID');
         if ($smtpID > 0 && IPS_InstanceExists($smtpID)) {
             @SMTP_SendMail($smtpID, 'Dein Gesundheits-Coach Update', $report);
-        }
-    }
-
-    private function SLog(string $level, string $message, string $details = ''): void
-    {
-        $source = static::class;
-        $slogInstances = @IPS_GetInstanceListByModuleID('{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}');
-        if (is_array($slogInstances) && count($slogInstances) > 0) {
-            @SLOG_Log($slogInstances[0], $level, $source, $message, $details);
-        } else {
-            IPS_LogMessage('SmartVillaKunterbunt', $source . ': ' . $message);
         }
     }
 

@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 /**
  * ImperialDishwasherAI — KI-gestützte Spülmaschinen-Überwachung.
  * Nutzt SmartGeminiIO für alle Gemini-API-Aufrufe.
  */
 class ImperialDishwasherAI extends IPSModuleStrict {
+    use SmartLog_Trait;
     /** GUID des SmartGeminiIO-Moduls zur Auto-Discovery */
     private const GEMINI_IO_GUID = '{4C8B2A6D-9E3F-4A7B-8C5D-1F6E2A3B7C4D}';
 
@@ -278,17 +280,6 @@ class ImperialDishwasherAI extends IPSModuleStrict {
             $this->SLog('INFO', 'Gemini meldet: Spülmaschine ist fertig.');
         } else {
             $this->SLog('INFO', 'Gemini Phase: ' . $parsed['phase']);
-        }
-    }
-
-    private function SLog(string $level, string $message, string $details = ''): void
-    {
-        $source = static::class;
-        $slogInstances = @IPS_GetInstanceListByModuleID('{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}');
-        if (is_array($slogInstances) && count($slogInstances) > 0) {
-            @SLOG_Log($slogInstances[0], $level, $source, $message, $details);
-        } else {
-            IPS_LogMessage('SmartVillaKunterbunt', $source . ': ' . $message);
         }
     }
 
