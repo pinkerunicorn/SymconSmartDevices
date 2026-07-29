@@ -69,10 +69,10 @@ class WithingsDevice extends IPSModuleStrict {
 
         $this->RegisterTimer("FetchTimer", 0, 'WITHINGS_FetchMeasurements($_IPS[\'TARGET\']);');
 
-        $this->RegisterVariableString("ConnectionStatus", "Verbindungsstatus", "", -1);
-        $this->RegisterVariableString("LastMeasurement", "Letzte Messung", "", 0);
-        $this->RegisterVariableString("DeviceBattery", "Geräte-Akku", "", 1);
-        $this->RegisterVariableString("DailyReport", "Gemini Analyse", "", 99);
+        $this->RegisterVariableString("ConnectionStatus", "Verbindungsstatus", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION], -1);
+        $this->RegisterVariableString("LastMeasurement", "Letzte Messung", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION], 0);
+        $this->RegisterVariableString("DeviceBattery", "Geräte-Akku", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION], 1);
+        $this->RegisterVariableString("DailyReport", "Gemini Analyse", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION], 99);
     }
 
     public function ApplyChanges(): void {

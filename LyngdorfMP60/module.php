@@ -61,8 +61,8 @@ class LyngdorfMP60 extends IPSModuleStrict
         ], 6);
         $this->EnableAction('Voicing');
 
-        $this->RegisterVariableString('AudioTypeIn', '📥 Audio Type In', ['ICON' => 'Information'], 7);
-        $this->RegisterVariableString('AudioTypeOut', '📤 Audio Type Out', ['ICON' => 'Information'], 8);
+        $this->RegisterVariableString('AudioTypeIn', '📥 Audio Type In', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 7);
+        $this->RegisterVariableString('AudioTypeOut', '📤 Audio Type Out', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 8);
     }
 
     public function ApplyChanges(): void

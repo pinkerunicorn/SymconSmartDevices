@@ -38,7 +38,7 @@ class PixelblazeController extends IPSModuleStrict
         $this->RegisterVariableInteger('ActiveProgram', 'Programm', ['ICON' => 'Script'], 30);
         $this->EnableAction('ActiveProgram');
 
-        $this->RegisterVariableString('ActiveProgramName', 'Aktuelles Programm (Name)', ['ICON' => 'Information'], 35);
+        $this->RegisterVariableString('ActiveProgramName', 'Aktuelles Programm (Name)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 35);
 
         // Timer für Auto-Reconnect
         $this->RegisterTimer('ReconnectTimer', 0, 'PB_Reconnect($_IPS[\'TARGET\']);');
@@ -253,7 +253,7 @@ class PixelblazeController extends IPSModuleStrict
                                 // Speichere den echten Namen auch direkt in eine String-Variable zur Anzeige
                                 if (isset($payload['activeProgram']['name'])) {
                                     $progName = $payload['activeProgram']['name'];
-                                    @$this->RegisterVariableString('ActiveProgramName', 'Aktuelles Programm (Name)', '', 35);
+                                    @$this->RegisterVariableString('ActiveProgramName', 'Aktuelles Programm (Name)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 35);
                                     if ($this->GetValue('ActiveProgramName') !== $progName) {
                                         $this->SetValue('ActiveProgramName', $progName);
                                     }

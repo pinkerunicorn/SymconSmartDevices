@@ -27,9 +27,9 @@ class RoonZone extends IPSModuleStrict
             'PROFILE'      => 'Roon.State'
         ], 1);
         IPS_SetIcon($this->GetIDForIdent('State'), 'Information');
-        $this->RegisterVariableString('Title', '🎵 Titel', ['ICON' => 'Melody'], 2);
-        $this->RegisterVariableString('Artist', '🎤 Künstler', ['ICON' => 'User'], 3);
-        $this->RegisterVariableString('Album', '💿 Album', ['ICON' => 'Database'], 4);
+        $this->RegisterVariableString('Title', '🎵 Titel', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Melody'], 2);
+        $this->RegisterVariableString('Artist', '🎤 Künstler', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'User'], 3);
+        $this->RegisterVariableString('Album', '💿 Album', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Database'], 4);
         $this->RegisterVariableInteger('Volume', '🔊 Lautstärke', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
             'ICON' => 'Intensity',

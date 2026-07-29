@@ -16,24 +16,9 @@ class TedeeLock extends IPSModuleStrict
         
         $this->RegisterAttributeInteger('DetectedLockID', 0);
 
-        if (!IPS_VariableProfileExists('Tedee.LockState')) {
-            IPS_CreateVariableProfile('Tedee.LockState', 1);
-            IPS_SetVariableProfileIcon('Tedee.LockState', 'Information');
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 0, 'Unkalibriert', 'Warning', 0xFF0000);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 1, 'Kalibriert...', 'TurnLeft', 0x00FF00);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 2, 'Entriegelt', 'LockOpen', 0x00FF00);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 3, 'Halb-Verriegelt', 'Warning', 0xFFA500);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 4, 'Entriegelt...', 'LockOpen', 0x00FF00);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 5, 'Verriegelt...', 'LockClosed', 0xFF0000);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 6, 'Verriegelt', 'LockClosed', 0xFF0000);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 7, 'Falle gezogen', 'Door', 0x0000FF);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 8, 'Falle zieht...', 'Door', 0x0000FF);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 9, 'Unbekannt', 'Information', -1);
-            IPS_SetVariableProfileAssociation('Tedee.LockState', 18, 'Update...', 'Gear', 0x00FF00);
-        }
         $this->RegisterVariableInteger('LockState', 'Schloss Status', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'PROFILE'      => 'Tedee.LockState'
+            'ICON'         => 'Information'
         ], 1);
         $this->RegisterVariableInteger('BatteryLevel', 'Batterie', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
@@ -72,14 +57,37 @@ class TedeeLock extends IPSModuleStrict
         // ---------------------------------
 
 
-        // Create profiles if not exist
-        
-        
-        
+        $lockStateOptions = json_encode([
+            ['Value' => 0, 'Caption' => 'Unbekannt', 'IconValue' => 'Information', 'IconActive' => false, 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+            ['Value' => 1, 'Caption' => 'Gesperrt', 'IconValue' => 'LockClosed', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00],
+            ['Value' => 2, 'Caption' => 'Entsperrt', 'IconValue' => 'LockOpen', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000],
+            ['Value' => 3, 'Caption' => 'Halb offen', 'IconValue' => 'Warning', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFFA500, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFFA500]
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('LockState'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Information',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $lockStateOptions
+        ]);
 
-
-
-// Register Webhook Endpoint in Symcon
+        $chargingOptions = json_encode([
+            ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'Plug', 'IconActive' => false, 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+            ['Value' => true, 'Caption' => 'Lädt', 'IconValue' => 'Plug', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('IsCharging'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Plug',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $chargingOptions
+        ]);// Register Webhook Endpoint in Symcon
         $this->RegisterHook("Tedee_" . $this->InstanceID);
 
         // Fetch initial status once upon apply

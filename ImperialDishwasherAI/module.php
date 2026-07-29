@@ -28,14 +28,14 @@ class ImperialDishwasherAI extends IPSModuleStrict {
         if ($vid && IPS_GetVariable($vid)['VariableType'] !== 3) {
             $this->UnregisterVariable('Status');
         }
-        $this->RegisterVariableString('Status', 'Status', ['ICON' => 'Information'], 1);
-        $this->RegisterVariableString('CurrentPhase', 'Aktuelle Phase', ['ICON' => 'Script'], 2);
+        $this->RegisterVariableInteger('Status', 'Status', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 1);
+        $this->RegisterVariableString('CurrentPhase', 'Aktuelle Phase', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Script'], 2);
         $this->RegisterVariableInteger('ActiveSince', 'Aktiv Seit', [
             'PRESENTATION' => VARIABLE_PRESENTATION_DATE_TIME,
             'ICON'         => 'Clock'
         ], 3);
-        $this->RegisterVariableString('LastGeminiPrompt', 'Letzter KI Prompt', ['ICON' => 'Information'], 4);
-        $this->RegisterVariableString('LastGeminiResponse', 'Letzte KI Antwort', ['ICON' => 'Information'], 5);
+        $this->RegisterVariableString('LastGeminiPrompt', 'Letzter KI Prompt', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 4);
+        $this->RegisterVariableString('LastGeminiResponse', 'Letzte KI Antwort', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 5);
         $this->RegisterVariableInteger('RemainingTime', 'Restlaufzeit', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Clock',
@@ -64,7 +64,7 @@ class ImperialDishwasherAI extends IPSModuleStrict {
         IPS_SetHidden($this->GetIDForIdent('LastSessionData'), true);
 
         // Vestaboard: Kurzzusammenfassung für VestaboardGenerator
-        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', ['ICON' => 'Script'], 101);
+        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Script'], 101);
     }
 
     public function ApplyChanges(): void {
@@ -78,15 +78,30 @@ class ImperialDishwasherAI extends IPSModuleStrict {
             $this->RegisterMessage($powerVarID, VM_UPDATE);
         }
 
-
+        $statusOptions = json_encode([
+            ['Value' => 0, 'Caption' => 'Aus', 'IconValue' => 'Information', 'IconActive' => false, 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+            ['Value' => 1, 'Caption' => 'Start', 'IconValue' => 'Information', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x0088FF, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x0088FF],
+            ['Value' => 2, 'Caption' => 'Aktiv', 'IconValue' => 'Information', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00],
+            ['Value' => 3, 'Caption' => 'Fertig', 'IconValue' => 'Information', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFFA500, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFFA500]
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Status'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Information',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $statusOptions
+        ]);
 
         $this->MaintainTimer();
     }
 
     public function RequestAction(string $Ident, mixed $Value): void {
         if ($Ident === 'Status') {
-            if ($Value === 'Aus') {
-                $this->SetValue('Status', 'Aus');
+            if ($Value === 0 || $Value === 'Aus') {
+                $this->SetValue('Status', 0);
                 $this->SetValue('CurrentPhase', 'Aus');
                 $this->SetValue('RemainingTime', 0);
                 $this->SetValue('ExpectedEnd', 0);
@@ -95,7 +110,7 @@ class ImperialDishwasherAI extends IPSModuleStrict {
                 $this->SetValue('VestaboardMessage', '');
                 $this->MaintainTimer();
             } else {
-                $this->SetValue('Status', $Value);
+                $this->SetValue('Status', (int)$Value);
                 $this->MaintainTimer();
             }
         }
@@ -109,8 +124,8 @@ class ImperialDishwasherAI extends IPSModuleStrict {
                 $status    = $this->GetValue('Status');
                 $threshold = $this->ReadPropertyFloat('StartThreshold');
 
-                if ($power > $threshold && ($status === 'Aus' || $status === '' || $status === 'Fertig')) {
-                    $this->SetValue('Status', 'Start');
+                if ($power > $threshold && ($status === 0 || $status === '' || $status === 3)) {
+                    $this->SetValue('Status', 1);
                     $this->SetValue('VestaboardMessage', 'Spülmaschine gestartet…');
                     $this->SetValue('ActiveSince', time());
                     $this->SetValue('CurrentPhase', 'Gestartet');
@@ -127,7 +142,7 @@ class ImperialDishwasherAI extends IPSModuleStrict {
 
     private function MaintainTimer(): void {
         $status = $this->GetValue('Status');
-        if ($status === 'Start' || $status === 'Aktiv') {
+        if ($status === 1 || $status === 2 || $status === 'Start' || $status === 'Aktiv') {
             $this->SetTimerInterval('DataCollectorTimer', self::MS_PER_MINUTE);
             $interval = $this->ReadPropertyInteger('AnalysisInterval');
             $this->SetTimerInterval('AnalysisTimer', $interval * self::MS_PER_MINUTE);
@@ -270,7 +285,7 @@ class ImperialDishwasherAI extends IPSModuleStrict {
         }
 
         if (isset($parsed['isFinished']) && $parsed['isFinished'] == true) {
-            $this->SetValue('Status', 'Fertig');
+            $this->SetValue('Status', 3);
             $this->SetValue('Progress', 0);
             $this->SetValue('VestaboardMessage', 'Spülmaschine fertig! Bitte ausräumen.');
 

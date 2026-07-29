@@ -29,7 +29,7 @@ class XeroxPrinter extends IPSModuleStrict
         $this->RegisterTimer('UpdateTimer', 0, 'XEROX_UpdateStatus($_IPS[\'TARGET\']);');
 
         // Feste Variablen
-        $this->RegisterVariableInteger('LastUpdate', '⏱ Letztes erfolgreiches Update', ['ICON' => 'Clock'], 999);
+        $this->RegisterVariableInteger('LastUpdate', '⏱ Letztes erfolgreiches Update', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 999);
     }
 
     public function ApplyChanges(): void{
@@ -57,7 +57,7 @@ class XeroxPrinter extends IPSModuleStrict
                     $icon = 'Drop';
                 }
                 
-                $this->RegisterVariableFloat($ident, $name, ['ICON' => $icon], $index * 10);
+                $this->RegisterVariableFloat($ident, $name, ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => $icon], $index * 10);
                 $keepVariables[] = $ident;
             }
         }
