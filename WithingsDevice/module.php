@@ -69,12 +69,10 @@ class WithingsDevice extends IPSModuleStrict {
 
         $this->RegisterTimer("FetchTimer", 0, 'WITHINGS_FetchMeasurements($_IPS[\'TARGET\']);');
 
-        $this->RegisterVariableString("ConnectionStatus", "Verbindungsstatus", ['ICON' => 'Network'], -1);
-        $this->RegisterVariableString("LastMeasurement", "Letzte Messung", ['ICON' => 'Clock'], 0);
-        $this->RegisterVariableString("DeviceBattery", "Geräte-Akku", ['ICON' => 'Battery'], 1);
-        $this->RegisterVariableString("DailyReport", "Gemini Analyse", [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION
-        ], 99);
+        $this->RegisterVariableString("ConnectionStatus", "Verbindungsstatus", "", -1);
+        $this->RegisterVariableString("LastMeasurement", "Letzte Messung", "", 0);
+        $this->RegisterVariableString("DeviceBattery", "Geräte-Akku", "", 1);
+        $this->RegisterVariableString("DailyReport", "Gemini Analyse", "", 99);
     }
 
     public function ApplyChanges(): void {
@@ -103,6 +101,7 @@ class WithingsDevice extends IPSModuleStrict {
         $this->SetTimerInterval("FetchTimer", $interval * 60 * 1000);
 
         $this->UpdatePresentations();
+        $this->UpdateStatusIcons();
         $this->UpdateConnectionStatus();
     }
 
@@ -129,6 +128,33 @@ class WithingsDevice extends IPSModuleStrict {
             $hours = intdiv($remaining, 3600);
             $minutes = intdiv($remaining % 3600, 60);
             $this->SetValue("ConnectionStatus", "Verbunden (Token gültig noch {$hours}h {$minutes}m)");
+        }
+    }
+
+    /**
+     * Setzt Icons und Presentations für die Status-Variablen (ConnectionStatus, LastMeasurement, DeviceBattery, DailyReport).
+     */
+    private function UpdateStatusIcons(): void {
+        $iconMap = [
+            'ConnectionStatus' => 'Network',
+            'LastMeasurement'  => 'Clock',
+            'DeviceBattery'    => 'Battery',
+            'DailyReport'      => 'Book',
+        ];
+
+        foreach ($iconMap as $ident => $icon) {
+            $varID = @IPS_GetObjectIDByIdent($ident, $this->InstanceID);
+            if ($varID !== false) {
+                IPS_SetIcon($varID, $icon);
+            }
+        }
+
+        // DailyReport bekommt zusätzlich die VALUE_PRESENTATION für Markdown-Anzeige
+        $reportID = @IPS_GetObjectIDByIdent('DailyReport', $this->InstanceID);
+        if ($reportID !== false) {
+            IPS_SetVariableCustomPresentation($reportID, [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION
+            ]);
         }
     }
 
