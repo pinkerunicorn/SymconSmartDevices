@@ -69,10 +69,10 @@ class WithingsDevice extends IPSModuleStrict {
 
         $this->RegisterTimer("FetchTimer", 0, 'WITHINGS_FetchMeasurements($_IPS[\'TARGET\']);');
 
-        $this->RegisterVariableString("ConnectionStatus", "🔗 Verbindung", ['ICON' => 'Network'], -1);
-        $this->RegisterVariableString("LastMeasurement", "⏱ Letzte Messung", ['ICON' => 'Clock'], 0);
-        $this->RegisterVariableString("DeviceBattery", "🔋 Geräte-Akku", ['ICON' => 'Battery'], 1);
-        $this->RegisterVariableString("DailyReport", "🧠 Gemini Analyse", [
+        $this->RegisterVariableString("ConnectionStatus", "Verbindungsstatus", ['ICON' => 'Network'], -1);
+        $this->RegisterVariableString("LastMeasurement", "Letzte Messung", ['ICON' => 'Clock'], 0);
+        $this->RegisterVariableString("DeviceBattery", "Geräte-Akku", ['ICON' => 'Battery'], 1);
+        $this->RegisterVariableString("DailyReport", "Gemini Analyse", [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION
         ], 99);
     }
@@ -115,16 +115,16 @@ class WithingsDevice extends IPSModuleStrict {
         $tokenExpires = $this->ReadAttributeInteger("TokenExpires");
 
         if ($clientId == "") {
-            $this->SetValue("ConnectionStatus", "⚙️ Nicht konfiguriert");
+            $this->SetValue("ConnectionStatus", "Nicht konfiguriert");
         } elseif ($accessToken == "") {
-            $this->SetValue("ConnectionStatus", "🔑 Nicht autorisiert");
+            $this->SetValue("ConnectionStatus", "Nicht autorisiert");
         } elseif (time() > $tokenExpires) {
-            $this->SetValue("ConnectionStatus", "⏳ Token abgelaufen (Refresh bei nächstem Abruf)");
+            $this->SetValue("ConnectionStatus", "Token abgelaufen (Refresh bei nächstem Abruf)");
         } else {
             $remaining = $tokenExpires - time();
             $hours = intdiv($remaining, 3600);
             $minutes = intdiv($remaining % 3600, 60);
-            $this->SetValue("ConnectionStatus", "✅ Verbunden (Token gültig noch {$hours}h {$minutes}m)");
+            $this->SetValue("ConnectionStatus", "Verbunden (Token gültig noch {$hours}h {$minutes}m)");
         }
     }
 
@@ -564,12 +564,6 @@ class WithingsDevice extends IPSModuleStrict {
                 : '–';
 
             // Withings battery levels: "high", "medium", "low"
-            $batteryEmoji = match($battery) {
-                'high'   => '🟢',
-                'medium' => '🟡',
-                'low'    => '🔴',
-                default  => '⚪',
-            };
             $batteryLabel = match($battery) {
                 'high'   => 'Hoch',
                 'medium' => 'Mittel',
@@ -577,7 +571,7 @@ class WithingsDevice extends IPSModuleStrict {
                 default  => 'Unbekannt',
             };
 
-            $batteryParts[] = "{$batteryEmoji} {$model}: {$batteryLabel} (Sync: {$lastSync})";
+            $batteryParts[] = "{$model}: {$batteryLabel} (Sync: {$lastSync})";
         }
 
         if (count($batteryParts) > 0) {
