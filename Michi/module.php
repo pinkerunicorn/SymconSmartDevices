@@ -11,10 +11,14 @@ class Michi extends IPSModuleStrict
         parent::Create();
 
         // Eigenschaften
-        $this->RegisterPropertyInteger('UpdateInterval', 0);
+        $this->RegisterPropertyString('Host', '');
+        $this->RegisterPropertyInteger('Port', 9596);
+        $this->RegisterPropertyInteger('UpdateInterval', 60);
 
         // Timer
         $this->RegisterTimer('UpdateTimer', 0, 'MICHI_RequestStatus($_IPS[\'TARGET\']);');
+
+
 
         // Variablen registrieren
         $this->RegisterVariableBoolean('Power', 'Power', [
@@ -86,64 +90,96 @@ class Michi extends IPSModuleStrict
                 $this->SetValue($Ident, $Value);
                 break;
         }
+        
+        usleep(500000);
+        $this->RequestStatus();
     }
 
     public function RequestStatus(): void
     {
-        if (!$this->HasActiveParent()) {
+        $host = $this->ReadPropertyString('Host');
+        $port = $this->ReadPropertyInteger('Port');
+
+        if (empty($host)) {
+            $this->SendDebug("Log", "RequestStatus abgebrochen: Keine IP-Adresse (Host) konfiguriert!", 0);
             return;
         }
+
+        $this->SendDebug("Log", "Verbinde mit Michi $host:$port...", 0);
+        
+        $fp = @fsockopen($host, $port, $errno, $errstr, 2);
+        if (!$fp) {
+            $this->SendDebug("Log", "Verbindung fehlgeschlagen: $errstr ($errno)", 0);
+            
+            // Michi ist vermutlich im Standby oder stromlos
+            if ($this->GetValue('Power')) {
+                $this->UpdatePowerState(false);
+                $this->SendDebug("TIMEOUT", "Keine Verbindung möglich. Setze Power auf Aus.", 0);
+            }
+            return;
+        }
+        
         $commands = [
             'dimmer?',
             'source?'
         ];
         
         foreach ($commands as $cmd) {
-            $this->SendCommand($cmd);
+            $this->SendDebug("Transmit", $cmd . "!", 0);
+            fwrite($fp, $cmd . "!");
+            usleep(100000);
         }
+        
+        $this->ReadResponse($fp);
+        fclose($fp);
     }
 
     private function SendCommand(string $cmd): void
     {
-        if (!$this->HasActiveParent()) {
+        $host = $this->ReadPropertyString('Host');
+        $port = $this->ReadPropertyInteger('Port');
+
+        if (empty($host)) return;
+
+        $fp = @fsockopen($host, $port, $errno, $errstr, 2);
+        if (!$fp) {
+            $this->SendDebug("Log", "Verbindung fehlgeschlagen: $errstr ($errno)", 0);
             return;
         }
-        $cmd = rtrim($cmd, '!') . "!\r";
-        $this->SendDebug("Transmit", trim($cmd), 0);
         
-        $this->SendDataToParent(json_encode([
-            'DataID' => '{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}',
-            'Buffer' => $cmd
-        ]));
+        $cmd = rtrim($cmd, '!');
+        $this->SendDebug("Transmit", $cmd . "!", 0);
+        fwrite($fp, $cmd . "!");
+        usleep(100000);
+        
+        $this->ReadResponse($fp);
+        fclose($fp);
     }
 
-    public function ReceiveData(string $JSONString): string
+    private function ReadResponse($fp): void
     {
-        $data = json_decode($JSONString, true);
-        if (!isset($data['Buffer'])) {
-            return "";
+        stream_set_blocking($fp, false);
+        $response = "";
+        $startTime = microtime(true);
+        
+        while (microtime(true) - $startTime < 1.0) {
+            $chunk = fread($fp, 1024);
+            if ($chunk !== false && $chunk !== '') {
+                $response .= $chunk;
+            }
+            usleep(50000);
         }
-        $chunk = $data['Buffer'];
-        $this->SendDebug("Receive Chunk", $chunk, 0);
-
-        $buffer = $this->GetBuffer('ReceiveBuffer');
-        $buffer .= $chunk;
-
-        // Rotel/Michi Protocol: Antworten sind durch $ getrennt
-        $buffer = str_replace(["\r", "\n"], '$', $buffer);
-        $parts = explode('$', $buffer);
         
-        // Letzter Teil könnte unvollständig sein
-        $this->SetBuffer('ReceiveBuffer', array_pop($parts));
-        
-        foreach ($parts as $part) {
-            $part = trim($part);
-            if (!empty($part)) {
-                $this->ParseLine($part);
+        if (!empty($response)) {
+            $this->SendDebug("Receive", $response, 0);
+            $parts = explode('$', $response);
+            foreach ($parts as $part) {
+                $part = trim($part);
+                if (!empty($part)) {
+                    $this->ParseLine($part);
+                }
             }
         }
-        
-        return "";
     }
 
     private function ParseLine(string $msg): void
@@ -229,12 +265,31 @@ class Michi extends IPSModuleStrict
     "elements": [
         {
             "type": "Label",
-            "caption": "Die Verbindung zum Michi/Rotel Verstärker wird über den Client Socket (Gateway) konfiguriert. Port: 9596."
+            "label": "Hallo! Hier konfigurierst du die Verbindung zu deinem Michi-Gerät. Trage einfach die IP-Adresse und den passenden Port ein."
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "ValidationTextBox",
+                    "name": "Host",
+                    "caption": "IP-Adresse"
+                },
+                {
+                    "type": "NumberSpinner",
+                    "name": "Port",
+                    "caption": "Port"
+                }
+            ]
+        },
+        {
+            "type": "Label",
+            "label": "Wie oft soll ich bei Michi nach dem aktuellen Status fragen? Stell hier das Intervall in Sekunden ein. Wenn du 0 einträgst, frage ich gar nicht mehr automatisch nach."
         },
         {
             "type": "NumberSpinner",
             "name": "UpdateInterval",
-            "caption": "Fallback-Abfrage (Sekunden, 0 = aus)",
+            "caption": "Abfrage-Intervall (Sekunden)",
             "minimum": 0,
             "maximum": 3600
         }
@@ -242,7 +297,7 @@ class Michi extends IPSModuleStrict
     "actions": [
         {
             "type": "Button",
-            "caption": "Alle Werte aktualisieren",
+            "label": "Alle Werte aktualisieren",
             "onClick": "MICHI_RequestStatus($id);"
         }
     ]
