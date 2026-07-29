@@ -28,7 +28,7 @@ class WithingsDevice extends IPSModuleStrict {
         
         $this->RegisterPropertyString("ClientID", "");
         $this->RegisterPropertyString("ClientSecret", "");
-        $this->RegisterPropertyInteger("FetchInterval", 15);
+        $this->RegisterPropertyInteger("FetchInterval", 240);
         $this->RegisterPropertyInteger("LastUpdate", 0);
 
         // Gemini API-Key und Modell werden zentral über SmartGeminiIO konfiguriert.
@@ -127,7 +127,13 @@ class WithingsDevice extends IPSModuleStrict {
     }
 
     protected function ProcessHookData(): void {
-        $this->SendDebug("WebHook", "Daten empfangen: ". print_r($_GET, true), 0);
+        $this->SendDebug("WebHook", "GET: ". print_r($_GET, true) . " POST: " . print_r($_POST, true), 0);
+
+        if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'HEAD') {
+            // Withings checkt den Endpoint
+            http_response_code(200);
+            return;
+        }
 
         if (isset($_GET['code'])) {
             $code = $_GET['code'];
@@ -148,9 +154,85 @@ class WithingsDevice extends IPSModuleStrict {
 
             $this->RequestTokens($postData);
             echo "Erfolgreich autorisiert! Du kannst dieses Fenster nun schließen und in Symcon auf 'Daten jetzt manuell abrufen'klicken."; return;
-        } else {
-            echo "Kein Code empfangen."; return;
+        } 
+        
+        if (isset($_POST['userid']) || isset($_GET['userid']) || isset($_POST['appli']) || isset($_GET['appli'])) {
+            $this->SendDebug("WebHook", "Webhook Notification empfangen, rufe Daten ab...", 0);
+            // Direkter Abruf der Daten
+            $this->FetchMeasurements();
+            return;
         }
+        
+        echo "Kein gültiger Code oder Webhook empfangen."; 
+        return;
+    }
+
+    public function SubscribeWebhooks(): void {
+        $accessToken = $this->ReadAttributeString("AccessToken");
+        if ($accessToken == "") {
+            echo "Fehler: Kein Access Token vorhanden.";
+            return;
+        }
+
+        $callbackUrl = $this->GetRedirectURI();
+        $applis = [1, 4, 16]; // 1: weight, 4: activity, 16: heart
+
+        foreach ($applis as $appli) {
+            $postData = [
+                'action' => 'subscribe',
+                'callbackurl' => $callbackUrl,
+                'appli' => $appli
+            ];
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, "https://wbsapi.withings.net/notify");
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Authorization: Bearer " . $accessToken
+            ]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            $this->SendDebug("WebhookSubscribe", "Appli $appli Response: " . $response, 0);
+        }
+        echo "Webhooks (Gewicht, Aktivität, Herz) wurden abonniert.";
+    }
+
+    public function UnsubscribeWebhooks(): void {
+        $accessToken = $this->ReadAttributeString("AccessToken");
+        if ($accessToken == "") {
+            echo "Fehler: Kein Access Token vorhanden.";
+            return;
+        }
+
+        $callbackUrl = $this->GetRedirectURI();
+        $applis = [1, 4, 16];
+
+        foreach ($applis as $appli) {
+            $postData = [
+                'action' => 'revoke',
+                'callbackurl' => $callbackUrl,
+                'appli' => $appli
+            ];
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, "https://wbsapi.withings.net/notify");
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Authorization: Bearer " . $accessToken
+            ]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            $this->SendDebug("WebhookUnsubscribe", "Appli $appli Response: " . $response, 0);
+        }
+        echo "Webhooks wurden deabonniert.";
     }
 
     private function RefreshToken(): bool {
@@ -589,7 +671,7 @@ class WithingsDevice extends IPSModuleStrict {
         {
             "type": "NumberSpinner",
             "name": "FetchInterval",
-            "caption": "Abruf-Intervall (in Minuten, 0 = deaktiviert)",
+            "caption": "Abruf-Intervall (in Min, 0 = deaktiviert, z.B. 240 für Fallback)",
             "minimum": 0,
             "maximum": 1440
         },
@@ -633,6 +715,16 @@ class WithingsDevice extends IPSModuleStrict {
             "type": "Button",
             "label": "Daten jetzt manuell abrufen",
             "onClick": "WITHINGS_FetchMeasurements($id);"
+        },
+        {
+            "type": "Button",
+            "label": "Webhooks abonnieren",
+            "onClick": "echo WITHINGS_SubscribeWebhooks($id);"
+        },
+        {
+            "type": "Button",
+            "label": "Webhooks deabonnieren",
+            "onClick": "echo WITHINGS_UnsubscribeWebhooks($id);"
         },
         {
             "type": "Button",
