@@ -110,6 +110,10 @@ class WithingsDevice extends IPSModuleStrict {
      * Zeigt den aktuellen OAuth-Verbindungsstatus als Klartext-Variable an.
      */
     private function UpdateConnectionStatus(): void {
+        if (@IPS_GetObjectIDByIdent("ConnectionStatus", $this->InstanceID) === false) {
+            return;
+        }
+
         $clientId = $this->ReadPropertyString("ClientID");
         $accessToken = $this->ReadAttributeString("AccessToken");
         $tokenExpires = $this->ReadAttributeInteger("TokenExpires");
