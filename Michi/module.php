@@ -11,6 +11,7 @@ class Michi extends IPSModuleStrict
         parent::Create();
 
         // Eigenschaften
+        $this->RegisterPropertyString('Host', '');
         $this->RegisterPropertyInteger('UpdateInterval', 0);
 
         // Timer
@@ -71,8 +72,11 @@ class Michi extends IPSModuleStrict
 
     public function GetConfigurationForParent(): string
     {
+        $host = $this->ReadPropertyString('Host');
         return json_encode([
-            'Port' => 9596
+            'Host' => $host,
+            'Port' => 9596,
+            'Open' => !empty($host)
         ]);
     }
 
@@ -136,14 +140,7 @@ class Michi extends IPSModuleStrict
         $buffer = $this->GetBuffer('ReceiveBuffer');
         $buffer .= $chunk;
 
-        // Nachrichten sind durch $ getrennt laut ReadResponse in der alten Version.
-        // Wait, the task says: "The Michi/Rotel protocol is ASCII-based, commands end with newline"
-        // But the previous implementation used `explode('$', $response);` in `ReadResponse`.
-        // Let's split by both $ and newline to be safe, or just check the original code.
-        // Original code: `$parts = explode('$', $response);`
-        // Also: "commands end with newline" - if the prompt says they end with newline, we can split by newline or $. Let's handle both.
-        
-        // Let's replace newlines with $ for parsing.
+        // Rotel/Michi Protocol: Antworten sind durch $ getrennt
         $buffer = str_replace(["\r", "\n"], '$', $buffer);
         $parts = explode('$', $buffer);
         
@@ -243,16 +240,17 @@ class Michi extends IPSModuleStrict
     "elements": [
         {
             "type": "Label",
-            "label": "Hallo! Die Verbindung zu deinem Michi-Gerät wird nun über die übergeordnete Instanz (Client Socket) konfiguriert."
+            "caption": "Trag hier die IP-Adresse deines Michi/Rotel Verstärkers ein. Die Verbindung läuft über einen dauerhaften TCP-Socket – Statusänderungen kommen in Echtzeit."
         },
         {
-            "type": "Label",
-            "label": "Wie oft soll ich bei Michi nach dem aktuellen Status fragen? Stell hier das Intervall in Sekunden ein. Wenn du 0 einträgst, frage ich gar nicht mehr automatisch nach (Standard), da Änderungen nun in Echtzeit empfangen werden."
+            "type": "ValidationTextBox",
+            "name": "Host",
+            "caption": "IP-Adresse"
         },
         {
             "type": "NumberSpinner",
             "name": "UpdateInterval",
-            "caption": "Abfrage-Intervall (Sekunden)",
+            "caption": "Fallback-Abfrage (Sekunden, 0 = aus)",
             "minimum": 0,
             "maximum": 3600
         }
@@ -260,7 +258,7 @@ class Michi extends IPSModuleStrict
     "actions": [
         {
             "type": "Button",
-            "label": "Alle Werte aktualisieren",
+            "caption": "Alle Werte aktualisieren",
             "onClick": "MICHI_RequestStatus($id);"
         }
     ]
