@@ -108,8 +108,8 @@ class Michi extends IPSModuleStrict
         if (!$this->HasActiveParent()) {
             return;
         }
-        $cmd = rtrim($cmd, '!') . '!';
-        $this->SendDebug("Transmit", $cmd, 0);
+        $cmd = rtrim($cmd, '!') . "!\r";
+        $this->SendDebug("Transmit", trim($cmd), 0);
         
         $this->SendDataToParent(json_encode([
             'DataID' => '{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}',
