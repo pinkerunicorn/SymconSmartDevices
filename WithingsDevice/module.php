@@ -6,6 +6,10 @@ require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 class WithingsDevice extends IPSModuleStrict {
     use SmartLog_Trait;
 
+    /** @var array<string, bool> Cache für bereits angelegte Variablen-Idents (innerhalb eines Request-Zyklus) */
+    private array $createdIdents = [];
+
+    // --- Withings Measurement Type Constants (Body Scan 2 / Waage) ---
     private const MEASURE_WEIGHT = 1;
     private const MEASURE_HEIGHT = 4;
     private const MEASURE_FAT_FREE_MASS = 5;
@@ -22,14 +26,36 @@ class WithingsDevice extends IPSModuleStrict {
     private const MEASURE_HYDRATION = 77;
     private const MEASURE_BONE_MASS = 88;
     private const MEASURE_PWV = 91;
+    private const MEASURE_VO2_MAX = 123;
+    private const MEASURE_VISCERAL_FAT = 130;
+    private const MEASURE_VASCULAR_AGE = 135;
+    private const MEASURE_NERVE_HEALTH = 136;
+    private const MEASURE_QT_INTERVAL = 138;
+    private const MEASURE_AFIB = 139;
+    private const MEASURE_VASCULAR_AGE_2 = 155;
+    private const MEASURE_EXTRACELLULAR_WATER = 168;
+    private const MEASURE_INTRACELLULAR_WATER = 169;
+    private const MEASURE_FAT_TORSO = 170;
+    private const MEASURE_FAT_ARMS = 171;
+    private const MEASURE_FAT_LEGS = 172;
+    private const MEASURE_FAT_FREE_SEGMENT = 173;
+    private const MEASURE_FAT_SEGMENT = 174;
+    private const MEASURE_MUSCLE_SEGMENT = 175;
+    private const MEASURE_NERVE_SCORE = 196;
+    private const MEASURE_NERVE_LEFT_FOOT = 197;
+    private const MEASURE_NERVE_RIGHT_FOOT = 198;
+    private const MEASURE_BMR = 226;
+    private const MEASURE_METABOLIC_AGE = 227;
 
-    public function Create(): void{
+    public function Create(): void {
         parent::Create();
         
         $this->RegisterPropertyString("ClientID", "");
         $this->RegisterPropertyString("ClientSecret", "");
         $this->RegisterPropertyInteger("FetchInterval", 240);
-        $this->RegisterPropertyInteger("LastUpdate", 0);
+
+        // LastUpdate als Attribut — kein ApplyChanges bei Aktualisierung nötig
+        $this->RegisterAttributeInteger("LastUpdate", 0);
 
         // Gemini API-Key und Modell werden zentral über SmartGeminiIO konfiguriert.
         $this->RegisterPropertyInteger("ArchiveDays", 28);
@@ -43,13 +69,15 @@ class WithingsDevice extends IPSModuleStrict {
 
         $this->RegisterTimer("FetchTimer", 0, 'WITHINGS_FetchMeasurements($_IPS[\'TARGET\']);');
 
+        $this->RegisterVariableString("ConnectionStatus", "🔗 Verbindung", ['ICON' => 'Network'], -1);
         $this->RegisterVariableString("LastMeasurement", "⏱ Letzte Messung", ['ICON' => 'Clock'], 0);
+        $this->RegisterVariableString("DeviceBattery", "🔋 Geräte-Akku", ['ICON' => 'Battery'], 1);
         $this->RegisterVariableString("DailyReport", "🧠 Gemini Analyse", [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION
-        ], 1);
+        ], 99);
     }
 
-    public function ApplyChanges(): void{
+    public function ApplyChanges(): void {
         parent::ApplyChanges();
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
@@ -61,15 +89,43 @@ class WithingsDevice extends IPSModuleStrict {
         }
         // ---------------------------------
 
+        // Migration: Falls LastUpdate noch als alte Property existiert, Wert übernehmen
+        $oldPropValue = @json_decode(@IPS_GetConfiguration($this->InstanceID), true);
+        if (is_array($oldPropValue) && isset($oldPropValue['LastUpdate']) && $oldPropValue['LastUpdate'] > 0) {
+            if ($this->ReadAttributeInteger("LastUpdate") == 0) {
+                $this->WriteAttributeInteger("LastUpdate", (int)$oldPropValue['LastUpdate']);
+            }
+        }
 
-        
         $this->RegisterHook("/hook/smartwithings");
 
         $interval = $this->ReadPropertyInteger("FetchInterval");
         $this->SetTimerInterval("FetchTimer", $interval * 60 * 1000);
 
-
         $this->UpdatePresentations();
+        $this->UpdateConnectionStatus();
+    }
+
+    /**
+     * Zeigt den aktuellen OAuth-Verbindungsstatus als Klartext-Variable an.
+     */
+    private function UpdateConnectionStatus(): void {
+        $clientId = $this->ReadPropertyString("ClientID");
+        $accessToken = $this->ReadAttributeString("AccessToken");
+        $tokenExpires = $this->ReadAttributeInteger("TokenExpires");
+
+        if ($clientId == "") {
+            $this->SetValue("ConnectionStatus", "⚙️ Nicht konfiguriert");
+        } elseif ($accessToken == "") {
+            $this->SetValue("ConnectionStatus", "🔑 Nicht autorisiert");
+        } elseif (time() > $tokenExpires) {
+            $this->SetValue("ConnectionStatus", "⏳ Token abgelaufen (Refresh bei nächstem Abruf)");
+        } else {
+            $remaining = $tokenExpires - time();
+            $hours = intdiv($remaining, 3600);
+            $minutes = intdiv($remaining % 3600, 60);
+            $this->SetValue("ConnectionStatus", "✅ Verbunden (Token gültig noch {$hours}h {$minutes}m)");
+        }
     }
 
     protected function RegisterHook(string $HookPath): bool {
@@ -153,7 +209,8 @@ class WithingsDevice extends IPSModuleStrict {
             ];
 
             $this->RequestTokens($postData);
-            echo "Erfolgreich autorisiert! Du kannst dieses Fenster nun schließen und in Symcon auf 'Daten jetzt manuell abrufen'klicken."; return;
+            echo "Erfolgreich autorisiert! Du kannst dieses Fenster nun schließen und in Symcon auf 'Daten jetzt manuell abrufen' klicken.";
+            return;
         } 
         
         if (isset($_POST['userid']) || isset($_GET['userid']) || isset($_POST['appli']) || isset($_GET['appli'])) {
@@ -280,6 +337,7 @@ class WithingsDevice extends IPSModuleStrict {
             $this->WriteAttributeString("RefreshToken", $data['body']['refresh_token']);
             $this->WriteAttributeInteger("TokenExpires", time() + $data['body']['expires_in'] - 60);
             $this->SendDebug("OAuth", "Tokens erfolgreich gespeichert.", 0);
+            $this->UpdateConnectionStatus();
             return true;
         }
 
@@ -296,6 +354,7 @@ class WithingsDevice extends IPSModuleStrict {
         if ($accessToken == "") {
             $this->SLog('ERROR', 'Kein Access Token vorhanden. Bitte autorisieren.');
             $this->SendDebug("Fetch", "Kein Access Token vorhanden.", 0);
+            $this->UpdateConnectionStatus();
             return;
         }
 
@@ -303,12 +362,13 @@ class WithingsDevice extends IPSModuleStrict {
             $this->SendDebug("Fetch", "Token abgelaufen, versuche Refresh...", 0);
             if (!$this->RefreshToken()) {
                 $this->SLog('ERROR', 'Token-Refresh fehlgeschlagen!');
+                $this->UpdateConnectionStatus();
                 return;
             }
             $accessToken = $this->ReadAttributeString("AccessToken");
         }
 
-        $lastUpdate = $this->ReadPropertyInteger("LastUpdate");
+        $lastUpdate = $this->ReadAttributeInteger("LastUpdate");
         $highestUpdate = $lastUpdate;
         $highestMeasurementDate = 0;
         $offset = 0;
@@ -383,8 +443,7 @@ class WithingsDevice extends IPSModuleStrict {
         } while ($offset > 0);
         
         if ($highestUpdate > $lastUpdate) {
-            IPS_SetProperty($this->InstanceID, "LastUpdate", $highestUpdate);
-            IPS_ApplyChanges($this->InstanceID); 
+            $this->WriteAttributeInteger("LastUpdate", $highestUpdate);
         }
 
         if ($highestMeasurementDate > 0) {
@@ -395,13 +454,137 @@ class WithingsDevice extends IPSModuleStrict {
             }
         }
 
+        // BMI automatisch berechnen wenn Gewicht und Größe vorhanden
+        $this->CalculateBMI();
+
         if ($newMeasurements > 0) {
-            // $this->Log("Abruf erfolgreich. $newMeasurements neue Messwerte verarbeitet.");
             if ($this->ReadPropertyBoolean("EnableAI")) {
                 $this->EvaluateWithGemini();
             }
         }
-        $this->SendDebug("Fetch", "Abruf erfolgreich beendet (". $pages . "Seiten).", 0);
+
+        // Gerätestatus im Hintergrund aktualisieren
+        $this->FetchDeviceInfo();
+
+        $this->UpdateConnectionStatus();
+        $this->SendDebug("Fetch", "Abruf erfolgreich beendet (". $pages . " Seiten, $newMeasurements Messwerte).", 0);
+    }
+
+    /**
+     * Berechnet den BMI aus den vorhandenen Gewichts- und Größen-Variablen.
+     * BMI = Gewicht (kg) / Größe (m)²
+     */
+    private function CalculateBMI(): void {
+        $weightID = @IPS_GetObjectIDByIdent("Measure_" . self::MEASURE_WEIGHT, $this->InstanceID);
+        $heightID = @IPS_GetObjectIDByIdent("Measure_" . self::MEASURE_HEIGHT, $this->InstanceID);
+
+        if ($weightID === false || $heightID === false) {
+            return;
+        }
+
+        $weight = (float)GetValue($weightID);
+        $height = (float)GetValue($heightID);
+
+        if ($height <= 0 || $weight <= 0) {
+            return;
+        }
+
+        $bmi = round($weight / ($height * $height), 1);
+        $ident = "Calculated_BMI";
+
+        $this->MaintainVariable($ident, "BMI (Body Mass Index)", 2, "", 10, true);
+        $bmiID = @IPS_GetObjectIDByIdent($ident, $this->InstanceID);
+        if ($bmiID !== false) {
+            IPS_SetVariableCustomPresentation($bmiID, [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'SUFFIX' => ' kg/m²',
+                'DIGITS' => 1
+            ]);
+            IPS_SetIcon($bmiID, "Information");
+
+            $archiveIds = IPS_GetInstanceListByModuleID("{43192F0B-135B-4CE7-A0A7-1475603F3060}");
+            if (count($archiveIds) > 0) {
+                if (!@AC_GetLoggingStatus($archiveIds[0], $bmiID)) {
+                    @AC_SetLoggingStatus($archiveIds[0], $bmiID, true);
+                    @IPS_ApplyChanges($archiveIds[0]);
+                }
+            }
+
+            $this->SetValue($ident, $bmi);
+        }
+    }
+
+    /**
+     * Ruft Geräteinformationen (Batterie, Modell, letzter Sync) von der Withings API ab.
+     * Endpoint: POST /v2/user action=getdevice
+     */
+    public function FetchDeviceInfo(): void {
+        $accessToken = $this->ReadAttributeString("AccessToken");
+        if ($accessToken == "") {
+            return;
+        }
+
+        if (time() > $this->ReadAttributeInteger("TokenExpires")) {
+            if (!$this->RefreshToken()) {
+                return;
+            }
+            $accessToken = $this->ReadAttributeString("AccessToken");
+        }
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://wbsapi.withings.net/v2/user");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['action' => 'getdevice']));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer " . $accessToken
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($response === false || $httpCode >= 400) {
+            $this->SendDebug("DeviceInfo", "API-Anfrage fehlgeschlagen: HTTP $httpCode", 0);
+            curl_close($ch);
+            return;
+        }
+        curl_close($ch);
+
+        $data = json_decode($response, true);
+        if (!isset($data['status']) || $data['status'] != 0 || !isset($data['body']['devices'])) {
+            $this->SendDebug("DeviceInfo", "Ungültige Antwort: " . $response, 0);
+            return;
+        }
+
+        $batteryParts = [];
+        foreach ($data['body']['devices'] as $device) {
+            $model = $device['model'] ?? 'Unbekannt';
+            $battery = $device['battery'] ?? 'unknown';
+            $lastSync = isset($device['last_session_date']) 
+                ? date("d.m.Y H:i", $device['last_session_date']) 
+                : '–';
+
+            // Withings battery levels: "high", "medium", "low"
+            $batteryEmoji = match($battery) {
+                'high'   => '🟢',
+                'medium' => '🟡',
+                'low'    => '🔴',
+                default  => '⚪',
+            };
+            $batteryLabel = match($battery) {
+                'high'   => 'Hoch',
+                'medium' => 'Mittel',
+                'low'    => 'Niedrig',
+                default  => 'Unbekannt',
+            };
+
+            $batteryParts[] = "{$batteryEmoji} {$model}: {$batteryLabel} (Sync: {$lastSync})";
+        }
+
+        if (count($batteryParts) > 0) {
+            $this->SetValue("DeviceBattery", implode(" | ", $batteryParts));
+        }
+
+        $this->SendDebug("DeviceInfo", count($data['body']['devices']) . " Gerät(e) gefunden.", 0);
     }
 
     private function GetMeasurementConfig(int $type): array {
@@ -410,44 +593,45 @@ class WithingsDevice extends IPSModuleStrict {
         $icon = "";
 
         switch ($type) {
-            case self::MEASURE_WEIGHT: $name = "Gewicht"; $suffix = "kg"; $icon = "Scale"; break;
-            case self::MEASURE_HEIGHT: $name = "Größe"; $suffix = "m"; $icon = "Distance"; break;
-            case self::MEASURE_FAT_FREE_MASS: $name = "Fettfreie Masse"; $suffix = "kg"; $icon = "Scale"; break;
-            case self::MEASURE_FAT_RATIO: $name = "Körperfett"; $suffix = "%"; $icon = "Drop"; break;
-            case self::MEASURE_FAT_MASS_WEIGHT: $name = "Fettmasse"; $suffix = "kg"; $icon = "Scale"; break;
-            case self::MEASURE_DIASTOLIC_BP: $name = "Blutdruck (Diastolisch)"; $suffix = "mmHg"; $icon = "Heart"; break;
-            case self::MEASURE_SYSTOLIC_BP: $name = "Blutdruck (Systolisch)"; $suffix = "mmHg"; $icon = "Heart"; break;
-            case self::MEASURE_HEART_PULSE: $name = "Herzfrequenz"; $suffix = "bpm"; $icon = "Heart"; break;
-            case self::MEASURE_TEMPERATURE: 
-            case self::MEASURE_SP02: $name = "SPO2 (Sauerstoffsättigung)"; $suffix = "%"; $icon = "Heart"; break;
-            case self::MEASURE_BODY_TEMPERATURE: 
-            case self::MEASURE_SKIN_TEMPERATURE: $name = "Temperatur"; $suffix = "°C"; $icon = "Temperature"; break;
-            case self::MEASURE_MUSCLE_MASS: $name = "Muskelmasse"; $suffix = "kg"; $icon = "Scale"; break;
-            case self::MEASURE_HYDRATION: $name = "Wasseranteil"; $suffix = "kg"; $icon = "Drop"; break;
-            case self::MEASURE_BONE_MASS: $name = "Knochenmasse"; $suffix = "kg"; $icon = "Scale"; break;
-            case self::MEASURE_PWV: $name = "Pulswellengeschwindigkeit"; $suffix = "m/s"; $icon = "Wind"; break;
-            case 123: $name = "VO2 Max"; $suffix = "ml/min/kg"; $icon = "Heart"; break;
-            case 130: $name = "Viszeralfett"; $suffix = "%"; $icon = "Drop"; break;
-            case 135: 
-            case 155: $name = "Gefäßalter"; $suffix = "Jahre"; $icon = "Clock"; break;
-            case 136: $name = "Nervenaktivität"; $suffix = "Punkte"; $icon = "Intensity"; break;
-            case 138: $name = "QT-Intervall"; $suffix = "ms"; $icon = "Heart"; break;
-            case 139: $name = "Vorhofflimmern"; $suffix = ""; $icon = "Heart"; break;
-            case 168: $name = "Extrazelluläres Wasser"; $suffix = "kg"; $icon = "Drop"; break;
-            case 169: $name = "Intrazelluläres Wasser"; $suffix = "kg"; $icon = "Drop"; break;
+            case self::MEASURE_WEIGHT:               $name = "Gewicht"; $suffix = "kg"; $icon = "Scale"; break;
+            case self::MEASURE_HEIGHT:               $name = "Größe"; $suffix = "m"; $icon = "Distance"; break;
+            case self::MEASURE_FAT_FREE_MASS:        $name = "Fettfreie Masse"; $suffix = "kg"; $icon = "Scale"; break;
+            case self::MEASURE_FAT_RATIO:            $name = "Körperfett"; $suffix = "%"; $icon = "Drop"; break;
+            case self::MEASURE_FAT_MASS_WEIGHT:      $name = "Fettmasse"; $suffix = "kg"; $icon = "Scale"; break;
+            case self::MEASURE_DIASTOLIC_BP:          $name = "Blutdruck (Diastolisch)"; $suffix = "mmHg"; $icon = "Heart"; break;
+            case self::MEASURE_SYSTOLIC_BP:           $name = "Blutdruck (Systolisch)"; $suffix = "mmHg"; $icon = "Heart"; break;
+            case self::MEASURE_HEART_PULSE:           $name = "Herzfrequenz"; $suffix = "bpm"; $icon = "Heart"; break;
+            case self::MEASURE_TEMPERATURE:           $name = "Temperatur"; $suffix = "°C"; $icon = "Temperature"; break;
+            case self::MEASURE_SP02:                  $name = "SPO2 (Sauerstoffsättigung)"; $suffix = "%"; $icon = "Heart"; break;
+            case self::MEASURE_BODY_TEMPERATURE:      $name = "Körpertemperatur"; $suffix = "°C"; $icon = "Temperature"; break;
+            case self::MEASURE_SKIN_TEMPERATURE:      $name = "Hauttemperatur"; $suffix = "°C"; $icon = "Temperature"; break;
+            case self::MEASURE_MUSCLE_MASS:           $name = "Muskelmasse"; $suffix = "kg"; $icon = "Scale"; break;
+            case self::MEASURE_HYDRATION:             $name = "Wasseranteil"; $suffix = "kg"; $icon = "Drop"; break;
+            case self::MEASURE_BONE_MASS:             $name = "Knochenmasse"; $suffix = "kg"; $icon = "Scale"; break;
+            case self::MEASURE_PWV:                   $name = "Pulswellengeschwindigkeit"; $suffix = "m/s"; $icon = "Wind"; break;
+            case self::MEASURE_VO2_MAX:               $name = "VO2 Max"; $suffix = "ml/min/kg"; $icon = "Heart"; break;
+            case self::MEASURE_VISCERAL_FAT:          $name = "Viszeralfett"; $suffix = "%"; $icon = "Drop"; break;
+            case self::MEASURE_VASCULAR_AGE:
+            case self::MEASURE_VASCULAR_AGE_2:        $name = "Gefäßalter"; $suffix = "Jahre"; $icon = "Clock"; break;
+            case self::MEASURE_NERVE_HEALTH:          $name = "Nervenaktivität"; $suffix = "Punkte"; $icon = "Intensity"; break;
+            case self::MEASURE_QT_INTERVAL:           $name = "QT-Intervall"; $suffix = "ms"; $icon = "Heart"; break;
+            case self::MEASURE_AFIB:                  $name = "Vorhofflimmern"; $suffix = ""; $icon = "Heart"; break;
+            case self::MEASURE_EXTRACELLULAR_WATER:   $name = "Extrazelluläres Wasser"; $suffix = "kg"; $icon = "Drop"; break;
+            case self::MEASURE_INTRACELLULAR_WATER:   $name = "Intrazelluläres Wasser"; $suffix = "kg"; $icon = "Drop"; break;
             // Body Scan segmented data
-            case 170: $name = "Körperfett Rumpf"; $suffix = "%"; $icon = "Drop"; break;
-            case 171: $name = "Körperfett Arme"; $suffix = "%"; $icon = "Drop"; break;
-            case 172: $name = "Körperfett Beine"; $suffix = "%"; $icon = "Drop"; break;
-            case 173: $name = "Fettfreie Masse (Segment)"; $suffix = "kg"; $icon = "Scale"; break;
-            case 174: $name = "Fettmasse (Segment)"; $suffix = "kg"; $icon = "Scale"; break;
-            case 175: $name = "Muskelmasse (Segment)"; $suffix = "kg"; $icon = "Scale"; break;
-            // Newer Body Scan metrics (EDA / Nerve Health)
-            case 196: $name = "Nervenaktivität Score"; $suffix = "Punkte"; $icon = "Intensity"; break;
-            case 197: $name = "Nervenaktivität (Fuß links)"; $suffix = "Punkte"; $icon = "Intensity"; break;
-            case 198: $name = "Nervenaktivität (Fuß rechts)"; $suffix = "Punkte"; $icon = "Intensity"; break;
-            case 226: $name = "Grundumsatz (BMR)"; $suffix = "kcal"; $icon = "Flame"; break;
-            case 227: $name = "Metabolisches Alter"; $suffix = "Jahre"; $icon = "Clock"; break;
+            case self::MEASURE_FAT_TORSO:             $name = "Körperfett Rumpf"; $suffix = "%"; $icon = "Drop"; break;
+            case self::MEASURE_FAT_ARMS:              $name = "Körperfett Arme"; $suffix = "%"; $icon = "Drop"; break;
+            case self::MEASURE_FAT_LEGS:              $name = "Körperfett Beine"; $suffix = "%"; $icon = "Drop"; break;
+            case self::MEASURE_FAT_FREE_SEGMENT:      $name = "Fettfreie Masse (Segment)"; $suffix = "kg"; $icon = "Scale"; break;
+            case self::MEASURE_FAT_SEGMENT:           $name = "Fettmasse (Segment)"; $suffix = "kg"; $icon = "Scale"; break;
+            case self::MEASURE_MUSCLE_SEGMENT:        $name = "Muskelmasse (Segment)"; $suffix = "kg"; $icon = "Scale"; break;
+            // Nerve Health (EDA)
+            case self::MEASURE_NERVE_SCORE:           $name = "Nervenaktivität Score"; $suffix = "Punkte"; $icon = "Intensity"; break;
+            case self::MEASURE_NERVE_LEFT_FOOT:       $name = "Nervenaktivität (Fuß links)"; $suffix = "Punkte"; $icon = "Intensity"; break;
+            case self::MEASURE_NERVE_RIGHT_FOOT:      $name = "Nervenaktivität (Fuß rechts)"; $suffix = "Punkte"; $icon = "Intensity"; break;
+            // Metabolic
+            case self::MEASURE_BMR:                   $name = "Grundumsatz (BMR)"; $suffix = "kcal"; $icon = "Flame"; break;
+            case self::MEASURE_METABOLIC_AGE:         $name = "Metabolisches Alter"; $suffix = "Jahre"; $icon = "Clock"; break;
         }
 
         return [
@@ -470,7 +654,9 @@ class WithingsDevice extends IPSModuleStrict {
                 
                 if ($config['suffix'] != "") {
                     IPS_SetVariableCustomPresentation($childID, [
-                'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,'SUFFIX'=> ' ' . $config['suffix']]);
+                        'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                        'SUFFIX' => ' ' . $config['suffix']
+                    ]);
                 }
                 
                 if ($config['icon'] != "") {
@@ -491,13 +677,8 @@ class WithingsDevice extends IPSModuleStrict {
         $ident = "Measure_". $type;
         $config = $this->GetMeasurementConfig($type);
 
-        // Variable dynamisch anlegen falls nicht existent
-        $identCache =& $this->createdIdents;
-        if (!isset($identCache)) {
-            $identCache = [];
-        }
-
-        if (!isset($identCache[$ident])) {
+        // Variable dynamisch anlegen falls nicht existent (Cache pro Request-Zyklus)
+        if (!isset($this->createdIdents[$ident])) {
             $this->MaintainVariable($ident, $config['name'], 2, "", 0, true);
             $varID = @IPS_GetObjectIDByIdent($ident, $this->InstanceID);
             
@@ -510,7 +691,9 @@ class WithingsDevice extends IPSModuleStrict {
                 
                 if ($config['suffix'] != "") {
                     IPS_SetVariableCustomPresentation($varID, [
-                'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,'SUFFIX'=> ' ' . $config['suffix']]);
+                        'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                        'SUFFIX' => ' ' . $config['suffix']
+                    ]);
                 }
                 
                 if ($config['icon'] != "") {
@@ -518,7 +701,7 @@ class WithingsDevice extends IPSModuleStrict {
                 }
             }
             
-            $identCache[$ident] = true;
+            $this->createdIdents[$ident] = true;
         }
 
         if (@IPS_GetObjectIDByIdent($ident, $this->InstanceID) !== false) {
@@ -545,19 +728,40 @@ class WithingsDevice extends IPSModuleStrict {
         $days = $this->ReadPropertyInteger("ArchiveDays");
         $startTime = time() - ($days * 24 * 60 * 60);
         
+        // Alle Body Scan 2 relevanten Metriken für den Gemini-Prompt
         $metrics = [
-            self::MEASURE_WEIGHT => "Gewicht (kg)",
-            self::MEASURE_FAT_RATIO => "Körperfett (%)",
-            self::MEASURE_HEART_PULSE => "Herzfrequenz (bpm)",
-            self::MEASURE_DIASTOLIC_BP => "Blutdruck diastolisch (mmHg)",
-            self::MEASURE_SYSTOLIC_BP => "Blutdruck systolisch (mmHg)",
-            self::MEASURE_MUSCLE_MASS => "Muskelmasse (kg)",
-            self::MEASURE_HYDRATION => "Wasseranteil (kg)"
+            self::MEASURE_WEIGHT           => "Gewicht (kg)",
+            self::MEASURE_FAT_RATIO        => "Körperfett (%)",
+            self::MEASURE_MUSCLE_MASS      => "Muskelmasse (kg)",
+            self::MEASURE_BONE_MASS        => "Knochenmasse (kg)",
+            self::MEASURE_HYDRATION        => "Wasseranteil (kg)",
+            self::MEASURE_FAT_MASS_WEIGHT  => "Fettmasse (kg)",
+            self::MEASURE_FAT_FREE_MASS    => "Fettfreie Masse (kg)",
+            self::MEASURE_VISCERAL_FAT     => "Viszeralfett (%)",
+            self::MEASURE_HEART_PULSE      => "Herzfrequenz (bpm)",
+            self::MEASURE_DIASTOLIC_BP     => "Blutdruck diastolisch (mmHg)",
+            self::MEASURE_SYSTOLIC_BP      => "Blutdruck systolisch (mmHg)",
+            self::MEASURE_PWV              => "Pulswellengeschwindigkeit (m/s)",
+            self::MEASURE_VASCULAR_AGE     => "Gefäßalter (Jahre)",
+            self::MEASURE_NERVE_SCORE      => "Nervengesundheit Score (Punkte)",
+            self::MEASURE_BMR              => "Grundumsatz/BMR (kcal)",
+            self::MEASURE_METABOLIC_AGE    => "Metabolisches Alter (Jahre)",
+            self::MEASURE_EXTRACELLULAR_WATER => "Extrazelluläres Wasser (kg)",
+            self::MEASURE_INTRACELLULAR_WATER => "Intrazelluläres Wasser (kg)",
         ];
 
-        $prompt = "Du bist ein motivierender KI-Gesundheits-Coach. Hier sind meine aufgezeichneten Gesundheitsdaten der letzten ". $days . "Tage.\n";
-        $prompt .= "Bitte bewerte den Trend der Messwerte, gib mir ein kurzes Feedback und weise auf Besonderheiten hin (z.B. stark steigender Blutdruck oder Gewichtsverlust).\n";
+        $prompt = "Du bist ein motivierender KI-Gesundheits-Coach. Hier sind meine aufgezeichneten Gesundheitsdaten der letzten ". $days . " Tage von meiner Withings Body Scan 2 Waage.\n";
+        $prompt .= "Bitte bewerte den Trend der Messwerte, gib mir ein kurzes Feedback und weise auf Besonderheiten hin (z.B. stark steigender Blutdruck, Gewichtsverlust, Veränderungen bei Muskelmasse oder Viszeralfett).\n";
         $prompt .= "Fasse dich kurz, bleibe positiv und präzise. Antworte in Deutsch und formatiere den Text in einfachem Markdown.\n\n";
+
+        // BMI-Wert hinzufügen falls vorhanden
+        $bmiID = @IPS_GetObjectIDByIdent("Calculated_BMI", $this->InstanceID);
+        if ($bmiID !== false) {
+            $bmiValue = GetValue($bmiID);
+            if ($bmiValue > 0) {
+                $prompt .= "### BMI (berechnet)\n- Aktuell: " . number_format($bmiValue, 1) . " kg/m²\n\n";
+            }
+        }
 
         $hasData = false;
         foreach ($metrics as $type => $label) {
@@ -593,7 +797,7 @@ class WithingsDevice extends IPSModuleStrict {
         $script = '<?php
             $result = GIO_Query(' . $geminiId . ',
                 ' . var_export($prompt, true) . ',
-                \'Du bist ein motivierender KI-Gesundheits-Coach. Antworte auf Deutsch im Markdown-Format.\',
+                \'Du bist ein motivierender KI-Gesundheits-Coach für Withings Body Scan 2 Daten. Antworte auf Deutsch im Markdown-Format. Bewerte Trends, markiere Auffälligkeiten und gib konkrete Tipps.\',
                 \'\',
                 0.4
             );
@@ -718,6 +922,11 @@ class WithingsDevice extends IPSModuleStrict {
         },
         {
             "type": "Button",
+            "label": "Gerätestatus abrufen",
+            "onClick": "WITHINGS_FetchDeviceInfo($id);"
+        },
+        {
+            "type": "Button",
             "label": "Webhooks abonnieren",
             "onClick": "echo WITHINGS_SubscribeWebhooks($id);"
         },
@@ -736,6 +945,3 @@ class WithingsDevice extends IPSModuleStrict {
 EOT;
     }
 }
-
-
-?>
