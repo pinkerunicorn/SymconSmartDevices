@@ -11,7 +11,6 @@ class Michi extends IPSModuleStrict
         parent::Create();
 
         // Eigenschaften
-        $this->RegisterPropertyString('Host', '');
         $this->RegisterPropertyInteger('UpdateInterval', 0);
 
         // Timer
@@ -66,21 +65,8 @@ class Michi extends IPSModuleStrict
             $this->SetTimerInterval('UpdateTimer', 0);
         }
 
-        // Client Socket (Gateway) mit IP/Port konfigurieren
-        $this->UpdateParentConfig();
-
         // Initiale Sichtbarkeit der Variablen setzen
         $this->UpdatePowerState($this->GetValue('Power'));
-    }
-
-    public function GetConfigurationForParent(): string
-    {
-        $host = $this->ReadPropertyString('Host');
-        return json_encode([
-            'Host' => $host,
-            'Port' => 9596,
-            'Open' => !empty($host)
-        ]);
     }
 
     public function RequestAction(string $Ident, mixed $Value): void{
@@ -117,39 +103,6 @@ class Michi extends IPSModuleStrict
         }
     }
 
-    /**
-     * Pushes Host/Port config to the Client Socket parent instance.
-     */
-    private function UpdateParentConfig(): void
-    {
-        $host = $this->ReadPropertyString('Host');
-        if (empty($host)) {
-            return;
-        }
-
-        $instance = @IPS_GetInstance($this->InstanceID);
-        if (!$instance || $instance['ConnectionID'] <= 0) {
-            return;
-        }
-
-        $parentId = $instance['ConnectionID'];
-        $changed = false;
-
-        if (@IPS_GetProperty($parentId, 'Host') !== $host) {
-            @IPS_SetProperty($parentId, 'Host', $host);
-            $changed = true;
-        }
-        if (@IPS_GetProperty($parentId, 'Port') !== 9596) {
-            @IPS_SetProperty($parentId, 'Port', 9596);
-            $changed = true;
-        }
-
-        if ($changed) {
-            @IPS_ApplyChanges($parentId);
-            $this->SendDebug('Config', 'Client Socket konfiguriert: ' . $host . ':9596', 0);
-        }
-    }
-
     private function SendCommand(string $cmd): void
     {
         if (!$this->HasActiveParent()) {
@@ -180,7 +133,7 @@ class Michi extends IPSModuleStrict
         $buffer = str_replace(["\r", "\n"], '$', $buffer);
         $parts = explode('$', $buffer);
         
-        // The last part might be incomplete
+        // Letzter Teil könnte unvollständig sein
         $this->SetBuffer('ReceiveBuffer', array_pop($parts));
         
         foreach ($parts as $part) {
@@ -276,12 +229,7 @@ class Michi extends IPSModuleStrict
     "elements": [
         {
             "type": "Label",
-            "caption": "Trag hier die IP-Adresse deines Michi/Rotel Verstärkers ein. Die Verbindung läuft über einen dauerhaften TCP-Socket – Statusänderungen kommen in Echtzeit."
-        },
-        {
-            "type": "ValidationTextBox",
-            "name": "Host",
-            "caption": "IP-Adresse"
+            "caption": "Die Verbindung zum Michi/Rotel Verstärker wird über den Client Socket (Gateway) konfiguriert. Port: 9596."
         },
         {
             "type": "NumberSpinner",
