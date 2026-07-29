@@ -11,14 +11,10 @@ class Michi extends IPSModuleStrict
         parent::Create();
 
         // Eigenschaften
-        $this->RegisterPropertyString('Host', '');
-        $this->RegisterPropertyInteger('Port', 9596);
-        $this->RegisterPropertyInteger('UpdateInterval', 60);
+        $this->RegisterPropertyInteger('UpdateInterval', 0);
 
         // Timer
         $this->RegisterTimer('UpdateTimer', 0, 'MICHI_RequestStatus($_IPS[\'TARGET\']);');
-
-
 
         // Variablen registrieren
         $this->RegisterVariableBoolean('Power', 'Power', [
@@ -73,6 +69,13 @@ class Michi extends IPSModuleStrict
         $this->UpdatePowerState($this->GetValue('Power'));
     }
 
+    public function GetConfigurationForParent(): string
+    {
+        return json_encode([
+            'Port' => 9596
+        ]);
+    }
+
     public function RequestAction(string $Ident, mixed $Value): void{
         switch ($Ident) {
             case 'Power':
@@ -90,96 +93,71 @@ class Michi extends IPSModuleStrict
                 $this->SetValue($Ident, $Value);
                 break;
         }
-        
-        usleep(500000);
-        $this->RequestStatus();
     }
 
     public function RequestStatus(): void
     {
-        $host = $this->ReadPropertyString('Host');
-        $port = $this->ReadPropertyInteger('Port');
-
-        if (empty($host)) {
-            $this->SendDebug("Log", "RequestStatus abgebrochen: Keine IP-Adresse (Host) konfiguriert!", 0);
+        if (!$this->HasActiveParent()) {
             return;
         }
-
-        $this->SendDebug("Log", "Verbinde mit Michi $host:$port...", 0);
-        
-        $fp = @fsockopen($host, $port, $errno, $errstr, 2);
-        if (!$fp) {
-            $this->SendDebug("Log", "Verbindung fehlgeschlagen: $errstr ($errno)", 0);
-            
-            // Michi ist vermutlich im Standby oder stromlos
-            if ($this->GetValue('Power')) {
-                $this->UpdatePowerState(false);
-                $this->SendDebug("TIMEOUT", "Keine Verbindung möglich. Setze Power auf Aus.", 0);
-            }
-            return;
-        }
-        
         $commands = [
             'dimmer?',
             'source?'
         ];
         
         foreach ($commands as $cmd) {
-            $this->SendDebug("Transmit", $cmd . "!", 0);
-            fwrite($fp, $cmd . "!");
-            usleep(100000);
+            $this->SendCommand($cmd);
         }
-        
-        $this->ReadResponse($fp);
-        fclose($fp);
     }
 
     private function SendCommand(string $cmd): void
     {
-        $host = $this->ReadPropertyString('Host');
-        $port = $this->ReadPropertyInteger('Port');
-
-        if (empty($host)) return;
-
-        $fp = @fsockopen($host, $port, $errno, $errstr, 2);
-        if (!$fp) {
-            $this->SendDebug("Log", "Verbindung fehlgeschlagen: $errstr ($errno)", 0);
+        if (!$this->HasActiveParent()) {
             return;
         }
+        $cmd = rtrim($cmd, '!') . '!';
+        $this->SendDebug("Transmit", $cmd, 0);
         
-        $cmd = rtrim($cmd, '!');
-        $this->SendDebug("Transmit", $cmd . "!", 0);
-        fwrite($fp, $cmd . "!");
-        usleep(100000);
-        
-        $this->ReadResponse($fp);
-        fclose($fp);
+        $this->SendDataToParent(json_encode([
+            'DataID' => '{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}',
+            'Buffer' => $cmd
+        ]));
     }
 
-    private function ReadResponse($fp): void
+    public function ReceiveData(string $JSONString): string
     {
-        stream_set_blocking($fp, false);
-        $response = "";
-        $startTime = microtime(true);
+        $data = json_decode($JSONString, true);
+        if (!isset($data['Buffer'])) {
+            return "";
+        }
+        $chunk = $data['Buffer'];
+        $this->SendDebug("Receive Chunk", $chunk, 0);
+
+        $buffer = $this->GetBuffer('ReceiveBuffer');
+        $buffer .= $chunk;
+
+        // Nachrichten sind durch $ getrennt laut ReadResponse in der alten Version.
+        // Wait, the task says: "The Michi/Rotel protocol is ASCII-based, commands end with newline"
+        // But the previous implementation used `explode('$', $response);` in `ReadResponse`.
+        // Let's split by both $ and newline to be safe, or just check the original code.
+        // Original code: `$parts = explode('$', $response);`
+        // Also: "commands end with newline" - if the prompt says they end with newline, we can split by newline or $. Let's handle both.
         
-        while (microtime(true) - $startTime < 1.0) {
-            $chunk = fread($fp, 1024);
-            if ($chunk !== false && $chunk !== '') {
-                $response .= $chunk;
+        // Let's replace newlines with $ for parsing.
+        $buffer = str_replace(["\r", "\n"], '$', $buffer);
+        $parts = explode('$', $buffer);
+        
+        // The last part might be incomplete
+        $this->SetBuffer('ReceiveBuffer', array_pop($parts));
+        
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if (!empty($part)) {
+                $this->ParseLine($part);
             }
-            usleep(50000);
         }
         
-        if (!empty($response)) {
-            $this->SendDebug("Receive", $response, 0);
-            $parts = explode('$', $response);
-            foreach ($parts as $part) {
-                $part = trim($part);
-                if (!empty($part)) {
-                    $this->ParseLine($part);
-                }
-            }
-        }
+        return "";
     }
 
     private function ParseLine(string $msg): void
@@ -265,26 +243,11 @@ class Michi extends IPSModuleStrict
     "elements": [
         {
             "type": "Label",
-            "label": "Hallo! Hier konfigurierst du die Verbindung zu deinem Michi-Gerät. Trage einfach die IP-Adresse und den passenden Port ein."
-        },
-        {
-            "type": "RowLayout",
-            "items": [
-                {
-                    "type": "ValidationTextBox",
-                    "name": "Host",
-                    "caption": "IP-Adresse"
-                },
-                {
-                    "type": "NumberSpinner",
-                    "name": "Port",
-                    "caption": "Port"
-                }
-            ]
+            "label": "Hallo! Die Verbindung zu deinem Michi-Gerät wird nun über die übergeordnete Instanz (Client Socket) konfiguriert."
         },
         {
             "type": "Label",
-            "label": "Wie oft soll ich bei Michi nach dem aktuellen Status fragen? Stell hier das Intervall in Sekunden ein. Wenn du 0 einträgst, frage ich gar nicht mehr automatisch nach."
+            "label": "Wie oft soll ich bei Michi nach dem aktuellen Status fragen? Stell hier das Intervall in Sekunden ein. Wenn du 0 einträgst, frage ich gar nicht mehr automatisch nach (Standard), da Änderungen nun in Echtzeit empfangen werden."
         },
         {
             "type": "NumberSpinner",
