@@ -66,6 +66,9 @@ class Michi extends IPSModuleStrict
             $this->SetTimerInterval('UpdateTimer', 0);
         }
 
+        // Client Socket (Gateway) mit IP/Port konfigurieren
+        $this->UpdateParentConfig();
+
         // Initiale Sichtbarkeit der Variablen setzen
         $this->UpdatePowerState($this->GetValue('Power'));
     }
@@ -111,6 +114,39 @@ class Michi extends IPSModuleStrict
         
         foreach ($commands as $cmd) {
             $this->SendCommand($cmd);
+        }
+    }
+
+    /**
+     * Pushes Host/Port config to the Client Socket parent instance.
+     */
+    private function UpdateParentConfig(): void
+    {
+        $host = $this->ReadPropertyString('Host');
+        if (empty($host)) {
+            return;
+        }
+
+        $instance = @IPS_GetInstance($this->InstanceID);
+        if (!$instance || $instance['ConnectionID'] <= 0) {
+            return;
+        }
+
+        $parentId = $instance['ConnectionID'];
+        $changed = false;
+
+        if (@IPS_GetProperty($parentId, 'Host') !== $host) {
+            @IPS_SetProperty($parentId, 'Host', $host);
+            $changed = true;
+        }
+        if (@IPS_GetProperty($parentId, 'Port') !== 9596) {
+            @IPS_SetProperty($parentId, 'Port', 9596);
+            $changed = true;
+        }
+
+        if ($changed) {
+            @IPS_ApplyChanges($parentId);
+            $this->SendDebug('Config', 'Client Socket konfiguriert: ' . $host . ':9596', 0);
         }
     }
 
