@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../libs/Trait_HouseModeAware.php';
+require_once __DIR__ . '/../libs/Trait_CentralStateAware.php';
 
 class VestaboardGenerator extends IPSModuleStrict {
-    use HouseModeAware_Trait;
+    use CentralStateAware_Trait;
 
     public function Create(): void {
         parent::Create();
@@ -14,7 +14,6 @@ class VestaboardGenerator extends IPSModuleStrict {
         $this->RegisterPropertyInteger("InstIdVestaboardLocal", 0); // Die InstanzID vom Vestaboard Local Modul
         $this->RegisterPropertyInteger("ManualUpdateTriggerID", 0); // Trigger für manuelles Update
         $this->RegisterPropertyInteger("ActiveViewVariableID", 0); // Trigger für Multi-View
-        $this->RegisterHouseModeAwareness();
         $this->RegisterPropertyInteger("HeimkinoModeVariableID", 0); // Veraltet
         $this->RegisterPropertyString("HeimkinoModeValues", "3"); // Die IDs des Heimkino-Modus (kommagetrennt)
         $this->RegisterPropertyInteger("AbsenceModeVariableID", 0); // Veraltet
@@ -97,7 +96,7 @@ class VestaboardGenerator extends IPSModuleStrict {
         }
         
         
-        $this->ApplyHouseModeSubscription();
+        $this->SubscribeToCentralStates(['PresenceMode', 'ActivityMode']);
 
         
         $this->UpdateSleepTimer();
@@ -117,21 +116,7 @@ class VestaboardGenerator extends IPSModuleStrict {
             return;
         }
 
-        $houseModeId = $this->ReadPropertyInteger("HouseModeVariableID");
-        if ($houseModeId > 0 && $SenderID == $houseModeId) {
-            $val = GetValue($houseModeId);
-            
-            $absenceVals = array_map('intval', array_map('trim', explode(',', $this->ReadPropertyString("AbsenceModeValues"))));
-            $isAbsent = ((is_bool($val) && $val) || (is_int($val) && in_array($val, $absenceVals, true)));
-            
-            $heimkinoVals = array_map('intval', array_map('trim', explode(',', $this->ReadPropertyString("HeimkinoModeValues"))));
-            $isHeimkinoActive = ((is_bool($val) && $val) || (is_int($val) && in_array($val, $heimkinoVals, true)));
-            
-            $forceUpdate = (!$isAbsent || $isHeimkinoActive);
-            
-            $this->DoUpdateBoard($forceUpdate, !$isHeimkinoActive);
-            return;
-        }
+        if ($this->HandleCentralStateMessage($SenderID, $Message, $Data)) return;
         
         $isImmediate = false;
         $list = json_decode($this->ReadPropertyString("VariablesList"), true);
@@ -167,11 +152,12 @@ class VestaboardGenerator extends IPSModuleStrict {
         $this->DoUpdateBoard($force, false);
     }
 
-    private function OnHouseModeChanged(int $mode, bool $isAbsence, bool $isSleep): void
+    private function OnCentralStateChanged(string $stateName, mixed $newValue): void
     {
-        // VestaboardGenerator nutzt eigene Logik in MessageSink/DoUpdateBoard
-        $forceUpdate = !$isAbsence;
-        $this->DoUpdateBoard($forceUpdate);
+        $isAbsent = !$this->IsHome();
+        $isHeimkinoActive = $this->IsCinema();
+        $forceUpdate = (!$isAbsent || $isHeimkinoActive);
+        $this->DoUpdateBoard($forceUpdate, !$isHeimkinoActive);
     }
 
     /**
@@ -205,15 +191,9 @@ class VestaboardGenerator extends IPSModuleStrict {
     private function DoUpdateBoard(bool $force = false, bool $isHeimkinoTurningOff = false): void {
         $this->SetTimerInterval('VestaboardUpdateTimer', 0);
         
-        $houseModeId = $this->ReadPropertyInteger("HouseModeVariableID");
-        
-        if ($houseModeId > 0 && IPS_VariableExists($houseModeId)) {
-            $heimkinoVals = array_map('intval', array_map('trim', explode(',', $this->ReadPropertyString("HeimkinoModeValues"))));
-            $val = GetValue($houseModeId);
-            if ((is_bool($val) && $val) || (is_int($val) && in_array($val, $heimkinoVals, true))) {
-                $this->UpdateBoardForHeimkino($force);
-                return;
-            }
+        if ($this->IsCinema()) {
+            $this->UpdateBoardForHeimkino($force);
+            return;
         }
         
         $linesImmediate = [];
@@ -304,15 +284,7 @@ class VestaboardGenerator extends IPSModuleStrict {
             }
         }
 
-        $isAbsent = false;
-        $absenceId = $this->ReadPropertyInteger("AbsenceModeVariableID");
-        if ($absenceId > 0 && IPS_VariableExists($absenceId)) {
-            $absenceVals = array_map('intval', array_map('trim', explode(',', $this->ReadPropertyString("AbsenceModeValues"))));
-            $val = GetValue($absenceId);
-            if ((is_bool($val) && $val) || (is_int($val) && in_array($val, $absenceVals, true))) {
-                $isAbsent = true;
-            }
-        }
+        $isAbsent = !$this->IsHome();
 
         if ($instId > 0 && IPS_InstanceExists($instId)) {
             if ($isAbsent) {
@@ -585,15 +557,7 @@ class VestaboardGenerator extends IPSModuleStrict {
         $sleepText = $this->ReadPropertyString("SleepText");
         $instId = $this->ReadPropertyInteger("InstIdVestaboardLocal");
 
-        $isAbsent = false;
-        $houseModeId = $this->ReadPropertyInteger("HouseModeVariableID");
-        if ($houseModeId > 0 && IPS_VariableExists($houseModeId)) {
-            $absenceVals = array_map('intval', array_map('trim', explode(',', $this->ReadPropertyString("AbsenceModeValues"))));
-            $val = GetValue($houseModeId);
-            if ((is_bool($val) && $val) || (is_int($val) && in_array($val, $absenceVals, true))) {
-                $isAbsent = true;
-            }
-        }
+        $isAbsent = !$this->IsHome();
 
         if ($sleepText !== ""&& $instId > 0 && IPS_InstanceExists($instId) && !$isAbsent) {
             $sleepText = $this->SanitizeTextForVestaboard($sleepText);
@@ -862,45 +826,7 @@ class VestaboardGenerator extends IPSModuleStrict {
                     "name": "ActiveViewVariableID",
                     "caption": "Variable zur Ansichts-Umschaltung (1 bis 6)"
                 },
-                {
-                    "type": "Label",
-                    "caption": "Haus-Modus"
-                },
-                {
-                    "type": "Label",
-                    "label": "Wenn du eine Variable für deinen Haus-Modus hast, wähle sie hier aus."
-                },
-                {
-                    "type": "SelectVariable",
-                    "name": "HouseModeVariableID",
-                    "caption": "Haus-Modus Variable (z.B. vom SmartHome Controller)"
-                },
-                {
-                    "type": "Label",
-                    "caption": "Heimkino-Modus"
-                },
-                {
-                    "type": "Label",
-                    "label": "Trage hier die Werte (kommagetrennt) deiner Haus-Modus Variable ein, bei denen das Board im Heimkino-Betrieb stumm bleiben soll."
-                },
-                {
-                    "type": "ValidationTextBox",
-                    "name": "HeimkinoModeValues",
-                    "caption": "Modus IDs (für Heimkino, z.B. 3 oder 3,4)"
-                },
-                {
-                    "type": "Label",
-                    "caption": "Abwesenheits-Modus"
-                },
-                {
-                    "type": "Label",
-                    "label": "Trage hier die Werte (kommagetrennt) für Abwesenheit ein. Dann wird ebenfalls nichts gesendet."
-                },
-                {
-                    "type": "ValidationTextBox",
-                    "name": "AbsenceModeValues",
-                    "caption": "Modus IDs (für Abwesend, z.B. 1 oder 1,2)"
-                },
+
                 {
                     "type": "Label",
                     "caption": "Aktivitäts-Zeitraum (außerhalb dieser Stunden wird nicht gesendet)"

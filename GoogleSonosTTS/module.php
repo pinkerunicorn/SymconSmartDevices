@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
-require_once __DIR__ . '/../libs/Trait_HouseModeAware.php';
+require_once __DIR__ . '/../libs/Trait_CentralStateAware.php';
 
 class GoogleSonosTTS extends IPSModuleStrict
 {
     use SmartLog_Trait;
-    use HouseModeAware_Trait;
+    use CentralStateAware_Trait;
     public function Create(): void{
         // Never delete this line!
         parent::Create();
@@ -27,7 +27,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         $this->RegisterTimer("CleanupTimer", 0, 'GSTTS_CleanupCache($_IPS[\'TARGET\']);');
         $this->RegisterTimer("ResumeRoonTimer", 0, 'GSTTS_ResumeRoon($_IPS[\'TARGET\']);');
         
-        $this->RegisterHouseModeAwareness();
+        
     }
 
     public function ApplyChanges(): void{
@@ -61,7 +61,7 @@ class GoogleSonosTTS extends IPSModuleStrict
 
         // Set Timer Interval to 24 hours (86400000 ms) in ApplyChanges
         $this->SetTimerInterval("CleanupTimer", 86400000);
-        $this->ApplyHouseModeSubscription();
+        $this->SubscribeToCentralStates(['PresenceMode', 'ActivityMode']);
     }
 
     public function ClearCache(): void
@@ -172,18 +172,18 @@ class GoogleSonosTTS extends IPSModuleStrict
     }
 
     public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void {
-        if ($this->HandleHouseModeMessage($SenderID, $Message, $Data)) return;
+        if ($this->HandleCentralStateMessage($SenderID, $Message, $Data)) return;
     }
 
-    private function OnHouseModeChanged(int $mode, bool $isAbsence, bool $isSleep): void {}
+    private function OnCentralStateChanged(string $stateName, mixed $newValue): void {}
 
     public function PlayMessage(string $Text, bool $isAlarm = false): string|bool
     {
-        if (!$isAlarm && $this->IsAbsent()) {
+        if (!$isAlarm && !$this->IsHome()) {
             $this->SLog('INFO', 'TTS unterdrückt (Abwesenheit)', $Text);
             return false;
         }
-        if (!$isAlarm && $this->IsSleep()) {
+        if (!$isAlarm && $this->IsSleeping()) {
             $this->SLog('INFO', 'TTS unterdrückt (Schlafmodus)', $Text);
             return false;
         }
@@ -478,15 +478,6 @@ class GoogleSonosTTS extends IPSModuleStrict
                     "value": "en-US-Wavenet-D"
                 }
             ]
-        },
-        {
-            "type": "Label",
-            "caption": "Haus-Modus anbinden (für automatische Stummschaltung)"
-        },
-        {
-            "type": "SelectVariable",
-            "name": "HouseModeVariableID",
-            "caption": "Haus-Modus Variable"
         },
         {
             "type": "Label",
