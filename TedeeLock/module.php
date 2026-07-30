@@ -70,6 +70,7 @@ class TedeeLock extends IPSModuleStrict
             ['Value' => 9,  'Caption' => 'Unbekannt',         'IconValue' => 'Information', 'IconActive' => false, 'ColorActive' => false, 'ColorDisplay' => -1,       'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
             ['Value' => 18, 'Caption' => 'Aktualisiert...',   'IconValue' => 'Gear',        'IconActive' => true,  'ColorActive' => true,  'ColorDisplay' => 0x888888, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x888888],
         ]);
+        IPS_SetVariableCustomProfile($this->GetIDForIdent('LockState'), '');
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('LockState'), [
             'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
             'ICON' => 'Information',
@@ -85,6 +86,7 @@ class TedeeLock extends IPSModuleStrict
             ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'Plug', 'IconActive' => false, 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
             ['Value' => true, 'Caption' => 'Lädt', 'IconValue' => 'Plug', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
         ]);
+        IPS_SetVariableCustomProfile($this->GetIDForIdent('IsCharging'), '');
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('IsCharging'), [
             'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
             'ICON' => 'Plug',
