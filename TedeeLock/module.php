@@ -18,7 +18,6 @@ class TedeeLock extends IPSModuleStrict
 
         $this->RegisterVariableInteger('LockState', 'Schloss Status', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'PROFILE'      => 'Tedee.LockState',
             'ICON'         => 'Information'
         ], 1);
         $this->RegisterVariableInteger('BatteryLevel', 'Batterie', [
@@ -61,6 +60,7 @@ class TedeeLock extends IPSModuleStrict
         if (!IPS_VariableProfileExists('Tedee.LockState')) {
             IPS_CreateVariableProfile('Tedee.LockState', 1);
         }
+        IPS_SetVariableCustomProfile($this->GetIDForIdent('LockState'), 'Tedee.LockState');
         IPS_SetVariableProfileAssociation('Tedee.LockState', 0, 'Nicht kalibriert', 'Warning', 0xFFA500);
         IPS_SetVariableProfileAssociation('Tedee.LockState', 1, 'Kalibriert', 'Gear', 0x0088FF);
         IPS_SetVariableProfileAssociation('Tedee.LockState', 2, 'Entsperrt', 'LockOpen', 0xFF0000);
