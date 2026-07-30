@@ -17,7 +17,7 @@ class TedeeLock extends IPSModuleStrict
         $this->RegisterAttributeInteger('DetectedLockID', 0);
 
         $this->RegisterVariableInteger('LockState', 'Schloss Status', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'PROFILE'      => 'Tedee.LockState',
             'ICON'         => 'Information'
         ], 1);
         $this->RegisterVariableInteger('BatteryLevel', 'Batterie', [
@@ -57,30 +57,20 @@ class TedeeLock extends IPSModuleStrict
         // ---------------------------------
 
 
-        $lockStateOptions = json_encode([
-            ['Value' => 0,  'Caption' => 'Nicht kalibriert',  'IconValue' => 'Warning',    'IconActive' => true,  'ColorActive' => true,  'ColorDisplay' => 0xFFA500, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFFA500],
-            ['Value' => 1,  'Caption' => 'Kalibriert',        'IconValue' => 'Gear',        'IconActive' => true,  'ColorActive' => true,  'ColorDisplay' => 0x0088FF, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x0088FF],
-            ['Value' => 2,  'Caption' => 'Entsperrt',         'IconValue' => 'LockOpen',    'IconActive' => true,  'ColorActive' => true,  'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000],
-            ['Value' => 3,  'Caption' => 'Halb gesperrt',     'IconValue' => 'Warning',     'IconActive' => true,  'ColorActive' => true,  'ColorDisplay' => 0xFFA500, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFFA500],
-            ['Value' => 4,  'Caption' => 'Entsperrt...',      'IconValue' => 'LockOpen',    'IconActive' => true,  'ColorActive' => true,  'ColorDisplay' => 0xFF6600, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF6600],
-            ['Value' => 5,  'Caption' => 'Sperrt...',         'IconValue' => 'LockClosed',  'IconActive' => true,  'ColorActive' => true,  'ColorDisplay' => 0xFFCC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFFCC00],
-            ['Value' => 6,  'Caption' => 'Gesperrt',          'IconValue' => 'LockClosed',  'IconActive' => true,  'ColorActive' => true,  'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00],
-            ['Value' => 7,  'Caption' => 'Falle gezogen',     'IconValue' => 'Door',        'IconActive' => true,  'ColorActive' => true,  'ColorDisplay' => 0x00AAFF, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00AAFF],
-            ['Value' => 8,  'Caption' => 'Falle zieht...',    'IconValue' => 'Door',        'IconActive' => true,  'ColorActive' => true,  'ColorDisplay' => 0x0066CC, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x0066CC],
-            ['Value' => 9,  'Caption' => 'Unbekannt',         'IconValue' => 'Information', 'IconActive' => false, 'ColorActive' => false, 'ColorDisplay' => -1,       'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
-            ['Value' => 18, 'Caption' => 'Aktualisiert...',   'IconValue' => 'Gear',        'IconActive' => true,  'ColorActive' => true,  'ColorDisplay' => 0x888888, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x888888],
-        ]);
-        IPS_SetVariableCustomProfile($this->GetIDForIdent('LockState'), '');
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('LockState'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Information',
-            'COLOR' => -1,
-            'CONTENT_COLOR' => -1,
-            'DISPLAY_TYPE' => 0,
-            'PREVIEW_STYLE' => 1,
-            'SHOW_PREVIEW' => true,
-            'OPTIONS' => $lockStateOptions
-        ]);
+        if (!IPS_VariableProfileExists('Tedee.LockState')) {
+            IPS_CreateVariableProfile('Tedee.LockState', 1);
+        }
+        IPS_SetVariableProfileAssociation('Tedee.LockState', 0, 'Nicht kalibriert', 'Warning', 0xFFA500);
+        IPS_SetVariableProfileAssociation('Tedee.LockState', 1, 'Kalibriert', 'Gear', 0x0088FF);
+        IPS_SetVariableProfileAssociation('Tedee.LockState', 2, 'Entsperrt', 'LockOpen', 0xFF0000);
+        IPS_SetVariableProfileAssociation('Tedee.LockState', 3, 'Halb gesperrt', 'Warning', 0xFFA500);
+        IPS_SetVariableProfileAssociation('Tedee.LockState', 4, 'Entsperrt...', 'LockOpen', 0xFF6600);
+        IPS_SetVariableProfileAssociation('Tedee.LockState', 5, 'Sperrt...', 'LockClosed', 0xFFCC00);
+        IPS_SetVariableProfileAssociation('Tedee.LockState', 6, 'Gesperrt', 'LockClosed', 0x00CC00);
+        IPS_SetVariableProfileAssociation('Tedee.LockState', 7, 'Falle gezogen', 'Door', 0x00AAFF);
+        IPS_SetVariableProfileAssociation('Tedee.LockState', 8, 'Falle zieht...', 'Door', 0x0066CC);
+        IPS_SetVariableProfileAssociation('Tedee.LockState', 9, 'Unbekannt', 'Information', -1);
+        IPS_SetVariableProfileAssociation('Tedee.LockState', 18, 'Aktualisiert...', 'Gear', 0x888888);
 
         $chargingOptions = json_encode([
             ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'Plug', 'IconActive' => false, 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
