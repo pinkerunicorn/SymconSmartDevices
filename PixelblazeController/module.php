@@ -369,7 +369,7 @@ class PixelblazeController extends IPSModuleStrict
     private function SendWebSocketCommand(array $payload): void
     {
         if (!$this->HasActiveParent()) {
-            $this->LogMessage("Fehler: Kein aktiver WebSocket Client verbunden.", KL_WARNING);
+            $this->SendDebug("SendWebSocketCommand", "Fehler: Kein aktiver WebSocket Client verbunden.", 0);
             return;
         }
 
