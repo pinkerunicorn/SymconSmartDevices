@@ -123,7 +123,7 @@ class EMSESPDevice extends IPSModuleStrict
         }
     }
     
-    public function RequestAction($Ident, $Value)
+    public function RequestAction(string $Ident, mixed $Value): void
     {
         $baseTopic = $this->ReadPropertyString('MQTTTopic');
         
