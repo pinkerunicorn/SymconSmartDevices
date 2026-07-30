@@ -153,4 +153,9 @@ class EMSESPDevice extends IPSModuleStrict
         // Optimistically set value in Symcon
         SetValue($this->GetIDForIdent($Ident), $Value);
     }
+    
+    public function ProcessTestPayload(string $Topic, string $Payload): void
+    {
+        $this->ProcessMQTTMessage($Topic, $Payload);
+    }
 }
