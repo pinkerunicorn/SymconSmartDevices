@@ -111,7 +111,7 @@ class EMSESPDevice extends IPSModuleStrict
                 $this->EnableAction($ident);
             }
             
-            SetValue($varID, $value);
+            $this->SetValue($ident, $value);
             
             // Set custom presentation for IPS 8 ONLY for read-only variables
             if ($presentation !== 0 && !$isWritable) {
@@ -151,7 +151,7 @@ class EMSESPDevice extends IPSModuleStrict
         $this->SendDataToParent(json_encode($data));
         
         // Optimistically set value in Symcon
-        SetValue($this->GetIDForIdent($Ident), $Value);
+        $this->SetValue($Ident, $Value);
     }
     
     public function ProcessTestPayload(string $Topic, string $Payload): void
