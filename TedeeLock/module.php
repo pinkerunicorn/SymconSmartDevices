@@ -17,6 +17,7 @@ class TedeeLock extends IPSModuleStrict
         $this->RegisterAttributeInteger('DetectedLockID', 0);
 
         $this->RegisterVariableInteger('LockState', 'Schloss Status', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'PROFILE'      => 'Tedee.LockState',
             'ICON'         => 'Information'
         ], 1);
