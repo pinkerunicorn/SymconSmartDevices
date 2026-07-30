@@ -51,10 +51,7 @@ class VestaboardGenerator extends IPSModuleStrict {
         if ($ref_ActiveViewVariableID > 1 && @IPS_ObjectExists($ref_ActiveViewVariableID)) {
             $this->RegisterReference($ref_ActiveViewVariableID);
         }
-        $ref_HouseModeVariableID = $this->ReadPropertyInteger('HouseModeVariableID');
-        if ($ref_HouseModeVariableID > 1 && @IPS_ObjectExists($ref_HouseModeVariableID)) {
-            $this->RegisterReference($ref_HouseModeVariableID);
-        }
+
         $list_VariablesList = json_decode($this->ReadPropertyString('VariablesList'), true);
         if (is_array($list_VariablesList)) {
             foreach ($list_VariablesList as $item) {
