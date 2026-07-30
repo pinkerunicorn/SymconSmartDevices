@@ -109,6 +109,32 @@ class TedeeLock extends IPSModuleStrict
 
 
 
+    protected function RegisterHook(string $HookPath): bool
+    {
+        $ids = IPS_GetInstanceListByModuleID("{015A6EB8-D6E5-4B93-B496-0D3F77AE9FE1}");
+        if (sizeof($ids) > 0) {
+            $hooks = json_decode(IPS_GetProperty($ids[0], "Hooks"), true);
+            if (!is_array($hooks)) $hooks = [];
+            $found = false;
+            foreach ($hooks as $index => $hook) {
+                if ($hook['Hook'] == $HookPath) {
+                    if ($hook['TargetID'] == $this->InstanceID) {
+                        return true;
+                    }
+                    $hooks[$index]['TargetID'] = $this->InstanceID;
+                    $found = true;
+                }
+            }
+            if (!$found) {
+                $hooks[] = ["Hook" => $HookPath, "TargetID" => $this->InstanceID];
+            }
+            IPS_SetProperty($ids[0], "Hooks", json_encode($hooks));
+            IPS_ApplyChanges($ids[0]);
+            return true;
+        }
+        return false;
+    }
+
     protected function ProcessHookData(): void
     {
         $payload = file_get_contents('php://input');
