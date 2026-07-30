@@ -882,39 +882,7 @@ class VestaboardGenerator extends IPSModuleStrict {
     ]
 }
 EOT;
-        $form = json_decode($json, true);
-
-        $modes = [];
-        foreach ($this->GetAvailableHouseModes() as $m) {
-            $modes[] = ['label' => $m['Name'], 'value' => (string)$m['Value']];
-        }
-
-        if (isset($form['elements']) && is_array($form['elements'])) {
-            foreach ($form['elements'] as &$el) {
-                if (isset($el['type']) && $el['type'] === 'ExpansionPanel' && isset($el['items'])) {
-                    foreach ($el['items'] as &$item) {
-                        if (isset($item['name']) && $item['name'] === 'HeimkinoModeValues') {
-                            $item = [
-                                "type" => "Select",
-                                "name" => "HeimkinoModeValues",
-                                "caption" => "Heimkino Modus (ID aus Haus-Modus Profil)",
-                                "options" => $modes
-                            ];
-                        }
-                        if (isset($item['name']) && $item['name'] === 'AbsenceModeValues') {
-                            $item = [
-                                "type" => "Select",
-                                "name" => "AbsenceModeValues",
-                                "caption" => "Abwesenheits Modus (ID aus Haus-Modus Profil)",
-                                "options" => $modes
-                            ];
-                        }
-                    }
-                }
-            }
-        }
-
-        return json_encode($form);
+        return $json;
     }
 }
 
