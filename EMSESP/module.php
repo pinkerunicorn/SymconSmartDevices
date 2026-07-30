@@ -10,7 +10,7 @@ class EMSESPDevice extends IPSModuleStrict
         parent::Create();
         
         $this->RegisterPropertyString('MQTTTopic', 'ems-esp');
-        $this->ConnectParent('{EE0D345A-CF31-428A-A613-33CE98E752DD}');
+        $this->ConnectParent('{C6D2AEB3-6E1F-4B2E-8E69-3A1A00246850}');
     }
 
     public function ApplyChanges(): void
@@ -144,7 +144,7 @@ class EMSESPDevice extends IPSModuleStrict
         ]);
         
         $data = [
-            'DataID' => '{97475B04-67C3-A74D-C970-E9409B0EFA1D}',
+            'DataID' => '{043EA491-0325-4ADD-8FC2-A30C8EEB4D3F}',
             'Topic' => $cmdTopic,
             'Payload' => $payload
         ];
