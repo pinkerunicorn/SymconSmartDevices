@@ -1,0 +1,13 @@
+{
+    "id": "{B94B8A2B-0E4E-4361-B9D2-3BE5B2F9082F}",
+    "name": "EMSESP Device",
+    "type": 3,
+    "vendor": "BBQKees",
+    "aliases": ["Buderus", "Bosch", "Nefit"],
+    "parentRequirements": ["{EE0D345A-CF31-428A-A613-33CE98E752DD}"],
+    "childRequirements": [],
+    "implemented": ["{DBDA9DF7-5D04-F49D-370A-2B9153D00D9B}"],
+    "prefix": "EMSESP",
+    "author": "Florian Graßinger",
+    "url": "https://github.com/pinkerunicorn/IPS-EMSESP"
+}
