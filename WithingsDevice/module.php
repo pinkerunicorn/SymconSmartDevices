@@ -774,9 +774,10 @@ class WithingsDevice extends IPSModuleStrict {
             self::MEASURE_INTRACELLULAR_WATER => "Intrazelluläres Wasser (kg)",
         ];
 
-        $prompt = "Du bist ein motivierender KI-Gesundheits-Coach. Hier sind meine aufgezeichneten Gesundheitsdaten der letzten ". $days . " Tage von meiner Withings Body Scan 2 Waage.\n";
-        $prompt .= "Bitte bewerte den Trend der Messwerte, gib mir ein kurzes Feedback und weise auf Besonderheiten hin (z.B. stark steigender Blutdruck, Gewichtsverlust, Veränderungen bei Muskelmasse oder Viszeralfett).\n";
-        $prompt .= "Fasse dich kurz, bleibe positiv und präzise. Antworte in Deutsch und formatiere den Text in einfachem Markdown.\n\n";
+        $prompt = "Hier sind meine Gesundheitsdaten der letzten ". $days . " Tage (Withings Body Scan 2):\n";
+        $prompt .= "Bitte fasse die wichtigsten Entwicklungen in maximal 3-4 sehr kurzen, prägnanten Bulletpoints zusammen, da der Platz auf dem Smart Home Dashboard begrenzt ist.\n";
+        $prompt .= "Dämpfe die Informationen auf das absolut Wesentliche ein (z.B. 'Gewicht leicht gesunken (-0.5kg)', 'Blutdruck im Normalbereich', 'Muskelmasse konstant'). Keine langen Einleitungen oder Verabschiedungen.\n";
+        $prompt .= "Antworte in Deutsch, formatiere als Liste mit Spiegelstrichen (-).\n\n";
 
         // BMI-Wert hinzufügen falls vorhanden
         $bmiID = @IPS_GetObjectIDByIdent("Calculated_BMI", $this->InstanceID);
@@ -821,7 +822,7 @@ class WithingsDevice extends IPSModuleStrict {
         $script = '<?php
             $result = GIO_Query(' . $geminiId . ',
                 ' . var_export($prompt, true) . ',
-                \'Du bist ein motivierender KI-Gesundheits-Coach für Withings Body Scan 2 Daten. Antworte auf Deutsch im Markdown-Format. Bewerte Trends, markiere Auffälligkeiten und gib konkrete Tipps.\',
+                \'Du bist ein KI-Assistent für ein Smart Home Dashboard. Fasse Gesundheitsdaten extrem kurz und prägnant in 3-4 Bulletpoints zusammen, ohne Floskeln.\',
                 \'\',
                 0.4
             );
