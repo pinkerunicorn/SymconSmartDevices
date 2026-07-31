@@ -3,13 +3,7 @@
     "name": "Buderus Heating Tile",
     "type": 3,
     "vendor": "Florian Gra\u00dfinger",
-    "aliases": [
-        "Buderus",
-        "Bosch",
-        "Nefit",
-        "EMSESP",
-        "Heizung Kachel"
-    ],
+    "aliases": ["Buderus Tile", "Heizung Kachel"],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
