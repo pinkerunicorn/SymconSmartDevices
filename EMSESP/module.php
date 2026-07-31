@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
+
 class EMSESPDevice extends IPSModuleStrict
 {
     use DeviceAvailability_Trait;

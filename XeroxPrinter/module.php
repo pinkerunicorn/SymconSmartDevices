@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
+
 class XeroxPrinter extends IPSModuleStrict
 {
     use DeviceAvailability_Trait;
@@ -107,7 +109,6 @@ class XeroxPrinter extends IPSModuleStrict
         }
 
         require_once(__DIR__ . '/../libs/phpSNMP/snmp.php');
-require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
         $snmp = new snmp();
         $snmp->version = SNMP_VERSION_2;
         $success = false;
