@@ -182,9 +182,9 @@ class TedeeLock extends IPSModuleStrict
 
     public function RegisterWebhookAtBridge(): void
     {
-        $ip = $this->ReadPropertyString('BridgeIP');
-        $token = $this->ReadPropertyString('ApiToken');
-        $baseUrl = rtrim($this->ReadPropertyString('SymconBaseURL'), "/");
+        $ip = @$this->ReadPropertyString('BridgeIP');
+        $token = @$this->ReadPropertyString('ApiToken');
+        $baseUrl = rtrim((string)@$this->ReadPropertyString('SymconBaseURL'), "/");
         $webhookUrl = $baseUrl . "/hook/Tedee_" . $this->InstanceID;
 
         if (empty($ip) || empty($token) || empty($baseUrl)) {
@@ -194,7 +194,7 @@ class TedeeLock extends IPSModuleStrict
 
         // --- STEP 1: GET ALL CALLBACKS ---
         $apiToken = $token;
-        if ($this->ReadPropertyBoolean('UseEncryptedToken')) {
+        if (@$this->ReadPropertyBoolean('UseEncryptedToken')) {
             $timestamp = (string)round(microtime(true) * 1000);
             $hash = hash('sha256', $token . $timestamp);
             $apiToken = $hash . $timestamp;
@@ -220,7 +220,7 @@ class TedeeLock extends IPSModuleStrict
                     sleep(1);
                     
                     $delToken = $token;
-                    if ($this->ReadPropertyBoolean('UseEncryptedToken')) {
+                    if (@$this->ReadPropertyBoolean('UseEncryptedToken')) {
                         $timestamp = (string)round(microtime(true) * 1000);
                         $hash = hash('sha256', $token . $timestamp);
                         $delToken = $hash . $timestamp;
@@ -245,7 +245,7 @@ class TedeeLock extends IPSModuleStrict
         sleep(1);
         
         $regToken = $token;
-        if ($this->ReadPropertyBoolean('UseEncryptedToken')) {
+        if (@$this->ReadPropertyBoolean('UseEncryptedToken')) {
             $timestamp = (string)round(microtime(true) * 1000);
             $hash = hash('sha256', $token . $timestamp);
             $regToken = $hash . $timestamp;
@@ -254,7 +254,7 @@ class TedeeLock extends IPSModuleStrict
         $payload = json_encode([
             "url" => $webhookUrl,
             "method" => "POST",
-            "headers" => []
+            "headers" => new stdClass()
         ]);
 
         $opts = [
@@ -299,7 +299,7 @@ class TedeeLock extends IPSModuleStrict
 
     private function GetActiveLockID(): int
     {
-        $configId = $this->ReadPropertyInteger('LockID');
+        $configId = @$this->ReadPropertyInteger('LockID');
         if ($configId > 0) {
             return $configId;
         }
@@ -308,8 +308,8 @@ class TedeeLock extends IPSModuleStrict
 
     public function UpdateStatus(): void
     {
-        $ip = $this->ReadPropertyString('BridgeIP');
-        $token = $this->ReadPropertyString('ApiToken');
+        $ip = @$this->ReadPropertyString('BridgeIP');
+        $token = @$this->ReadPropertyString('ApiToken');
         
         if (empty($ip) || empty($token)) return;
 
@@ -331,7 +331,7 @@ class TedeeLock extends IPSModuleStrict
         if ($httpCode == 200 && $response) {
             $data = json_decode($response, true);
             if (is_array($data)) {
-                $targetLockId = $this->ReadPropertyInteger('LockID');
+                $targetLockId = @$this->ReadPropertyInteger('LockID');
                 $found = false;
                 
                 foreach ($data as $lock) {
