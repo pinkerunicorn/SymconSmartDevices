@@ -237,6 +237,9 @@ class EMSESPDevice extends IPSModuleStrict
         
         $data = [
             'DataID' => '{043EA491-0325-4ADD-8FC2-A30C8EEB4D3F}',
+            'PacketType' => 3,
+            'QualityOfService' => 0,
+            'Retain' => false,
             'Topic' => $cmdTopic,
             'Payload' => $payload
         ];
