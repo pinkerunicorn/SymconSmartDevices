@@ -78,22 +78,15 @@ class ImperialDishwasherAI extends IPSModuleStrict {
             $this->RegisterMessage($powerVarID, VM_UPDATE);
         }
 
-        $statusOptions = json_encode([
-            ['Value' => 0, 'Caption' => 'Aus', 'IconValue' => 'Information', 'IconActive' => false, 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
-            ['Value' => 1, 'Caption' => 'Start', 'IconValue' => 'Information', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x0088FF, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x0088FF],
-            ['Value' => 2, 'Caption' => 'Aktiv', 'IconValue' => 'Information', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00],
-            ['Value' => 3, 'Caption' => 'Fertig', 'IconValue' => 'Information', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFFA500, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFFA500]
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Status'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Information',
-            'COLOR' => -1,
-            'CONTENT_COLOR' => -1,
-            'DISPLAY_TYPE' => 0,
-            'PREVIEW_STYLE' => 1,
-            'SHOW_PREVIEW' => true,
-            'OPTIONS' => $statusOptions
-        ]);
+        
+        if (!IPS_VariableProfileExists('Dishwasher.Status')) {
+            IPS_CreateVariableProfile('Dishwasher.Status', 1);
+        }
+        IPS_SetVariableCustomProfile($this->GetIDForIdent('Status'), 'Dishwasher.Status');
+        IPS_SetVariableProfileAssociation('Dishwasher.Status', 0, 'Aus', 'Information', -1);
+        IPS_SetVariableProfileAssociation('Dishwasher.Status', 1, 'Start', 'Information', 0x0088FF);
+        IPS_SetVariableProfileAssociation('Dishwasher.Status', 2, 'Aktiv', 'Information', 0x00CC00);
+        IPS_SetVariableProfileAssociation('Dishwasher.Status', 3, 'Fertig', 'Information', 0xFFA500);
 
         $this->MaintainTimer();
     }
