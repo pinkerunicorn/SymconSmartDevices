@@ -2,8 +2,13 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
+
 class TedeeLock extends IPSModuleStrict
 {
+    use SmartLog_Trait;
+    use SmartHttp_Trait;
     public function Create(): void
     {
         parent::Create();
@@ -313,73 +318,55 @@ class TedeeLock extends IPSModuleStrict
         
         if (empty($ip) || empty($token)) return;
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "http://{$ip}/v1.0/lock");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->GetAuthHeaders());
+        $data = $this->HttpRequest("http://{$ip}/v1.0/lock", 'GET', $this->GetAuthHeaders());
+        if ($data === null) return;
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if ($response === false || $httpCode >= 400) {
-            $this->SendDebug('UpdateStatus', "Error HTTP $httpCode | " . curl_error($ch), 0);
-            curl_close($ch);
-            return;
-        }
-        curl_close($ch);
-
-        if ($httpCode == 200 && $response) {
-            $data = json_decode($response, true);
-            if (is_array($data)) {
-                $targetLockId = @$this->ReadPropertyInteger('LockID');
-                $found = false;
+        if (is_array($data)) {
+            $targetLockId = @$this->ReadPropertyInteger('LockID');
+            $found = false;
+            
+            foreach ($data as $lock) {
+                $lockId = (int)($lock['id'] ?? 0);
                 
-                foreach ($data as $lock) {
-                    $lockId = (int)($lock['id'] ?? 0);
-                    
-                    // Match specific lock if configured, otherwise use first
-                    if ($targetLockId > 0 && $lockId !== $targetLockId) {
-                        continue;
-                    }
+                // Match specific lock if configured, otherwise use first
+                if ($targetLockId > 0 && $lockId !== $targetLockId) {
+                    continue;
+                }
 
-                    $found = true;
-                    if ($targetLockId === 0) {
-                        $this->WriteAttributeInteger('DetectedLockID', $lockId);
-                    }
-                    
-                    if (isset($lock['state'])) {
-                        $this->SetValue('LockState', (int)$lock['state']);
-                        
-                        // Map state to control variable to keep UI in sync
-                        $controlValue = -1;
-                        if ($lock['state'] == 2) { // Unlocked
-                            $controlValue = 0;
-                        } elseif ($lock['state'] == 6) { // Locked
-                            $controlValue = 1;
-                        }
-                        if ($controlValue !== -1 && GetValue($this->GetIDForIdent('LockControl')) != $controlValue) {
-                            $this->SetValue('LockControl', (int)$controlValue);
-                        }
-                    }
-                    if (isset($lock['batteryLevel'])) {
-                        $this->SetValue('BatteryLevel', (int)$lock['batteryLevel']);
-                    }
-                    if (isset($lock['isCharging'])) {
-                        $this->SetValue('IsCharging', (bool)$lock['isCharging']);
-                    }
-                    break;
+                $found = true;
+                if ($targetLockId === 0) {
+                    $this->WriteAttributeInteger('DetectedLockID', $lockId);
                 }
                 
-                if ($found) {
-                    $this->SetStatus(102);
-                } else {
-                    $this->SetStatus(201); // Error state
-                    $this->SendDebug('UpdateStatus', "Schloss mit ID $targetLockId wurde von der Bridge nicht gemeldet.", 0);
+                if (isset($lock['state'])) {
+                    $this->SetValue('LockState', (int)$lock['state']);
+                    
+                    // Map state to control variable to keep UI in sync
+                    $controlValue = -1;
+                    if ($lock['state'] == 2) { // Unlocked
+                        $controlValue = 0;
+                    } elseif ($lock['state'] == 6) { // Locked
+                        $controlValue = 1;
+                    }
+                    if ($controlValue !== -1 && GetValue($this->GetIDForIdent('LockControl')) != $controlValue) {
+                        $this->SetValue('LockControl', (int)$controlValue);
+                    }
                 }
+                if (isset($lock['batteryLevel'])) {
+                    $this->SetValue('BatteryLevel', (int)$lock['batteryLevel']);
+                }
+                if (isset($lock['isCharging'])) {
+                    $this->SetValue('IsCharging', (bool)$lock['isCharging']);
+                }
+                break;
             }
-        } else {
-            $this->SetStatus(201); // Error state
-            $this->SendDebug('UpdateStatus', "Error HTTP $httpCode: $response", 0);
+            
+            if ($found) {
+                $this->SetStatus(102);
+            } else {
+                $this->SetStatus(201); // Error state
+                $this->SLogError("Schloss mit ID $targetLockId wurde von der Bridge nicht gemeldet.");
+            }
         }
     }
 
@@ -397,23 +384,8 @@ class TedeeLock extends IPSModuleStrict
         $headers = $this->GetAuthHeaders();
         $headers[] = 'Content-Length: 0';
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "http://{$ip}/v1.0/lock/{$lockId}/{$action}");
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if ($response === false || $httpCode >= 400) {
-            $this->SendDebug('SendCommand', "Error HTTP $httpCode | " . curl_error($ch), 0);
-            curl_close($ch);
-            return;
-        }
-        curl_close($ch);
-
-        $this->SendDebug('SendCommand', "Action: $action, HTTP: $httpCode, Resp: $response", 0);
+        $this->HttpRequest("http://{$ip}/v1.0/lock/{$lockId}/{$action}", 'POST', $headers);
+        $this->SendDebug('SendCommand', "Action: $action", 0);
     }
 
     private function GetAuthHeaders(): array
