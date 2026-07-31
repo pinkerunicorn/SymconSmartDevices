@@ -186,6 +186,11 @@ class BuderusHeatingTile extends IPSModuleStrict
                 $this->PushTileUpdate();
                 break;
 
+            case 'SetSelTemp':
+                $this->ForwardActionToEMSESP($sourceID, 'seltemp', (float) $Value);
+                $this->PushTileUpdate();
+                break;
+
             case 'SetDayTemp':
                 $this->ForwardActionToEMSESP($sourceID, 'daytemp', (float) $Value);
                 $this->PushTileUpdate();
