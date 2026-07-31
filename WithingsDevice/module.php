@@ -73,6 +73,11 @@ class WithingsDevice extends IPSModuleStrict {
         $this->RegisterVariableString("LastMeasurement", "Letzte Messung", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION], 0);
         $this->RegisterVariableString("DeviceBattery", "Geräte-Akku", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION], 1);
         $this->RegisterVariableString("DailyReport", "Gemini Analyse", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION], 99);
+        $this->RegisterVariableString("GeminiInsight1", "Insight 1", "", 10);
+        $this->RegisterVariableString("GeminiInsight2", "Insight 2", "", 11);
+        $this->RegisterVariableString("GeminiInsight3", "Insight 3", "", 12);
+        $this->RegisterVariableString("GeminiInsight4", "Insight 4", "", 13);
+        $this->RegisterVariableString("GeminiInsight5", "Insight 5", "", 14);
     }
 
     public function ApplyChanges(): void {
@@ -140,6 +145,11 @@ class WithingsDevice extends IPSModuleStrict {
             'LastMeasurement'  => 'Clock',
             'DeviceBattery'    => 'Battery',
             'DailyReport'      => 'Book',
+            'GeminiInsight1'   => 'Information',
+            'GeminiInsight2'   => 'Information',
+            'GeminiInsight3'   => 'Information',
+            'GeminiInsight4'   => 'Information',
+            'GeminiInsight5'   => 'Information',
         ];
 
         foreach ($iconMap as $ident => $icon) {
@@ -784,9 +794,10 @@ class WithingsDevice extends IPSModuleStrict {
         ];
 
         $prompt = "Hier sind meine Gesundheitsdaten der letzten ". $days . " Tage (Withings Body Scan 2):\n";
-        $prompt .= "Bitte fasse die wichtigsten Entwicklungen in maximal 3-4 sehr kurzen, prägnanten Bulletpoints zusammen, da der Platz auf dem Smart Home Dashboard begrenzt ist.\n";
-        $prompt .= "Dämpfe die Informationen auf das absolut Wesentliche ein (z.B. 'Gewicht leicht gesunken (-0.5kg)', 'Blutdruck im Normalbereich', 'Muskelmasse konstant'). Keine langen Einleitungen oder Verabschiedungen.\n";
-        $prompt .= "Antworte in Deutsch, formatiere als Liste mit Spiegelstrichen (-).\n\n";
+        $prompt .= "Bitte generiere genau 5 sehr kurze, prägnante Bulletpoints (Insights) über die wichtigsten Entwicklungen meiner Gesundheit.\n";
+        $prompt .= "Dämpfe die Informationen auf das absolut Wesentliche ein (z.B. 'Gewicht leicht gesunken (-0.5kg)', 'Blutdruck im Normalbereich').\n";
+        $prompt .= "Antworte ausschließlich in JSON. Das Format muss ein striktes JSON-Array von Strings sein, z.B.: [\"Insight 1\", \"Insight 2\", \"Insight 3\", \"Insight 4\", \"Insight 5\"].\n";
+        $prompt .= "Verwende keine Zeilenumbrüche innerhalb der Strings und keine Markdown-Formatierung im Output, nur reines JSON.\n\n";
 
         // BMI-Wert hinzufügen falls vorhanden
         $bmiID = @IPS_GetObjectIDByIdent("Calculated_BMI", $this->InstanceID);
@@ -827,12 +838,13 @@ class WithingsDevice extends IPSModuleStrict {
 
         $instanceId = $this->InstanceID;
 
-        // Async — kein Schema = freier Markdown-Text, Temperatur 0.4
+        // Async — nutze JSON Schema für GIO_Query
+        $schema = '{"type":"array","items":{"type":"string"}}';
         $script = '<?php
             $result = GIO_Query(' . $geminiId . ',
                 ' . var_export($prompt, true) . ',
-                \'Du bist ein KI-Assistent für ein Smart Home Dashboard. Fasse Gesundheitsdaten extrem kurz und prägnant in 3-4 Bulletpoints zusammen, ohne Floskeln.\',
-                \'\',
+                \'Du bist ein KI-Assistent für ein Smart Home Dashboard. Fasse Gesundheitsdaten in 5 extrem kurzen, prägnanten Punkten zusammen. Antworte als JSON Array von Strings.\',
+                ' . var_export($schema, true) . ',
                 0.4
             );
             WITHINGS_ProcessGeminiResult(' . $instanceId . ', $result);
@@ -846,12 +858,31 @@ class WithingsDevice extends IPSModuleStrict {
             return;
         }
 
-        $this->SetValue('DailyReport', $report);
-        $this->SLog('INFO', 'Gemini Gesundheitsbericht erfolgreich generiert.');
+        $insights = @json_decode($report, true);
+        if (!is_array($insights)) {
+            $this->SLog('ERROR', 'Gemini Antwort war kein gültiges JSON Array: ' . $report);
+            return;
+        }
+
+        // Fülle die Variablen 1 bis 5 (oder leere sie, falls weniger zurückkam)
+        for ($i = 1; $i <= 5; $i++) {
+            $ident = "GeminiInsight" . $i;
+            $value = isset($insights[$i - 1]) ? $insights[$i - 1] : "";
+            $this->SetValue($ident, $value);
+        }
+
+        // DailyReport für E-Mails generieren (als Markdown zusammenbauen)
+        $markdownReport = "";
+        foreach ($insights as $insight) {
+            $markdownReport .= "- " . $insight . "\n";
+        }
+        $this->SetValue('DailyReport', $markdownReport);
+
+        $this->SLog('INFO', 'Gemini Gesundheitsbericht erfolgreich auf 5 Insights aufgeteilt.');
 
         $smtpID = $this->ReadPropertyInteger('SMTPInstanceID');
         if ($smtpID > 0 && IPS_InstanceExists($smtpID)) {
-            @SMTP_SendMail($smtpID, 'Dein Gesundheits-Coach Update', $report);
+            @SMTP_SendMail($smtpID, 'Dein Gesundheits-Coach Update', $markdownReport);
         }
     }
 
