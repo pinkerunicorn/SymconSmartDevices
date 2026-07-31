@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 class PixelblazeController extends IPSModuleStrict
 {
+    use DeviceAvailability_Trait;
+
 
     public function Create(): void
     {
         parent::Create();
+        $this->DA_RegisterWatchdog();
+        $this->DA_RegisterAvailability(900); // Alarm priority: 0 (Low - decorative LEDs)
 
         // Properties
         $this->RegisterPropertyInteger('AutoReconnectInterval', 30);
@@ -65,6 +69,7 @@ class PixelblazeController extends IPSModuleStrict
         $oldVar = @$this->GetIDForIdent('ActiveProgramID');
         if ($oldVar > 0) {
             $this->UnregisterVariable('ActiveProgramID');
+        $this->DA_ApplyPresentation();
         }
 
 
@@ -113,6 +118,9 @@ class PixelblazeController extends IPSModuleStrict
     public function RequestAction(string $Ident, mixed $Value): void
     {
         switch ($Ident) {
+            case 'DA_Watchdog':
+                $this->DA_HandleWatchdog();
+                break;
             case 'Power':
                 if ($Value) {
                     // Einschalten -> Letzte Helligkeit wiederherstellen
@@ -212,6 +220,8 @@ class PixelblazeController extends IPSModuleStrict
     {
         $this->SendDebug("RawReceiveData", $JSONString, 0);
         $data = json_decode($JSONString, true);
+        $this->DA_ResetWatchdog(120);
+        $this->DA_SetAvailable(true);
         if (!is_array($data)) return '';
         
         // WebSocket Client Data ID
@@ -426,7 +436,15 @@ class PixelblazeController extends IPSModuleStrict
             "type": "Button",
             "label": "Programme vom Gerät laden",
             "onClick": "PB_FetchPrograms($id);"
+        },
+    "status": [
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Nicht konfiguriert"
         }
+    ]
+
     ]
 }
 EOT;

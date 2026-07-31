@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 class XeroxPrinter extends IPSModuleStrict
 {
+    use DeviceAvailability_Trait;
+
     public function Create(): void
     {
         parent::Create();
+        $this->DA_RegisterAvailability(900); // Alarm priority: 0 (Low - it's just a printer)
 
         // Eigenschaften registrieren
         $this->RegisterPropertyString('Host', '10.1.20.30');
@@ -34,6 +37,11 @@ class XeroxPrinter extends IPSModuleStrict
 
     public function ApplyChanges(): void{
         parent::ApplyChanges();
+        if (empty($this->ReadPropertyString('Host'))) {
+            $this->SetStatus(104);
+            return;
+        $this->DA_ApplyPresentation();
+        }
 
 
         // OID Liste auslesen und Variablen anlegen
@@ -99,6 +107,7 @@ class XeroxPrinter extends IPSModuleStrict
         }
 
         require_once(__DIR__ . '/../libs/phpSNMP/snmp.php');
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
         $snmp = new snmp();
         $snmp->version = SNMP_VERSION_2;
         $success = false;
@@ -136,6 +145,9 @@ class XeroxPrinter extends IPSModuleStrict
 
         if ($success) {
             $this->SetValue('LastUpdate', time());
+            $this->DA_SetAvailable(true);
+        } else {
+            $this->DA_SetAvailable(false, 'SNMP-Abfrage fehlgeschlagen');
         }
     }
 
@@ -225,7 +237,15 @@ class XeroxPrinter extends IPSModuleStrict
             "type": "Button",
             "label": "Status jetzt aktualisieren",
             "onClick": "XEROX_UpdateStatus($id);"
+        },
+    "status": [
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Nicht konfiguriert"
         }
+    ]
+
     ]
 }
 EOT;

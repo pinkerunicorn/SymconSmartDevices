@@ -3,17 +3,20 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 require_once __DIR__ . '/../libs/Trait_CentralStateAware.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 
 class GoogleSonosTTS extends IPSModuleStrict
 {
     use SmartLog_Trait;
+    use DeviceAvailability_Trait;
     use CentralStateAware_Trait;
     use SmartHttp_Trait;
     public function Create(): void{
         // Never delete this line!
         parent::Create();
+        $this->DA_RegisterAvailability(900); // Alarm priority: -1 (no alarm)
 
         // Register Properties
         $this->RegisterPropertyString("ApiKey", "");
@@ -38,6 +41,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
+        $this->DA_ApplyPresentation();
         }
         $list_SonosInstances = json_decode($this->ReadPropertyString('SonosInstances'), true);
         if (is_array($list_SonosInstances)) {
@@ -313,6 +317,7 @@ class GoogleSonosTTS extends IPSModuleStrict
             $result = $this->HttpRequest($url, 'POST', [], $data, 15);
             
             if ($result === null) {
+                $this->DA_SetAvailable(false, 'TTS-Dienst nicht erreichbar');
                 return false;
             }
 
@@ -324,6 +329,7 @@ class GoogleSonosTTS extends IPSModuleStrict
             }
 
             $audioContent = base64_decode($result['audioContent']);
+            $this->DA_SetAvailable(true);
 
             $this->SendDebug("GoogleTTS", "Speichere MP3 in Pfad: " . $filePath, 0);
 
@@ -580,7 +586,15 @@ class GoogleSonosTTS extends IPSModuleStrict
             "type": "Button",
             "caption": "Cache komplett leeren",
             "onClick": "GSTTS_ClearCache($id);"
+        },
+    "status": [
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Nicht konfiguriert"
         }
+    ]
+
     ]
 }
 EOT;

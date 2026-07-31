@@ -3,14 +3,17 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 
 class VestaboardLocal extends IPSModuleStrict {
     use SmartLog_Trait;
+    use DeviceAvailability_Trait;
     use SmartHttp_Trait;
 
     public function Create(): void {
         parent::Create();
+        $this->DA_RegisterAvailability(900); // Alarm priority: 0 (Low)
         
         // Standard-Eigenschaften für das Konfigurationsformular anlegen
         $this->RegisterPropertyString("ApiUrl", "http://<IP-ADRESSE>:7000/local-api/message");
@@ -28,6 +31,7 @@ class VestaboardLocal extends IPSModuleStrict {
         // Wenn kein Key oder noch die Platzhalter-IP drin ist -> Status Inaktiv/Fehler
         if (empty($localUrl) || strpos($localUrl, '<IP-ADRESSE>') !== false || empty($apiKey)) {
             $this->SetStatus(104); // IS_INACTIVE
+        $this->DA_ApplyPresentation();
         } else {
             $this->SetStatus(102); // IS_ACTIVE
         }
@@ -82,10 +86,12 @@ class VestaboardLocal extends IPSModuleStrict {
 
         $responseLocal = $this->HttpRequest($localUrl, 'POST', $headersLocal, $compiledBoardArray, 10, false);
         if ($responseLocal === null) {
+            $this->DA_SetAvailable(false, 'Lokale API nicht erreichbar');
             IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: Lokaler API Fehler!');
             return false;
         }
 
+        $this->DA_SetAvailable(true);
         return true;
     }
 
@@ -97,6 +103,7 @@ class VestaboardLocal extends IPSModuleStrict {
             default           => 'INFO',
         };
         IPS_LogMessage('VestaboardLocal', "$level: $Message");
+        $this->DA_SetAvailable(true);
         return true;
     }
 
@@ -253,7 +260,15 @@ class VestaboardLocal extends IPSModuleStrict {
             "type": "Button",
             "label": "Nachricht an Vestaboard senden",
             "onClick": "VESTA_SendMessage($id, $TestText);"
+        },
+    "status": [
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Nicht konfiguriert"
         }
+    ]
+
     ]
 }
 EOT;

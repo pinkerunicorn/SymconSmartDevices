@@ -2,9 +2,11 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_CentralStateAware.php';
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 
 class VestaboardGenerator extends IPSModuleStrict {
     use CentralStateAware_Trait;
+    use DeviceAvailability_Trait;
 
     public function Create(): void {
         parent::Create();

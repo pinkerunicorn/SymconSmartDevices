@@ -3,15 +3,19 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 
 class AirthingsWavePlus extends IPSModuleStrict
 {
     use SmartLog_Trait;
+    use DeviceAvailability_Trait;
 
     public function Create(): void
     {
         // Never delete this line!
         parent::Create();
+        $this->DA_RegisterWatchdog();
+        $this->DA_RegisterAvailability(900); // Alarm priority: 0 (Low - it's just an air quality sensor)
 
         // Properties for MQTT
         $this->RegisterPropertyString('MQTTBaseTopic', 'airthings01');
@@ -48,7 +52,8 @@ class AirthingsWavePlus extends IPSModuleStrict
             ['Value' => true, 'Caption' => 'Online', 'IconValue' => 'Network', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
         ]);
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('Online'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75
+        $this->DA_ApplyPresentation();}',
             'ICON' => 'Network',
             'COLOR' => -1,
             'CONTENT_COLOR' => -1,
@@ -75,6 +80,8 @@ class AirthingsWavePlus extends IPSModuleStrict
 
         // Reset Watchdog Timer if enabled
         $this->ResetWatchdog();
+                $this->DA_ResetWatchdog(1800);
+                $this->DA_SetAvailable(true);
     }
     
     public function WatchdogTriggered(): void
@@ -127,6 +134,8 @@ class AirthingsWavePlus extends IPSModuleStrict
                 if ($isOnline) {
                     $this->SetValue('Alarm', false);
                     $this->ResetWatchdog();
+                $this->DA_ResetWatchdog(1800);
+                $this->DA_SetAvailable(true);
                 } else {
                     $this->SetValue('Alarm', true);
                     $this->SetTimerInterval('WatchdogTimer', 0);
@@ -185,6 +194,8 @@ class AirthingsWavePlus extends IPSModuleStrict
                     $this->SetValue('Online', true);
                     $this->SetValue('Alarm', false);
                     $this->ResetWatchdog();
+                $this->DA_ResetWatchdog(1800);
+                $this->DA_SetAvailable(true);
                 }
             }
 
@@ -192,6 +203,15 @@ class AirthingsWavePlus extends IPSModuleStrict
         } catch (Throwable $e) {
             IPS_LogMessage('AirthingsWavePlus', 'ReceiveData Exception: ' . $e->getMessage());
             return "NOK";
+        }
+    }
+
+    public function RequestAction(string $Ident, mixed $Value): void
+    {
+        switch ($Ident) {
+            case 'DA_Watchdog':
+                $this->DA_HandleWatchdog();
+                break;
         }
     }
 

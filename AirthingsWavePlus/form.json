@@ -21,4 +21,12 @@
             "onClick": "AIRTHINGS_RequestUpdate($id);"
         }
     ]
+,
+    "status": [
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Nicht konfiguriert"
+        }
+    ]
 }

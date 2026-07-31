@@ -3,15 +3,19 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 
 class TedeeLock extends IPSModuleStrict
 {
     use SmartLog_Trait;
+    use DeviceAvailability_Trait;
     use SmartHttp_Trait;
     public function Create(): void
     {
         parent::Create();
+        $this->DA_RegisterWatchdog();
+        $this->DA_RegisterAvailability(900); // Alarm priority: 2 (High)
         
         $this->RegisterPropertyString('BridgeIP', '');
         $this->RegisterPropertyString('ApiToken', '');
@@ -54,6 +58,11 @@ class TedeeLock extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        if (empty($this->ReadPropertyString('BridgeIP'))) {
+            $this->SetStatus(104);
+            return;
+        $this->DA_ApplyPresentation();
+        }
         // --- Auto-generated References ---
         $ref_LockID = $this->ReadPropertyInteger('LockID');
         if ($ref_LockID > 1 && @IPS_ObjectExists($ref_LockID)) {
@@ -139,6 +148,8 @@ class TedeeLock extends IPSModuleStrict
         $this->SendDebug('Webhook', 'Empfange Webhook: ' . $payload, 0);
 
         if (empty($payload)) return;
+        $this->DA_ResetWatchdog(3600);
+        $this->DA_SetAvailable(true);
 
         $event = json_decode($payload, true);
         if (!is_array($event) || !isset($event['event'])) return;
@@ -289,6 +300,10 @@ class TedeeLock extends IPSModuleStrict
 
     public function RequestAction(string $Ident, mixed $Value): void
     {
+        if ($Ident === 'DA_Watchdog') {
+            $this->DA_HandleWatchdog();
+            return;
+        }
         if ($Ident === 'LockControl') {
             if ($Value == 0) {
                 $this->SendCommand('unlock?mode=3');
@@ -319,7 +334,10 @@ class TedeeLock extends IPSModuleStrict
         if (empty($ip) || empty($token)) return;
 
         $data = $this->HttpRequest("http://{$ip}/v1.0/lock", 'GET', $this->GetAuthHeaders());
-        if ($data === null) return;
+        if ($data === null) {
+            $this->DA_SetAvailable(false, 'REST API nicht erreichbar');
+            return;
+        }
 
         if (is_array($data)) {
             $targetLockId = @$this->ReadPropertyInteger('LockID');
@@ -384,7 +402,12 @@ class TedeeLock extends IPSModuleStrict
         $headers = $this->GetAuthHeaders();
         $headers[] = 'Content-Length: 0';
 
-        $this->HttpRequest("http://{$ip}/v1.0/lock/{$lockId}/{$action}", 'POST', $headers);
+        $res = $this->HttpRequest("http://{$ip}/v1.0/lock/{$lockId}/{$action}", 'POST', $headers);
+        if ($res === null) {
+            $this->DA_SetAvailable(false, 'REST Fehler');
+        } else {
+            $this->DA_SetAvailable(true);
+        }
         $this->SendDebug('SendCommand', "Action: $action", 0);
     }
 
@@ -482,7 +505,15 @@ class TedeeLock extends IPSModuleStrict
             "caption": "Webhook an Bridge registrieren",
             "onClick": "TEDEE_RegisterWebhookAtBridge($id);",
             "icon": "Play"
+        },
+    "status": [
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Nicht konfiguriert"
         }
+    ]
+
     ]
 }
 EOT;

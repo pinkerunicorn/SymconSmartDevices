@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 class EMSESPDevice extends IPSModuleStrict
 {
+    use DeviceAvailability_Trait;
+
     private const KEY_MAP = [
         'curflowtemp'     => ['name' => 'Vorlauftemperatur', 'icon' => 'temperature', 'suffix' => ' °C', 'decimals' => 1],
         'outdoortemp'     => ['name' => 'Außentemperatur', 'icon' => 'temperature', 'suffix' => ' °C', 'decimals' => 1],
@@ -34,6 +36,8 @@ class EMSESPDevice extends IPSModuleStrict
     public function Create(): void
     {
         parent::Create();
+        $this->DA_RegisterWatchdog();
+        $this->DA_RegisterAvailability(900); // Alarm priority: 2 (High - heating system)
         $this->RegisterPropertyString('MQTTTopic', 'ems-esp');
     }
 
@@ -45,6 +49,7 @@ class EMSESPDevice extends IPSModuleStrict
 
         $topic = $this->ReadPropertyString('MQTTTopic');
         $this->SetReceiveDataFilter('.*' . preg_quote($topic, '.') . '.*');
+        $this->DA_ApplyPresentation();
     }
 
     private function CreateModeProfile(): void
@@ -77,6 +82,8 @@ class EMSESPDevice extends IPSModuleStrict
         $this->SendDebug("MQTT RX Payload", $message, 0);
         
         $this->ProcessMQTTMessage($topic, $message);
+        $this->DA_ResetWatchdog(300);
+        $this->DA_SetAvailable(true);
         
         return "OK";
     }
@@ -213,6 +220,10 @@ class EMSESPDevice extends IPSModuleStrict
 
     public function RequestAction(string $Ident, mixed $Value): void
     {
+        if ($Ident === 'DA_Watchdog') {
+            $this->DA_HandleWatchdog();
+            return;
+        }
         $baseTopic = $this->ReadPropertyString('MQTTTopic');
         
         $parts = explode('_', $Ident);

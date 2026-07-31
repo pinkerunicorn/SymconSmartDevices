@@ -6,4 +6,12 @@
             "caption": "MQTT Base Topic"
         }
     ]
+,
+    "status": [
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Nicht konfiguriert"
+        }
+    ]
 }

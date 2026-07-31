@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 class BuderusHeatingTile extends IPSModuleStrict
 {
+    use DeviceAvailability_Trait;
+
     // Variablen-Identifikatoren die wir aus der EMSESP-Instanz lesen
     private const WATCHED_IDENTS = [
         'curflowtemp',
@@ -46,6 +48,7 @@ class BuderusHeatingTile extends IPSModuleStrict
     public function Create(): void
     {
         parent::Create();
+        $this->DA_RegisterAvailability(900); // Alarm priority: 1 (Medium)
 
         // HTML-SDK Kachel-Visualisierung aktivieren
         $this->SetVisualizationType(1);
@@ -65,6 +68,7 @@ class BuderusHeatingTile extends IPSModuleStrict
         foreach ($this->GetMessageList() as $senderID => $messages) {
             foreach ($messages as $message) {
                 $this->UnregisterMessage($senderID, $message);
+        $this->DA_ApplyPresentation();
             }
         }
 
@@ -97,6 +101,7 @@ class BuderusHeatingTile extends IPSModuleStrict
         if ($Message === VM_UPDATE) {
             // Variable wurde aktualisiert → Kachel updaten
             $this->PushTileUpdate();
+            $this->DA_SetAvailable(true);
         }
     }
 
@@ -184,27 +189,32 @@ class BuderusHeatingTile extends IPSModuleStrict
                 $this->ForwardActionToEMSESP($sourceID, 'mode', $modeInt);
                 // Kachel sofort aktualisieren
                 $this->PushTileUpdate();
+            $this->DA_SetAvailable(true);
                 break;
 
             case 'SetSelTemp':
                 $this->ForwardActionToEMSESP($sourceID, 'seltemp', (float) $Value);
                 $this->PushTileUpdate();
+            $this->DA_SetAvailable(true);
                 break;
 
             case 'SetDayTemp':
                 $this->ForwardActionToEMSESP($sourceID, 'daytemp', (float) $Value);
                 $this->PushTileUpdate();
+            $this->DA_SetAvailable(true);
                 break;
 
             case 'SetNightTemp':
                 $this->ForwardActionToEMSESP($sourceID, 'nighttemp', (float) $Value);
                 $this->PushTileUpdate();
+            $this->DA_SetAvailable(true);
                 break;
 
             case 'DHWBoost':
                 // Einmalige Warmwasser-Ladung triggern
                 $this->ForwardActionToEMSESP($sourceID, 'wwcharge', true);
                 $this->PushTileUpdate();
+            $this->DA_SetAvailable(true);
                 break;
         }
     }
@@ -238,5 +248,6 @@ class BuderusHeatingTile extends IPSModuleStrict
     public function UpdateTile(): void
     {
         $this->PushTileUpdate();
+            $this->DA_SetAvailable(true);
     }
 }

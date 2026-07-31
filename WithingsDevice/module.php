@@ -2,10 +2,12 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 
 class WithingsDevice extends IPSModuleStrict {
     use SmartLog_Trait;
+    use DeviceAvailability_Trait;
     use SmartHttp_Trait;
 
     /** @var array<string, bool> Cache für bereits angelegte Variablen-Idents (innerhalb eines Request-Zyklus) */
@@ -51,6 +53,7 @@ class WithingsDevice extends IPSModuleStrict {
 
     public function Create(): void {
         parent::Create();
+        $this->DA_RegisterAvailability(900); // Alarm priority: 0 (Low)
         
         $this->RegisterPropertyString("ClientID", "");
         $this->RegisterPropertyString("ClientSecret", "");
@@ -87,6 +90,7 @@ class WithingsDevice extends IPSModuleStrict {
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
+        $this->DA_ApplyPresentation();
         }
         $ref_SMTPInstanceID = $this->ReadPropertyInteger('SMTPInstanceID');
         if ($ref_SMTPInstanceID > 1 && @IPS_ObjectExists($ref_SMTPInstanceID)) {
@@ -414,6 +418,7 @@ class WithingsDevice extends IPSModuleStrict {
             ];
             $data = $this->HttpRequest("https://wbsapi.withings.net/measure", 'POST', $headers, http_build_query($postData), 15);
             if ($data === null) {
+                $this->DA_SetAvailable(false, 'Withings API nicht erreichbar');
                 break;
             }
             if (isset($data['status']) && $data['status'] == 0) {
@@ -480,6 +485,7 @@ class WithingsDevice extends IPSModuleStrict {
         $this->FetchDeviceInfo();
 
         $this->UpdateConnectionStatus();
+        $this->DA_SetAvailable(true);
         $this->SendDebug("Fetch", "Abruf erfolgreich beendet (". $pages . " Seiten, $newMeasurements Messwerte).", 0);
     }
 
@@ -550,6 +556,7 @@ class WithingsDevice extends IPSModuleStrict {
         ];
         $data = $this->HttpRequest("https://wbsapi.withings.net/v2/user", 'POST', $headers, http_build_query(['action' => 'getdevice']), 15);
         if ($data === null) {
+            $this->DA_SetAvailable(false, 'Withings API nicht erreichbar');
             return;
         }
         if (!isset($data['status']) || $data['status'] != 0 || !isset($data['body']['devices'])) {
@@ -966,7 +973,15 @@ class WithingsDevice extends IPSModuleStrict {
             "type": "Button",
             "label": "KI Auswertung (inkl. Mail) jetzt testen",
             "onClick": "WITHINGS_EvaluateWithGemini($id);"
+        },
+    "status": [
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Nicht konfiguriert"
         }
+    ]
+
     ]
 }
 EOT;

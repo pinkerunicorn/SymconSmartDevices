@@ -36,4 +36,12 @@
             "onClick": "BUDERUSTILE_UpdateTile($id);"
         }
     ]
+,
+    "status": [
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Nicht konfiguriert"
+        }
+    ]
 }
