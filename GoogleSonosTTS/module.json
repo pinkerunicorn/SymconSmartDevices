@@ -2,8 +2,8 @@
     "id": "{A1B2C3D4-E5F6-7890-ABCD-123456789012}",
     "name": "GoogleSonosTTS",
     "type": 3,
-    "vendor": "Florian Graßinger",
-    "url": "https://github.com/pinkerunicorn/",
+    "vendor": "Florian Gra\u00dfinger",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/GoogleSonosTTS",
     "aliases": [
         "GoogleSonosTTS"
     ],
@@ -11,5 +11,5 @@
     "childRequirements": [],
     "implemented": [],
     "prefix": "GSTTS",
-    "author": "Florian Graßinger"
+    "author": "Florian Gra\u00dfinger"
 }

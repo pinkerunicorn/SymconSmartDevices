@@ -3,7 +3,7 @@
     "name": "LyngdorfMP60",
     "type": 3,
     "vendor": "Lyngdorf",
-    "url": "https://github.com/pinkerunicorn/",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/LyngdorfMP60",
     "aliases": [],
     "parentRequirements": [
         "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}"
@@ -13,5 +13,5 @@
         "{018EF6B5-AB94-40C6-AA53-46943E824ACF}"
     ],
     "prefix": "LYNG",
-    "author": "Florian Graßinger"
+    "author": "Florian Gra\u00dfinger"
 }

@@ -3,7 +3,7 @@
     "name": "TedeeLock",
     "type": 3,
     "vendor": "Tedee",
-    "url": "https://github.com/pinkerunicorn/",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/TedeeLock",
     "aliases": [
         "Tedee Smart Lock (Local API)"
     ],
@@ -11,5 +11,5 @@
     "childRequirements": [],
     "implemented": [],
     "prefix": "TEDEE",
-    "author": "Florian Graßinger"
+    "author": "Florian Gra\u00dfinger"
 }

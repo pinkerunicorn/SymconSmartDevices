@@ -2,7 +2,7 @@
     "id": "{9E05AE57-F71D-457A-AB30-A8FE3A086782}",
     "name": "PixelblazeController",
     "type": 3,
-    "vendor": "Florian Graßinger",
+    "vendor": "Florian Gra\u00dfinger",
     "aliases": [
         "Pixelblaze"
     ],
@@ -24,6 +24,6 @@
             "default": 10
         }
     },
-    "author": "Florian Graßinger",
-    "url": "https://github.com/pinkerunicorn/"
+    "author": "Florian Gra\u00dfinger",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/PixelblazeController"
 }

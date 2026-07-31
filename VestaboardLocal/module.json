@@ -3,7 +3,7 @@
     "name": "Vestaboard Local",
     "type": 3,
     "vendor": "Vestaboard",
-    "url": "https://github.com/pinkerunicorn/",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/VestaboardLocal",
     "aliases": [
         "Vestaboard Local"
     ],
@@ -11,5 +11,5 @@
     "childRequirements": [],
     "implemented": [],
     "prefix": "VESTA",
-    "author": "Florian Graßinger"
+    "author": "Florian Gra\u00dfinger"
 }

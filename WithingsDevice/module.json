@@ -2,12 +2,12 @@
     "id": "{A34C4F00-11DE-4B2E-9F4D-934C7A3959FE}",
     "name": "WithingsDevice",
     "type": 3,
-    "vendor": "Florian Graßinger",
+    "vendor": "Florian Gra\u00dfinger",
     "aliases": [],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
     "prefix": "WITHINGS",
-    "author": "Florian Graßinger",
-    "url": "https://github.com/pinkerunicorn/"
+    "author": "Florian Gra\u00dfinger",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/WithingsDevice"
 }

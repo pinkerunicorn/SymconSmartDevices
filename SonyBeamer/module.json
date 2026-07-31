@@ -2,7 +2,7 @@
     "id": "{EDCF07BB-E90E-4F3D-8A71-9257CBA74C40}",
     "name": "SonyBeamer",
     "type": 3,
-    "vendor": "Florian Graßinger",
+    "vendor": "Florian Gra\u00dfinger",
     "aliases": [
         "Sony VPL-VW590ES",
         "Beamer"
@@ -25,6 +25,6 @@
             "default": 20
         }
     },
-    "author": "Florian Graßinger",
-    "url": "https://github.com/pinkerunicorn/"
+    "author": "Florian Gra\u00dfinger",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/SonyBeamer"
 }

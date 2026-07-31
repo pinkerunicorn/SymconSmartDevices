@@ -3,11 +3,19 @@
     "name": "EMSESP Device",
     "type": 3,
     "vendor": "BBQKees",
-    "aliases": ["Buderus", "Bosch", "Nefit"],
-    "parentRequirements": ["{043EA491-0325-4ADD-8FC2-A30C8EEB4D3F}"],
+    "aliases": [
+        "Buderus",
+        "Bosch",
+        "Nefit"
+    ],
+    "parentRequirements": [
+        "{043EA491-0325-4ADD-8FC2-A30C8EEB4D3F}"
+    ],
     "childRequirements": [],
-    "implemented": ["{7F7632D9-FA40-4F38-8DEA-C83CD4325A32}"],
+    "implemented": [
+        "{7F7632D9-FA40-4F38-8DEA-C83CD4325A32}"
+    ],
     "prefix": "EMSESP",
-    "author": "Florian Graßinger",
-    "url": "https://github.com/pinkerunicorn/"
+    "author": "Florian Gra\u00dfinger",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/EMSESP"
 }

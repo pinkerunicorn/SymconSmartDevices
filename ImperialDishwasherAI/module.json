@@ -5,12 +5,12 @@
     "vendor": "Imperial",
     "aliases": [
         "SmartDishwasherAI",
-        "Geschirrspüler"
+        "Geschirrsp\u00fcler"
     ],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
     "prefix": "IDW",
-    "url": "https://github.com/pinkerunicorn/",
-    "author": "Florian Graßinger"
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/ImperialDishwasherAI",
+    "author": "Florian Gra\u00dfinger"
 }
