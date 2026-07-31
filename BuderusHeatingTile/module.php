@@ -62,7 +62,11 @@ class BuderusHeatingTile extends IPSModuleStrict
         parent::ApplyChanges();
 
         // Alle alten Message-Registrierungen entfernen
-        $this->UnregisterAllMessages();
+        foreach ($this->GetMessageList() as $senderID => $messages) {
+            foreach ($messages as $message) {
+                $this->UnregisterMessage($senderID, $message);
+            }
+        }
 
         $sourceID = $this->ReadPropertyInteger('SourceInstanceID');
         if ($sourceID <= 0 || !IPS_InstanceExists($sourceID)) {
