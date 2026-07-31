@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_CentralStateAware.php';
+require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 
 class GoogleSonosTTS extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use CentralStateAware_Trait;
+    use SmartHttp_Trait;
     public function Create(): void{
         // Never delete this line!
         parent::Create();
@@ -308,37 +310,16 @@ class GoogleSonosTTS extends IPSModuleStrict
                 ]
             ];
 
-            // cURL Request
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            if ($response === false || $httpCode >= 400) {
-                $this->SLog('ERROR', 'TTS API-Fehler', "HTTP $httpCode | " . curl_error($ch));
-                curl_close($ch);
-                return false;
-            }
-            curl_close($ch);
-
-            $this->SendDebug("GoogleTTS", "Google API HTTP Code: " . $httpCode, 0);
-
-            if ($httpCode !== 200) {
-                $err = "Fehler bei der Google TTS API Anfrage. HTTP Code: " . $httpCode . "\nResponse: " . $response;
-                echo $err;
-                $this->SLog('ERROR', 'Google TTS API Fehler', 'HTTP Code: ' . $httpCode . ' | Response: ' . $response);
+            $result = $this->HttpRequest($url, 'POST', [], $data, 15);
+            
+            if ($result === null) {
                 return false;
             }
 
-            $result = json_decode($response, true);
             if (!isset($result['audioContent'])) {
                 $err = "Fehler: Keine Audio-Daten von Google empfangen.";
                 echo $err;
-                $this->SLog('ERROR', 'Keine Audio-Daten empfangen', 'Response: ' . $response);
+                $this->SLog('ERROR', 'Keine Audio-Daten empfangen');
                 return false;
             }
 

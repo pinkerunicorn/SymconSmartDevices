@@ -2,9 +2,11 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 
 class WithingsDevice extends IPSModuleStrict {
     use SmartLog_Trait;
+    use SmartHttp_Trait;
 
     /** @var array<string, bool> Cache für bereits angelegte Variablen-Idents (innerhalb eines Request-Zyklus) */
     private array $createdIdents = [];
@@ -281,17 +283,12 @@ class WithingsDevice extends IPSModuleStrict {
                 'appli' => $appli
             ];
 
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, "https://wbsapi.withings.net/notify");
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Authorization: Bearer " . $accessToken
-            ]);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-            $response = curl_exec($ch);
-            curl_close($ch);
+            $headers = [
+                "Authorization: Bearer " . $accessToken,
+                "Content-Type: application/x-www-form-urlencoded"
+            ];
+            $responseArray = $this->HttpRequest("https://wbsapi.withings.net/notify", 'POST', $headers, http_build_query($postData), 15, false);
+            $response = $responseArray !== null ? 'Success' : 'Error';
 
             $this->SendDebug("WebhookSubscribe", "Appli $appli Response: " . $response, 0);
         }
@@ -315,17 +312,12 @@ class WithingsDevice extends IPSModuleStrict {
                 'appli' => $appli
             ];
 
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, "https://wbsapi.withings.net/notify");
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Authorization: Bearer " . $accessToken
-            ]);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-            $response = curl_exec($ch);
-            curl_close($ch);
+            $headers = [
+                "Authorization: Bearer " . $accessToken,
+                "Content-Type: application/x-www-form-urlencoded"
+            ];
+            $responseArray = $this->HttpRequest("https://wbsapi.withings.net/notify", 'POST', $headers, http_build_query($postData), 15, false);
+            $response = $responseArray !== null ? 'Success' : 'Error';
 
             $this->SendDebug("WebhookUnsubscribe", "Appli $appli Response: " . $response, 0);
         }
@@ -354,23 +346,15 @@ class WithingsDevice extends IPSModuleStrict {
     }
 
     private function RequestTokens(array $postData): bool {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://wbsapi.withings.net/v2/oauth2");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if ($response === false || $httpCode >= 400) {
-            $this->SLog('ERROR', 'API-Anfrage fehlgeschlagen', "HTTP $httpCode | Fehler: " . curl_error($ch));
-            curl_close($ch);
+        $headers = [
+            "Content-Type: application/x-www-form-urlencoded"
+        ];
+        $data = $this->HttpRequest("https://wbsapi.withings.net/v2/oauth2", 'POST', $headers, http_build_query($postData), 15);
+        if ($data === null) {
             return false;
         }
-        curl_close($ch);
 
-        $this->SendDebug("OAuth", "Token Response: ". $response, 0);
-        $data = json_decode($response, true);
+        $this->SendDebug("OAuth", "Token Response received", 0);
 
         if (isset($data['status']) && $data['status'] == 0 && isset($data['body']['access_token'])) {
             $this->WriteAttributeString("AccessToken", $data['body']['access_token']);
@@ -424,25 +408,14 @@ class WithingsDevice extends IPSModuleStrict {
                 $postData['offset'] = $offset;
             }
 
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, "https://wbsapi.withings.net/measure");
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Authorization: Bearer ". $accessToken
-            ]);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            if ($response === false || $httpCode >= 400) {
-                $this->SLog('ERROR', 'API-Anfrage fehlgeschlagen', "HTTP $httpCode | Fehler: " . curl_error($ch));
-                curl_close($ch);
+            $headers = [
+                "Authorization: Bearer ". $accessToken,
+                "Content-Type: application/x-www-form-urlencoded"
+            ];
+            $data = $this->HttpRequest("https://wbsapi.withings.net/measure", 'POST', $headers, http_build_query($postData), 15);
+            if ($data === null) {
                 break;
             }
-            curl_close($ch);
-
-            $data = json_decode($response, true);
             if (isset($data['status']) && $data['status'] == 0) {
                 if (isset($data['body']['measuregrps']) && is_array($data['body']['measuregrps'])) {
                     foreach ($data['body']['measuregrps'] as $grp) {
@@ -571,25 +544,14 @@ class WithingsDevice extends IPSModuleStrict {
             $accessToken = $this->ReadAttributeString("AccessToken");
         }
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://wbsapi.withings.net/v2/user");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['action' => 'getdevice']));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            "Authorization: Bearer " . $accessToken
-        ]);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if ($response === false || $httpCode >= 400) {
-            $this->SendDebug("DeviceInfo", "API-Anfrage fehlgeschlagen: HTTP $httpCode", 0);
-            curl_close($ch);
+        $headers = [
+            "Authorization: Bearer " . $accessToken,
+            "Content-Type: application/x-www-form-urlencoded"
+        ];
+        $data = $this->HttpRequest("https://wbsapi.withings.net/v2/user", 'POST', $headers, http_build_query(['action' => 'getdevice']), 15);
+        if ($data === null) {
             return;
         }
-        curl_close($ch);
-
-        $data = json_decode($response, true);
         if (!isset($data['status']) || $data['status'] != 0 || !isset($data['body']['devices'])) {
             $this->SendDebug("DeviceInfo", "Ungültige Antwort: " . $response, 0);
             return;

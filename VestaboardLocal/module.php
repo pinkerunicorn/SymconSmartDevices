@@ -2,7 +2,12 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
+
 class VestaboardLocal extends IPSModuleStrict {
+    use SmartLog_Trait;
+    use SmartHttp_Trait;
 
     public function Create(): void {
         parent::Create();
@@ -58,63 +63,30 @@ class VestaboardLocal extends IPSModuleStrict {
                 ]
             ]
         ];
-        $cloudPayload = json_encode($inputArray);
 
         // cURL Request an die Vestaboard Cloud
-        $chCloud = curl_init($cloudUrl);
-        curl_setopt($chCloud, CURLOPT_POST, true);
-        curl_setopt($chCloud, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($chCloud, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
-        curl_setopt($chCloud, CURLOPT_POSTFIELDS, $cloudPayload);
-        curl_setopt($chCloud, CURLOPT_TIMEOUT, 5);
-        
-        $compiledBoardJson = curl_exec($chCloud);
-        $cloudHttpCode = curl_getinfo($chCloud, CURLINFO_HTTP_CODE);
-        if ($compiledBoardJson === false || $cloudHttpCode >= 400) {
-            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: ' . "Cloud-Kompilierung fehlgeschlagen! HTTP Code: $cloudHttpCode | Fehler: " . curl_error($chCloud));
-            curl_close($chCloud);
+        $compiledBoardArray = $this->HttpRequest($cloudUrl, 'POST', ["Content-Type: application/json"], $inputArray, 5);
+        if ($compiledBoardArray === null || empty($compiledBoardArray)) {
+            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: Cloud-Kompilierung fehlgeschlagen!');
             return false;
         }
-        curl_close($chCloud);
-
-        // Prüfen, ob die Cloud ein sauberes JSON-Array zurückgeliefert hat
-        if ($cloudHttpCode < 200 || $cloudHttpCode >= 300 || empty($compiledBoardJson)) {
-            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: ' . "Cloud-Kompilierung fehlgeschlagen! HTTP Code: " . $cloudHttpCode);
-            return false;
-        }
+        $compiledBoardJson = json_encode($compiledBoardArray);
 
         // ====================================================================
         // SCHRITT 2: Das fertig berechnete Array ans lokale Board senden
         // ====================================================================
         $headersLocal = [
             'X-Vestaboard-Local-Api-Key: ' . $apiKey,
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($compiledBoardJson)
+            'Content-Type: application/json'
         ];
 
-        $chLocal = curl_init($localUrl);
-        curl_setopt($chLocal, CURLOPT_POST, true);
-        curl_setopt($chLocal, CURLOPT_POSTFIELDS, $compiledBoardJson);
-        curl_setopt($chLocal, CURLOPT_HTTPHEADER, $headersLocal);
-        curl_setopt($chLocal, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($chLocal, CURLOPT_TIMEOUT, 10);
-        curl_setopt($chLocal, CURLOPT_CONNECTTIMEOUT, 5);
-
-        $responseLocal = curl_exec($chLocal);
-        $localHttpCode = curl_getinfo($chLocal, CURLINFO_HTTP_CODE);
-        if ($responseLocal === false || $localHttpCode >= 400) {
-            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: ' . "Lokaler API Fehler! HTTP Code: $localHttpCode | Fehler: " . curl_error($chLocal));
-            curl_close($chLocal);
+        $responseLocal = $this->HttpRequest($localUrl, 'POST', $headersLocal, $compiledBoardArray, 10, false);
+        if ($responseLocal === null) {
+            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: Lokaler API Fehler!');
             return false;
         }
-        curl_close($chLocal);
 
-        if ($localHttpCode >= 200 && $localHttpCode < 300) {
-            return true;
-        } else {
-            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: ' . "Lokaler API Fehler! HTTP Code: " . $localHttpCode . " Response: " . $responseLocal);
-            return false;
-        }
+        return true;
     }
 
     protected function LogMessage(string $Message, int $Type): bool
