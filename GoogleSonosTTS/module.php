@@ -586,15 +586,24 @@ class GoogleSonosTTS extends IPSModuleStrict
             "type": "Button",
             "caption": "Cache komplett leeren",
             "onClick": "GSTTS_ClearCache($id);"
-        },
+        }
+    ],
     "status": [
+        {
+            "code": 102,
+            "icon": "active",
+            "caption": "Google TTS aktiv"
+        },
         {
             "code": 104,
             "icon": "inactive",
-            "caption": "Nicht konfiguriert"
+            "caption": "API Key nicht konfiguriert"
+        },
+        {
+            "code": 200,
+            "icon": "error",
+            "caption": "Fehler bei der Sprachausgabe"
         }
-    ]
-
     ]
 }
 EOT;
