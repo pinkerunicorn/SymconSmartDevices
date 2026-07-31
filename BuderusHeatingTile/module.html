@@ -5,35 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 /* ═══════════════════════════════════════════════════════════
-   BUDERUS HEATING TILE – IP-Symcon 9 HTML-SDK
-   Nutzt Symcon CSS-Variablen für nahtlose Theme-Integration
+   BUDERUS HEATING TILE – IP-Symcon 9 HTML-SDK (PREMIUM DESIGN)
    ═══════════════════════════════════════════════════════════ */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-    /* Fallback-Werte für Standalone-Testing */
     --card-color: #1e1e2e;
     --content-color: #cdd6f4;
     --accent-color: #f38ba8;
     --bg-color: #181825;
-
-    /* Tile-eigene Design-Tokens */
-    --tile-radius: 14px;
-    --tile-gap: 10px;
+    
     --flame-orange: #ff6b35;
     --flame-red: #c0392b;
-    --flame-yellow: #f9ca24;
     --water-blue: #3498db;
     --water-cool: #74b9ff;
     --eco-green: #00b894;
-    --pump-track: rgba(255,255,255,0.08);
-    --glass-bg: rgba(255,255,255,0.05);
-    --glass-border: rgba(255,255,255,0.10);
-    --shadow: 0 4px 24px rgba(0,0,0,0.35);
-    --temp-cold: #74b9ff;
-    --temp-warm: #fdcb6e;
-    --temp-hot: #e17055;
+    --glass-bg: rgba(255,255,255,0.03);
+    --glass-border: rgba(255,255,255,0.06);
 }
 
 html, body {
@@ -41,1004 +30,466 @@ html, body {
     height: 100%;
     background: transparent;
     color: var(--content-color);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 13px;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     overflow: hidden;
 }
 
-.tile {
+/* Kachel Container mit Max-Width damit es in breiten Kacheln zentriert und gut aussieht */
+.tile-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+.tile-content {
+    width: 100%;
+    max-width: 600px; /* Verhindert das extreme Strecken */
+    height: 100%;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    padding: 12px;
-    gap: var(--tile-gap);
-    background: transparent;
+    gap: 15px;
 }
 
 /* ── HEADER ── */
-.tile-header {
+.header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    flex-shrink: 0;
-}
-
-.device-name {
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    color: var(--content-color);
-    display: flex;
     align-items: center;
-    gap: 7px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--glass-border);
 }
 
-.device-name .logo-icon {
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
-}
-
-.status-badge {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    transition: all 0.4s ease;
-    background: rgba(255,255,255,0.08);
-    color: var(--content-color);
-}
-
-.status-badge.heating {
-    background: rgba(243,139,168,0.20);
-    color: var(--flame-orange);
-    border: 1px solid rgba(243,139,168,0.30);
-}
-
-.status-badge.water {
-    background: rgba(52,152,219,0.20);
-    color: var(--water-blue);
-    border: 1px solid rgba(52,152,219,0.30);
-}
-
-.status-badge.eco {
-    background: rgba(0,184,148,0.20);
-    color: var(--eco-green);
-    border: 1px solid rgba(0,184,148,0.30);
-}
-
-.status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: currentColor;
-    animation: pulse-dot 2s ease infinite;
-}
-
-@keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: 0.5; transform: scale(0.7); }
-}
-
-/* ── HAUPT-BEREICH: FLAMME + TEMPERATUREN ── */
-.main-section {
-    display: flex;
-    gap: var(--tile-gap);
-    flex: 1;
-    min-height: 0;
-}
-
-/* Flammen-SVG-Bereich */
-.flame-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 80px;
-    flex-shrink: 0;
-    position: relative;
-}
-
-.flame-wrapper {
-    position: relative;
-    width: 52px;
-    height: 68px;
-}
-
-.flame-svg {
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    filter: drop-shadow(0 0 8px rgba(255,107,53,0.0));
-    transition: filter 0.6s ease;
-}
-
-.flame-svg.active {
-    filter: drop-shadow(0 0 12px rgba(255,107,53,0.7));
-    animation: flame-wobble 1.8s ease-in-out infinite;
-}
-
-@keyframes flame-wobble {
-    0%, 100% { transform: scaleX(1)   rotate(0deg); }
-    25%       { transform: scaleX(0.94) rotate(-1.5deg); }
-    75%       { transform: scaleX(1.06) rotate(1.5deg); }
-}
-
-/* Flammen-Pfad-Animationen */
-.flame-path-outer {
-    fill: url(#flameGradOuter);
-    opacity: 0;
-    transform-origin: center bottom;
-    animation: flame-outer 2.2s ease-in-out infinite;
-    transition: opacity 0.6s ease;
-}
-
-.flame-path-inner {
-    fill: url(#flameGradInner);
-    opacity: 0;
-    transform-origin: center bottom;
-    animation: flame-inner 1.8s ease-in-out infinite 0.2s;
-    transition: opacity 0.6s ease;
-}
-
-.flame-path-core {
-    fill: url(#flameGradCore);
-    opacity: 0;
-    transform-origin: center bottom;
-    animation: flame-core 1.5s ease-in-out infinite 0.1s;
-    transition: opacity 0.6s ease;
-}
-
-.flame-svg.active .flame-path-outer,
-.flame-svg.active .flame-path-inner,
-.flame-svg.active .flame-path-core {
-    opacity: 1;
-}
-
-@keyframes flame-outer {
-    0%, 100% { transform: scaleY(1)    scaleX(1); }
-    30%       { transform: scaleY(1.06) scaleX(0.95); }
-    60%       { transform: scaleY(0.97) scaleX(1.04); }
-}
-
-@keyframes flame-inner {
-    0%, 100% { transform: scaleY(1)    scaleX(1); }
-    40%       { transform: scaleY(1.1)  scaleX(0.92); }
-    70%       { transform: scaleY(0.95) scaleX(1.06); }
-}
-
-@keyframes flame-core {
-    0%, 100% { transform: scaleY(1)   scaleX(1); }
-    50%       { transform: scaleY(1.15) scaleX(0.88); }
-}
-
-/* Inaktive Flamme (Boiler steht still) */
-.flame-idle {
-    opacity: 0.18;
-    fill: var(--content-color);
-    transition: opacity 0.6s ease;
-}
-
-.flame-svg.active .flame-idle {
-    opacity: 0;
-}
-
-/* Modulation-Ring um die Flamme */
-.flame-ring {
-    position: absolute;
-    bottom: -6px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 44px;
-    height: 10px;
-    border-radius: 50%;
-    background: radial-gradient(ellipse, rgba(255,107,53,0) 0%, rgba(255,107,53,0) 100%);
-    transition: background 0.8s ease;
-}
-
-.flame-ring.active {
-    background: radial-gradient(ellipse, rgba(255,107,53,0.45) 0%, rgba(255,107,53,0) 100%);
-    animation: ring-glow 2s ease-in-out infinite;
-}
-
-@keyframes ring-glow {
-    0%, 100% { opacity: 0.6; transform: translateX(-50%) scaleX(1); }
-    50%       { opacity: 1;   transform: translateX(-50%) scaleX(1.2); }
-}
-
-/* Modus-Text unter Flamme */
-.mode-label {
-    margin-top: 4px;
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: rgba(255,255,255,0.35);
-    text-align: center;
-    transition: color 0.4s;
-}
-
-.mode-label.mode-auto   { color: var(--eco-green); }
-.mode-label.mode-manual { color: var(--temp-warm); }
-.mode-label.mode-off    { color: rgba(255,255,255,0.25); }
-
-/* ── TEMPERATUR-GRID ── */
-.temp-grid {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    flex: 1;
-    gap: 4px;
-}
-
-.temp-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 5px 9px;
-    border-radius: 10px;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    transition: background 0.3s;
-    gap: 6px;
-}
-
-.temp-row:hover {
-    background: rgba(255,255,255,0.09);
-}
-
-.temp-icon {
-    font-size: 12px;
-    width: 16px;
-    text-align: center;
-    flex-shrink: 0;
-    opacity: 0.75;
-}
-
-.temp-label {
-    flex: 1;
-    font-size: 11px;
-    color: rgba(255,255,255,0.55);
-    white-space: nowrap;
-}
-
-.temp-value {
-    font-size: 14px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.3px;
-    transition: color 0.5s ease;
-    white-space: nowrap;
-}
-
-.temp-unit {
-    font-size: 10px;
-    font-weight: 400;
-    opacity: 0.6;
-    margin-left: 1px;
-}
-
-/* Vorlauf-Linie Animations-Indikator */
-.flow-indicator {
-    width: 28px;
-    height: 4px;
-    border-radius: 2px;
-    overflow: hidden;
-    background: var(--pump-track);
-    flex-shrink: 0;
-}
-
-.flow-bar {
-    height: 100%;
-    width: 100%;
-    border-radius: 2px;
-    background: linear-gradient(90deg, transparent, var(--flame-orange), transparent);
-    background-size: 200% 100%;
-    animation: flow-anim 1.5s linear infinite;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
-
-.flow-bar.active { opacity: 1; }
-
-@keyframes flow-anim {
-    0%   { background-position: -100% 0; }
-    100% { background-position: 100% 0; }
-}
-
-.return-bar {
-    background: linear-gradient(90deg, transparent, var(--water-blue), transparent);
-    background-size: 200% 100%;
-    animation: flow-anim 2s linear infinite reverse;
-}
-
-/* ── PUMPEN-SEKTION ── */
-.pump-section {
+.header-title {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 10px;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 10px;
-    flex-shrink: 0;
+    font-size: 16px;
+    font-weight: 600;
 }
 
-.pump-icon {
-    font-size: 14px;
-    opacity: 0.6;
-    transition: opacity 0.4s;
+.header-title svg {
+    width: 20px;
+    height: 20px;
 }
 
-.pump-icon.spinning {
-    animation: spin 2s linear infinite;
-    opacity: 1;
-    color: var(--water-cool);
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-}
-
-.pump-label {
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
     font-size: 11px;
-    color: rgba(255,255,255,0.5);
-    flex-shrink: 0;
-}
-
-.pump-track {
-    flex: 1;
-    height: 6px;
-    border-radius: 3px;
-    background: var(--pump-track);
-    overflow: hidden;
-    position: relative;
-}
-
-.pump-fill {
-    height: 100%;
-    border-radius: 3px;
-    background: linear-gradient(90deg, var(--water-cool), var(--water-blue));
-    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
-}
-
-.pump-fill::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent 60%, rgba(255,255,255,0.4), transparent);
-    background-size: 60px 100%;
-    animation: pump-shimmer 1.5s linear infinite;
-    opacity: 0;
-    transition: opacity 0.5s;
-}
-
-.pump-fill.active::after { opacity: 1; }
-
-@keyframes pump-shimmer {
-    0%   { background-position: -60px 0; }
-    100% { background-position: 120px 0; }
-}
-
-.pump-pct {
-    font-size: 12px;
     font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    color: var(--water-cool);
-    flex-shrink: 0;
-    min-width: 34px;
-    text-align: right;
-}
-
-/* ── WARMWASSER-SEKTION ── */
-.dhw-section {
-    padding: 8px 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    border-radius: 10px;
-    flex-shrink: 0;
+}
+.status-badge.heating {
+    background: rgba(255, 107, 53, 0.15);
+    color: var(--flame-orange);
+    border-color: rgba(255, 107, 53, 0.3);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.2);
 }
 
-.dhw-header {
+/* ── HAUPTBEREICH (Thermostat + Werte) ── */
+.main-area {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-}
-
-.dhw-title {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.6);
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-}
-
-.dhw-title i { color: var(--water-blue); }
-
-.dhw-active-badge {
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 10px;
-    background: rgba(52,152,219,0.20);
-    color: var(--water-blue);
-    border: 1px solid rgba(52,152,219,0.30);
-    display: none;
-}
-
-.dhw-active-badge.visible { display: block; }
-
-.dhw-body {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Halbkreis-Gauge für WW-Temperatur */
-.dhw-gauge {
-    position: relative;
-    width: 68px;
-    height: 38px;
-    flex-shrink: 0;
-}
-
-.dhw-gauge svg {
-    overflow: visible;
-}
-
-.gauge-track {
-    fill: none;
-    stroke: rgba(255,255,255,0.08);
-    stroke-width: 5;
-    stroke-linecap: round;
-}
-
-.gauge-fill {
-    fill: none;
-    stroke: url(#dhwGaugeGrad);
-    stroke-width: 5;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.gauge-value {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 13px;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    color: var(--content-color);
-    text-align: center;
-    white-space: nowrap;
-    line-height: 1;
-}
-
-.gauge-value span {
-    font-size: 9px;
-    opacity: 0.55;
-}
-
-.dhw-info {
+    justify-content: space-around;
+    gap: 20px;
     flex: 1;
 }
 
-.dhw-setpoint {
-    font-size: 11px;
-    color: rgba(255,255,255,0.45);
-    margin-bottom: 6px;
-}
-
-.dhw-setpoint b {
-    color: var(--content-color);
-    font-variant-numeric: tabular-nums;
-}
-
-/* Boost-Button */
-.btn-boost {
-    width: 100%;
-    padding: 7px 12px;
-    border: none;
-    border-radius: 8px;
-    background: linear-gradient(135deg, rgba(52,152,219,0.25), rgba(52,152,219,0.12));
-    border: 1px solid rgba(52,152,219,0.35);
-    color: var(--water-cool);
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
+/* Thermostat Dial */
+.thermostat-dial {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2));
+    box-shadow: 
+        inset 0 0 15px rgba(0,0,0,0.5),
+        0 10px 20px rgba(0,0,0,0.3),
+        0 0 0 1px rgba(255,255,255,0.05);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    transition: box-shadow 0.5s ease;
+}
+
+.thermostat-dial.active {
+    box-shadow: 
+        inset 0 0 20px rgba(255,107,53,0.2),
+        0 0 30px rgba(255,107,53,0.3),
+        0 0 0 1px rgba(255,107,53,0.4);
+}
+
+.dial-value {
+    font-size: 32px;
+    font-weight: 300;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+.dial-unit { font-size: 16px; opacity: 0.5; }
+.dial-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.5;
+}
+.dial-flame {
+    position: absolute;
+    bottom: -10px;
+    width: 30px;
+    height: 30px;
+    opacity: 0.1;
+    color: var(--content-color);
+    transition: all 0.5s ease;
+}
+.thermostat-dial.active .dial-flame {
+    opacity: 1;
+    color: var(--flame-orange);
+    filter: drop-shadow(0 0 5px var(--flame-orange));
+    animation: pulse-flame 2s infinite alternate;
+}
+
+@keyframes pulse-flame {
+    0% { transform: scale(1); filter: drop-shadow(0 0 5px var(--flame-orange)); }
+    100% { transform: scale(1.1); filter: drop-shadow(0 0 12px var(--flame-red)); }
+}
+
+/* Secondary Metrics Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    flex: 1;
+    min-width: 220px;
+}
+
+.metric-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-header {
+    display: flex;
+    align-items: center;
     gap: 6px;
-    transition: all 0.2s ease;
-    letter-spacing: 0.3px;
+    font-size: 11px;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.btn-boost:hover {
-    background: linear-gradient(135deg, rgba(52,152,219,0.40), rgba(52,152,219,0.20));
-    border-color: rgba(52,152,219,0.55);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(52,152,219,0.20);
+.metric-val {
+    font-size: 20px;
+    font-weight: 600;
 }
 
-.btn-boost:active { transform: translateY(0); }
+.metric-card.flow::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--flame-orange); opacity: 0.5; }
+.metric-card.return::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--water-blue); opacity: 0.5; }
+.metric-card.outdoor::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--eco-green); opacity: 0.5; }
 
-.btn-boost.loading {
-    opacity: 0.7;
-    pointer-events: none;
-    animation: btn-pulse 1s ease infinite;
+/* ── CONTROLS & DHW ── */
+.controls-area {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
-@keyframes btn-pulse {
-    0%, 100% { opacity: 0.7; }
-    50%       { opacity: 0.4; }
-}
-
-/* ── MODUS-UMSCHALTER ── */
+/* Mode Switcher */
 .mode-switcher {
     display: flex;
-    gap: 4px;
-    background: rgba(0,0,0,0.25);
-    border: 1px solid var(--glass-border);
+    background: rgba(0,0,0,0.2);
     border-radius: 10px;
-    padding: 3px;
-    flex-shrink: 0;
+    padding: 4px;
+    flex: 1;
+    min-width: 200px;
 }
 
 .mode-btn {
     flex: 1;
-    padding: 5px 4px;
-    border: none;
-    border-radius: 7px;
     background: transparent;
-    color: rgba(255,255,255,0.4);
-    font-size: 11px;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.mode-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.mode-btn.active { background: rgba(255,255,255,0.15); color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+.mode-btn[data-mode="0"].active { color: var(--eco-green); } /* Auto */
+
+/* DHW Boost Button */
+.dhw-btn {
+    background: rgba(52, 152, 219, 0.15);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+    color: var(--water-cool);
+    border-radius: 10px;
+    padding: 0 15px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.25s ease;
-    letter-spacing: 0.2px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
-    white-space: nowrap;
+    gap: 8px;
+    transition: all 0.3s;
 }
 
-.mode-btn:hover:not(.active) {
-    color: rgba(255,255,255,0.7);
-    background: rgba(255,255,255,0.06);
+.dhw-btn:hover {
+    background: rgba(52, 152, 219, 0.25);
+    transform: translateY(-1px);
 }
 
-.mode-btn.active {
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+/* Pump Bar */
+.pump-container {
+    background: var(--glass-bg);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--glass-border);
 }
-
-.mode-btn[data-mode="0"].active {
-    background: linear-gradient(135deg, rgba(0,184,148,0.55), rgba(0,184,148,0.35));
-    border: 1px solid rgba(0,184,148,0.4);
+.pump-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    overflow: hidden;
 }
-
-.mode-btn[data-mode="1"].active {
-    background: linear-gradient(135deg, rgba(253,203,110,0.55), rgba(253,203,110,0.35));
-    border: 1px solid rgba(253,203,110,0.4);
-    color: #fdcb6e;
+.pump-fill {
+    height: 100%;
+    background: var(--water-blue);
+    width: 0%;
+    transition: width 1s ease;
 }
+.pump-lbl { font-size: 11px; opacity: 0.6; }
+.pump-val { font-size: 12px; font-weight: bold; width: 35px; text-align: right; }
 
-.mode-btn[data-mode="2"].active {
-    background: linear-gradient(135deg, rgba(130,130,130,0.40), rgba(100,100,100,0.25));
-    border: 1px solid rgba(130,130,130,0.3);
-    color: rgba(255,255,255,0.5);
-}
-
-/* ── FEHLER-OVERLAY ── */
-.error-overlay {
-    display: none;
+/* Overlay wenn keine ID konfiguriert ist */
+.setup-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(30,20,20,0.92);
-    border-radius: var(--tile-radius);
+    background: rgba(20,20,30,0.9);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
-    gap: 8px;
-    font-size: 13px;
-    color: rgba(255,100,100,0.85);
     text-align: center;
     padding: 20px;
+    color: #fff;
+    border-radius: 14px;
 }
-
-.error-overlay.visible { display: flex; }
-
-/* ── LOADING SHIMMER ── */
-.shimmer {
-    background: linear-gradient(90deg,
-        rgba(255,255,255,0.04) 25%,
-        rgba(255,255,255,0.10) 50%,
-        rgba(255,255,255,0.04) 75%);
-    background-size: 200% 100%;
-    animation: shimmer-anim 1.5s infinite;
-}
-
-@keyframes shimmer-anim {
-    0%   { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-}
+.setup-overlay i { font-size: 40px; color: var(--flame-orange); margin-bottom: 15px; }
+.setup-overlay h3 { margin-bottom: 5px; font-weight: 600; }
+.setup-overlay p { font-size: 12px; opacity: 0.7; }
 </style>
+</head>
+<body>
 
-<svg width="0" height="0" style="position:absolute">
-    <defs>
-        <!-- Flammen-Farbverläufe -->
-        <linearGradient id="flameGradOuter" x1="0.5" y1="0" x2="0.5" y2="1">
-            <stop offset="0%"   stop-color="#ff6b35" stop-opacity="0.9"/>
-            <stop offset="100%" stop-color="#c0392b" stop-opacity="0.6"/>
-        </linearGradient>
-        <linearGradient id="flameGradInner" x1="0.5" y1="0" x2="0.5" y2="1">
-            <stop offset="0%"   stop-color="#f9ca24"/>
-            <stop offset="60%"  stop-color="#ff6b35"/>
-            <stop offset="100%" stop-color="#c0392b"/>
-        </linearGradient>
-        <linearGradient id="flameGradCore" x1="0.5" y1="0" x2="0.5" y2="1">
-            <stop offset="0%"   stop-color="#fff" stop-opacity="0.9"/>
-            <stop offset="100%" stop-color="#f9ca24"/>
-        </linearGradient>
-        <!-- WW-Gauge-Gradient -->
-        <linearGradient id="dhwGaugeGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="#74b9ff"/>
-            <stop offset="60%"  stop-color="#3498db"/>
-            <stop offset="100%" stop-color="#e17055"/>
-        </linearGradient>
-    </defs>
-</svg>
+<div class="setup-overlay" id="setup-overlay" style="display: none;">
+    <i class="fa-light fa-circle-exclamation"></i>
+    <h3>Keine Datenquelle</h3>
+    <p>Bitte wähle in den Einstellungen der Instanz die EMSESP Quell-Instanz aus.</p>
+</div>
 
-<div class="tile" id="tile-root">
-
-    <!-- HEADER -->
-    <div class="tile-header">
-        <div class="device-name">
-            <!-- Buderus-Logo-ähnliches Icon (SVG) -->
-            <svg class="logo-icon" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="22" height="22" rx="5" fill="rgba(255,107,53,0.18)"/>
-                <path d="M11 4 C8.5 6 7 8 7 10.5 C7 13.5 8.8 16 11 16 C13.2 16 15 13.5 15 10.5 C15 8 13.5 6 11 4Z" fill="#ff6b35" opacity="0.9"/>
-                <path d="M11 7 C9.8 8.5 9 10 9 11.5 C9 13.2 9.9 14.5 11 14.5 C12.1 14.5 13 13.2 13 11.5 C13 10 12.2 8.5 11 7Z" fill="#f9ca24"/>
-            </svg>
-            <span id="device-name-label">__DEVICE_NAME__</span>
-        </div>
-        <div class="status-badge" id="status-badge">
-            <span class="status-dot"></span>
-            <span id="status-text">Standby</span>
-        </div>
-    </div>
-
-    <!-- HAUPT-BEREICH: FLAMME + TEMPERATUREN -->
-    <div class="main-section">
-
-        <!-- Flammen-Bereich -->
-        <div class="flame-area">
-            <div class="flame-wrapper">
-                <svg class="flame-svg" id="flame-svg" viewBox="0 0 52 68" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Inaktiv-Icon -->
-                    <path class="flame-idle" d="M26 56 C15 56 8 48 8 39 C8 30 13 24 18 19 C19 25 22 28 24 30 C24 24 26 16 32 10 C34 18 33 25 31 31 C34 28 37 24 38 18 C42 23 44 31 44 39 C44 48 37 56 26 56Z"/>
-                    <!-- Äußere Flamme -->
-                    <path class="flame-path-outer" d="M26 62 C14 62 6 52 6 41 C6 30 12 22 18 16 C19 24 23 28 25 32 C25 24 27 14 34 7 C36 16 34 26 32 32 C36 28 40 23 41 15 C46 22 48 32 48 41 C48 52 38 62 26 62Z"/>
-                    <!-- Innere Flamme -->
-                    <path class="flame-path-inner" d="M26 56 C17 56 11 48 11 40 C11 32 16 26 21 21 C22 28 25 31 27 34 C27 27 29 20 34 14 C35 22 34 29 32 34 C35 31 38 27 39 21 C43 27 45 34 45 40 C45 48 35 56 26 56Z"/>
-                    <!-- Kern -->
-                    <path class="flame-path-core" d="M26 50 C20 50 16 44 16 39 C16 34 19 30 22 27 C23 32 25 34 26 36 C27 32 28 28 31 25 C32 30 32 35 30 38 C32 36 34 33 35 29 C37 33 38 37 38 39 C38 44 32 50 26 50Z"/>
+<div class="tile-wrapper">
+    <div class="tile-content">
+        
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-title">
+                <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="22" height="22" rx="5" fill="rgba(255,107,53,0.18)"/>
+                    <path d="M11 4 C8.5 6 7 8 7 10.5 C7 13.5 8.8 16 11 16 C13.2 16 15 13.5 15 10.5 C15 8 13.5 6 11 4Z" fill="#ff6b35" opacity="0.9"/>
+                    <path d="M11 7 C9.8 8.5 9 10 9 11.5 C9 13.2 9.9 14.5 11 14.5 C12.1 14.5 13 13.2 13 11.5 C13 10 12.2 8.5 11 7Z" fill="#f9ca24"/>
                 </svg>
-                <div class="flame-ring" id="flame-ring"></div>
+                <span id="device-name">__DEVICE_NAME__</span>
             </div>
-            <div class="mode-label" id="mode-label">–</div>
+            <div class="status-badge" id="status-badge">Standby</div>
         </div>
 
-        <!-- Temperatur-Grid -->
-        <div class="temp-grid">
-            <div class="temp-row" id="row-flow">
-                <i class="fa-light fa-arrow-up temp-icon" style="color: var(--flame-orange)"></i>
-                <span class="temp-label">Vorlauf</span>
-                <span class="temp-value" id="val-flow">–<span class="temp-unit">°C</span></span>
-                <div class="flow-indicator"><div class="flow-bar" id="flow-bar"></div></div>
-            </div>
-            <div class="temp-row" id="row-return">
-                <i class="fa-light fa-arrow-down temp-icon" style="color: var(--water-blue)"></i>
-                <span class="temp-label">Rücklauf</span>
-                <span class="temp-value" id="val-return">–<span class="temp-unit">°C</span></span>
-                <div class="flow-indicator"><div class="flow-bar return-bar" id="return-bar"></div></div>
-            </div>
-            <div class="temp-row" id="row-outdoor">
-                <i class="fa-light fa-cloud-sun temp-icon"></i>
-                <span class="temp-label">Außen</span>
-                <span class="temp-value" id="val-outdoor">–<span class="temp-unit">°C</span></span>
-            </div>
-            <div class="temp-row" id="row-setpoint">
-                <i class="fa-light fa-bullseye-arrow temp-icon" style="color: var(--eco-green)"></i>
-                <span class="temp-label">Soll</span>
-                <span class="temp-value" id="val-setpoint">–<span class="temp-unit">°C</span></span>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- PUMPEN-SEKTION -->
-    <div class="pump-section" id="pump-section">
-        <i class="fa-light fa-rotate pump-icon" id="pump-icon"></i>
-        <span class="pump-label">Pumpe</span>
-        <div class="pump-track">
-            <div class="pump-fill" id="pump-fill" style="width:0%"></div>
-        </div>
-        <span class="pump-pct" id="pump-pct">0 %</span>
-    </div>
-
-    <!-- WARMWASSER-SEKTION -->
-    <div class="dhw-section" id="dhw-section">
-        <div class="dhw-header">
-            <div class="dhw-title">
-                <i class="fa-light fa-droplet"></i>
-                Warmwasser
-            </div>
-            <div class="dhw-active-badge" id="dhw-active-badge">Lädt</div>
-        </div>
-        <div class="dhw-body">
-            <!-- Halbkreis-Gauge -->
-            <div class="dhw-gauge">
-                <svg viewBox="0 0 68 38" width="68" height="38">
-                    <!-- Halbkreis: cx=34 cy=38 r=28, von 180° bis 0° -->
-                    <path class="gauge-track"
-                          d="M 6,38 A 28,28 0 0,1 62,38"
-                          stroke-dasharray="88" stroke-dashoffset="0"/>
-                    <path class="gauge-fill" id="gauge-fill"
-                          d="M 6,38 A 28,28 0 0,1 62,38"
-                          stroke-dasharray="88" stroke-dashoffset="88"/>
+        <!-- MAIN AREA -->
+        <div class="main-area">
+            
+            <!-- Thermostat Dial -->
+            <div class="thermostat-dial" id="thermo-dial">
+                <div class="dial-value"><span id="val-setpoint">--</span><span class="dial-unit">°</span></div>
+                <div class="dial-label">Soll-Temp</div>
+                
+                <svg class="dial-flame" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.66 11.48c-1.4-1.9-2.93-3.23-3.32-6.52-.05-.41-.42-.71-.83-.7-.41.01-.76.32-.8.74-.29 3.01-1.74 4.54-3.1 6.35C8.36 13.01 7.5 14.74 7.5 16.5c0 2.49 2.01 4.5 4.5 4.5s4.5-2.01 4.5-4.5c0-1.76-.86-3.49-2.11-5.12c-.22-.3-.66-.36-.96-.13-.3.23-.36.65-.13.96 1.05 1.36 1.7 2.76 1.7 4.14 0 1.93-1.57 3.5-3.5 3.5s-3.5-1.57-3.5-3.5c0-1.46.68-2.92 1.76-4.32 1.14-1.5 2.29-2.82 2.68-5.34 1.13 2.59 2.72 4.17 3.86 5.71.21.29.62.36.92.15.31-.22.38-.63.16-.92z"/>
                 </svg>
-                <div class="gauge-value">
-                    <span id="val-dhw-temp">–</span>
-                    <span>°C</span>
+            </div>
+
+            <!-- Metrics Grid -->
+            <div class="metrics-grid">
+                <div class="metric-card flow">
+                    <div class="metric-header"><i class="fa-light fa-arrow-up" style="color:var(--flame-orange)"></i> Vorlauf</div>
+                    <div class="metric-val"><span id="val-flow">--</span> °C</div>
+                </div>
+                <div class="metric-card return">
+                    <div class="metric-header"><i class="fa-light fa-arrow-down" style="color:var(--water-blue)"></i> Rücklauf</div>
+                    <div class="metric-val"><span id="val-return">--</span> °C</div>
+                </div>
+                <div class="metric-card outdoor">
+                    <div class="metric-header"><i class="fa-light fa-cloud" style="color:var(--eco-green)"></i> Außen</div>
+                    <div class="metric-val"><span id="val-outdoor">--</span> °C</div>
+                </div>
+                <div class="metric-card dhw">
+                    <div class="metric-header"><i class="fa-light fa-droplet" style="color:var(--water-blue)"></i> Warmwasser</div>
+                    <div class="metric-val"><span id="val-dhw">--</span> °C</div>
                 </div>
             </div>
-            <div class="dhw-info">
-                <div class="dhw-setpoint">Soll: <b id="val-dhw-setpoint">55</b> °C</div>
-                <button class="btn-boost" id="btn-boost" onclick="triggerDHWBoost()">
-                    <i class="fa-light fa-bolt"></i>
-                    Warmwasser laden
-                </button>
-            </div>
+
         </div>
-    </div>
 
-    <!-- MODUS-UMSCHALTER -->
-    <div class="mode-switcher">
-        <button class="mode-btn" data-mode="0" onclick="setMode(0)">
-            <i class="fa-light fa-clock"></i> Auto
-        </button>
-        <button class="mode-btn" data-mode="1" onclick="setMode(1)">
-            <i class="fa-light fa-sun"></i> Tag
-        </button>
-        <button class="mode-btn" data-mode="2" onclick="setMode(2)">
-            <i class="fa-light fa-moon"></i> Nacht
-        </button>
-        <button class="mode-btn" data-mode="3" onclick="setMode(3)">
-            <i class="fa-light fa-power-off"></i> Aus
-        </button>
-    </div>
+        <!-- PUMPEN INFO -->
+        <div class="pump-container" id="pump-section">
+            <i class="fa-light fa-rotate" id="pump-icon"></i>
+            <span class="pump-lbl">Pumpe</span>
+            <div class="pump-track"><div class="pump-fill" id="pump-fill"></div></div>
+            <span class="pump-val" id="pump-val">0%</span>
+        </div>
 
+        <!-- CONTROLS -->
+        <div class="controls-area">
+            <div class="mode-switcher">
+                <button class="mode-btn" data-mode="0" onclick="setMode(0)"><i class="fa-light fa-clock"></i> Auto</button>
+                <button class="mode-btn" data-mode="1" onclick="setMode(1)"><i class="fa-light fa-sun"></i> Tag</button>
+                <button class="mode-btn" data-mode="2" onclick="setMode(2)"><i class="fa-light fa-moon"></i> Nacht</button>
+                <button class="mode-btn" data-mode="3" onclick="setMode(3)"><i class="fa-light fa-power-off"></i> Aus</button>
+            </div>
+
+            <button class="dhw-btn" id="dhw-section" onclick="triggerDHWBoost()">
+                <i class="fa-light fa-bolt"></i> WW Boost
+            </button>
+        </div>
+
+    </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════
-// BUDERUS HEATING TILE – IP-Symcon 9 HTML-SDK JavaScript
-// ═══════════════════════════════════════════════════════════
-
-const SHOW_DHW  = __SHOW_DHW__;
+const SHOW_DHW = __SHOW_DHW__;
 const SHOW_PUMP = __SHOW_PUMP__;
 
-// Aktueller State
 let state = {
-    curflowtemp:    null,
-    rettemp:        null,
-    outdoortemp:    null,
-    seltemp:        null,
-    daytemp:        null,
-    nighttemp:      null,
-    heatingactive:  false,
+    curflowtemp: null,
+    rettemp: null,
+    outdoortemp: null,
+    seltemp: null,
+    heatingactive: false,
     heatingpumpmod: 0,
-    mode:           0,
+    mode: 0,
     tapwateractive: false,
-    wwcharge:       false,
+    wwcharge: false
 };
 
-// ── INITIAL RENDERING ──────────────────────────────────────
 (function init() {
-    if (!SHOW_DHW)  document.getElementById('dhw-section').style.display  = 'none';
+    if (!SHOW_DHW) {
+        document.getElementById('dhw-section').style.display = 'none';
+        document.querySelector('.metric-card.dhw').style.display = 'none';
+    }
     if (!SHOW_PUMP) document.getElementById('pump-section').style.display = 'none';
 
-    // Initiale Daten vom PHP-Backend (beim ersten Laden injiziert)
-    const initialRaw = document.getElementById('initial-data-json');
-    if (initialRaw) {
-        try {
-            const parsed = JSON.parse(initialRaw.textContent);
-            Object.assign(state, parsed);
-            renderAll();
-        } catch (e) { /* Keine Initialdaten – warte auf handleMessage */ }
+    const raw = document.getElementById('initial-data-json');
+    if (raw) {
+        try { 
+            const d = JSON.parse(raw.textContent);
+            Object.assign(state, d); 
+            renderAll(); 
+        } catch(e) {}
     }
 })();
 
-// ── SYMCON HTML-SDK – Nachrichten empfangen ────────────────
 function handleMessage(payload) {
     try {
-        const data = typeof payload === 'string' ? JSON.parse(payload) : payload;
-        Object.assign(state, data);
+        const d = typeof payload === 'string' ? JSON.parse(payload) : payload;
+        Object.assign(state, d);
         renderAll();
-    } catch (e) {
-        console.error('[BuderusTile] handleMessage parse error:', e);
-    }
+    } catch(e) {}
 }
 
-// ── VOLLSTÄNDIGES RE-RENDER ────────────────────────────────
 function renderAll() {
-    updateTemperatures();
-    updateFlameAnimation();
-    updatePump();
-    updateDHW();
-    updateModeButtons();
-    updateStatusBadge();
-}
+    // Check if null values exist (means not configured or not found)
+    const isUnconfigured = (state.curflowtemp === null && state.outdoortemp === null && state.seltemp === null);
+    document.getElementById('setup-overlay').style.display = isUnconfigured ? 'flex' : 'none';
 
-// ── TEMPERATUR-ANZEIGE ─────────────────────────────────────
-function updateTemperatures() {
-    setTempValue('val-flow',     state.curflowtemp,  true);
-    setTempValue('val-return',   state.rettemp,      true);
-    setTempValue('val-outdoor',  state.outdoortemp,  false);
-    setTempValue('val-setpoint', state.seltemp,      false);
-}
+    setVal('val-setpoint', state.seltemp, 1);
+    setVal('val-flow', state.curflowtemp, 1);
+    setVal('val-return', state.rettemp, 1);
+    setVal('val-outdoor', state.outdoortemp, 1);
+    // EMSESP usually has wwcurtemp or dhwtemp. If not mapped, we leave it blank.
+    
+    // Flame & Dial Active
+    const dial = document.getElementById('thermo-dial');
+    dial.classList.toggle('active', !!state.heatingactive);
 
-function setTempValue(elemId, value, applyHeatColor) {
-    const el = document.getElementById(elemId);
-    if (!el) return;
-    if (value === null || value === undefined) {
-        el.innerHTML = '–<span class="temp-unit">°C</span>';
-        return;
-    }
-    const formatted = parseFloat(value).toFixed(1);
-    el.innerHTML = formatted + '<span class="temp-unit">°C</span>';
-    if (applyHeatColor) {
-        el.style.color = tempToColor(parseFloat(value));
-    }
-}
+    // Pump
+    const pumpMod = state.heatingpumpmod || 0;
+    document.getElementById('pump-fill').style.width = pumpMod + '%';
+    document.getElementById('pump-val').textContent = pumpMod + '%';
 
-// Interpoliert Temperatur zu einer HSL-Farbe (kalt=blau → warm=orange → heiß=rot)
-function tempToColor(temp) {
-    if (temp <= 20) return 'var(--temp-cold)';
-    if (temp <= 35) return 'var(--content-color)';
-    if (temp <= 55) return 'var(--temp-warm)';
-    return 'var(--temp-hot)';
-}
-
-// ── FLAMMEN-ANIMATION ──────────────────────────────────────
-function updateFlameAnimation() {
-    const svg    = document.getElementById('flame-svg');
-    const ring   = document.getElementById('flame-ring');
-    const flowB  = document.getElementById('flow-bar');
-    const retB   = document.getElementById('return-bar');
-    const modeL  = document.getElementById('mode-label');
-
-    const active = !!state.heatingactive;
-
-    svg.classList.toggle('active', active);
-    ring.classList.toggle('active', active);
-    flowB.classList.toggle('active', active);
-    retB.classList.toggle('active', active);
-
-    // Modus-Label
-    const modeNames = { 0: 'Auto', 1: 'Tag', 2: 'Nacht', 3: 'Aus' };
-    const modeClasses = { 0: 'mode-auto', 1: 'mode-manual', 2: 'mode-manual', 3: 'mode-off' };
-    const m = state.mode ?? 0;
-    modeL.textContent = modeNames[m] ?? '–';
-    modeL.className = 'mode-label ' + (modeClasses[m] ?? '');
-}
-
-// ── PUMPEN-ANZEIGE ─────────────────────────────────────────
-function updatePump() {
-    const pct  = Math.max(0, Math.min(100, state.heatingpumpmod ?? 0));
-    const fill = document.getElementById('pump-fill');
-    const pctEl = document.getElementById('pump-pct');
-    const icon  = document.getElementById('pump-icon');
-
-    fill.style.width = pct + '%';
-    pctEl.textContent = pct + ' %';
-
-    const isRunning = pct > 3;
-    fill.classList.toggle('active', isRunning);
-    icon.classList.toggle('spinning', isRunning);
-}
-
-// ── WARMWASSER ─────────────────────────────────────────────
-function updateDHW() {
-    if (!SHOW_DHW) return;
-
-    const tapActive = !!state.tapwateractive;
-    const charging  = !!state.wwcharge;
-
-    const badge = document.getElementById('dhw-active-badge');
-    badge.classList.toggle('visible', tapActive || charging);
-    badge.textContent = charging ? 'Lädt' : 'Aktiv';
-
-    // Gauge (Halbkreis, Strecke = 88 SVG-Einheiten für 180°)
-    // WW-Temp normalerweise 20-70°C
-    const temp    = state.dhwtemp ?? null;
-    const setpoint = state.dhwsetpoint ?? 55;
-
-    if (temp !== null) {
-        const ratio  = Math.max(0, Math.min(1, (temp - 20) / (70 - 20)));
-        const offset = 88 - (ratio * 88);
-        document.getElementById('gauge-fill').style.strokeDashoffset = offset;
-        document.getElementById('val-dhw-temp').textContent = parseFloat(temp).toFixed(0);
-    }
-    document.getElementById('val-dhw-setpoint').textContent = setpoint;
-}
-
-// ── STATUS BADGE ───────────────────────────────────────────
-function updateStatusBadge() {
-    const badge   = document.getElementById('status-badge');
-    const textEl  = document.getElementById('status-text');
-
+    // Badge
+    const badge = document.getElementById('status-badge');
     badge.className = 'status-badge';
-
     if (state.heatingactive) {
         badge.classList.add('heating');
-        textEl.textContent = 'Heizt';
+        badge.textContent = 'Heizt';
     } else if (state.tapwateractive || state.wwcharge) {
-        badge.classList.add('water');
-        textEl.textContent = 'Warmwasser';
+        badge.style.background = 'rgba(52,152,219,0.2)';
+        badge.style.color = 'var(--water-blue)';
+        badge.textContent = 'Warmwasser';
     } else {
-        const modeText = { 0: 'Auto', 1: 'Manuell', 2: 'Aus' };
-        textEl.textContent = modeText[state.mode] ?? 'Standby';
+        const modes = {0: 'Auto', 1: 'Tag', 2: 'Nacht', 3: 'Aus'};
+        badge.textContent = modes[state.mode] || 'Standby';
     }
-}
 
-// ── MODUS BUTTONS ──────────────────────────────────────────
-function updateModeButtons() {
-    const buttons = document.querySelectorAll('.mode-btn');
-    buttons.forEach(btn => {
-        const m = parseInt(btn.getAttribute('data-mode'));
-        btn.classList.toggle('active', m === state.mode);
+    // Mode Buttons
+    document.querySelectorAll('.mode-btn').forEach(b => {
+        b.classList.toggle('active', parseInt(b.getAttribute('data-mode')) === state.mode);
     });
 }
 
-// ── BENUTZER-AKTIONEN → PHP ────────────────────────────────
-function setMode(modeInt) {
-    state.mode = modeInt;
-    updateModeButtons();
-    updateFlameAnimation();
-    updateStatusBadge();
-    // An PHP-Modul senden
-    requestAction('SetMode', modeInt);
+function setVal(id, val, dec) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = (val !== null && val !== undefined) ? parseFloat(val).toFixed(dec) : '--';
+}
+
+function setMode(m) {
+    state.mode = m;
+    renderAll();
+    requestAction('SetMode', m);
 }
 
 function triggerDHWBoost() {
-    const btn = document.getElementById('btn-boost');
-    btn.classList.add('loading');
-    btn.querySelector('i').className = 'fa-light fa-spinner fa-spin';
-    setTimeout(() => {
-        btn.classList.remove('loading');
-        btn.querySelector('i').className = 'fa-light fa-bolt';
-    }, 5000);
     requestAction('DHWBoost', 1);
 }
-
-// ══════════════════════════════════════════════════════════
-// Initiale JSON-Daten (vom PHP injiziert)
-// ══════════════════════════════════════════════════════════
 </script>
 
-<!-- Initiale Daten vom PHP-Backend -->
 <script id="initial-data-json" type="application/json">__INITIAL_DATA__</script>
+</body>
+</html>
