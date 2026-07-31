@@ -973,15 +973,12 @@ class WithingsDevice extends IPSModuleStrict {
             "type": "Button",
             "label": "KI Auswertung (inkl. Mail) jetzt testen",
             "onClick": "WITHINGS_EvaluateWithGemini($id);"
-        },
-    "status": [
-        {
-            "code": 104,
-            "icon": "inactive",
-            "caption": "Nicht konfiguriert"
         }
-    ]
-
+    ],
+    "status": [
+        {"code": 102, "icon": "active",   "caption": "Withings aktiv"},
+        {"code": 104, "icon": "inactive", "caption": "Nicht konfiguriert"},
+        {"code": 200, "icon": "error",    "caption": "API-Fehler"}
     ]
 }
 EOT;
