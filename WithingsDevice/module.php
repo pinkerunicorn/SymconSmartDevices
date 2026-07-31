@@ -752,26 +752,35 @@ class WithingsDevice extends IPSModuleStrict {
         $days = $this->ReadPropertyInteger("ArchiveDays");
         $startTime = time() - ($days * 24 * 60 * 60);
         
-        // Alle Body Scan 2 relevanten Metriken für den Gemini-Prompt
         $metrics = [
             self::MEASURE_WEIGHT           => "Gewicht (kg)",
             self::MEASURE_FAT_RATIO        => "Körperfett (%)",
+            self::MEASURE_FAT_TORSO        => "Körperfett Rumpf (%)",
+            self::MEASURE_FAT_ARMS         => "Körperfett Arme (%)",
+            self::MEASURE_FAT_LEGS         => "Körperfett Beine (%)",
             self::MEASURE_MUSCLE_MASS      => "Muskelmasse (kg)",
+            self::MEASURE_MUSCLE_SEGMENT   => "Muskelmasse (Segment) (kg)",
             self::MEASURE_BONE_MASS        => "Knochenmasse (kg)",
             self::MEASURE_HYDRATION        => "Wasseranteil (kg)",
             self::MEASURE_FAT_MASS_WEIGHT  => "Fettmasse (kg)",
+            self::MEASURE_FAT_SEGMENT      => "Fettmasse (Segment) (kg)",
             self::MEASURE_FAT_FREE_MASS    => "Fettfreie Masse (kg)",
+            self::MEASURE_FAT_FREE_SEGMENT => "Fettfreie Masse (Segment) (kg)",
             self::MEASURE_VISCERAL_FAT     => "Viszeralfett (%)",
             self::MEASURE_HEART_PULSE      => "Herzfrequenz (bpm)",
             self::MEASURE_DIASTOLIC_BP     => "Blutdruck diastolisch (mmHg)",
             self::MEASURE_SYSTOLIC_BP      => "Blutdruck systolisch (mmHg)",
+            self::MEASURE_SP02             => "SPO2 (Sauerstoffsättigung) (%)",
             self::MEASURE_PWV              => "Pulswellengeschwindigkeit (m/s)",
             self::MEASURE_VASCULAR_AGE     => "Gefäßalter (Jahre)",
             self::MEASURE_NERVE_SCORE      => "Nervengesundheit Score (Punkte)",
+            self::MEASURE_NERVE_LEFT_FOOT  => "Nervenaktivität (Fuß links) (Punkte)",
+            self::MEASURE_NERVE_RIGHT_FOOT => "Nervenaktivität (Fuß rechts) (Punkte)",
             self::MEASURE_BMR              => "Grundumsatz/BMR (kcal)",
             self::MEASURE_METABOLIC_AGE    => "Metabolisches Alter (Jahre)",
             self::MEASURE_EXTRACELLULAR_WATER => "Extrazelluläres Wasser (kg)",
             self::MEASURE_INTRACELLULAR_WATER => "Intrazelluläres Wasser (kg)",
+            self::MEASURE_BODY_TEMPERATURE => "Körpertemperatur (°C)",
         ];
 
         $prompt = "Hier sind meine Gesundheitsdaten der letzten ". $days . " Tage (Withings Body Scan 2):\n";
