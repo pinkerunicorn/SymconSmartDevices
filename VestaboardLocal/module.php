@@ -260,15 +260,12 @@ class VestaboardLocal extends IPSModuleStrict {
             "type": "Button",
             "label": "Nachricht an Vestaboard senden",
             "onClick": "VESTA_SendMessage($id, $TestText);"
-        },
-    "status": [
-        {
-            "code": 104,
-            "icon": "inactive",
-            "caption": "Nicht konfiguriert"
         }
-    ]
-
+    ],
+    "status": [
+        {"code": 102, "icon": "active",   "caption": "Aktiv"},
+        {"code": 104, "icon": "inactive", "caption": "Nicht konfiguriert"},
+        {"code": 200, "icon": "error",    "caption": "Verbindungsfehler"}
     ]
 }
 EOT;

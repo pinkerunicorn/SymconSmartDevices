@@ -505,15 +505,12 @@ class TedeeLock extends IPSModuleStrict
             "caption": "Webhook an Bridge registrieren",
             "onClick": "TEDEE_RegisterWebhookAtBridge($id);",
             "icon": "Play"
-        },
-    "status": [
-        {
-            "code": 104,
-            "icon": "inactive",
-            "caption": "Nicht konfiguriert"
         }
-    ]
-
+    ],
+    "status": [
+        {"code": 102, "icon": "active",   "caption": "Aktiv"},
+        {"code": 104, "icon": "inactive", "caption": "Nicht konfiguriert"},
+        {"code": 200, "icon": "error",    "caption": "Verbindungsfehler"}
     ]
 }
 EOT;

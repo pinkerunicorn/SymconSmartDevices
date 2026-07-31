@@ -238,15 +238,12 @@ class XeroxPrinter extends IPSModuleStrict
             "type": "Button",
             "label": "Status jetzt aktualisieren",
             "onClick": "XEROX_UpdateStatus($id);"
-        },
-    "status": [
-        {
-            "code": 104,
-            "icon": "inactive",
-            "caption": "Nicht konfiguriert"
         }
-    ]
-
+    ],
+    "status": [
+        {"code": 102, "icon": "active",   "caption": "Aktiv"},
+        {"code": 104, "icon": "inactive", "caption": "Nicht konfiguriert"},
+        {"code": 200, "icon": "error",    "caption": "Verbindungsfehler"}
     ]
 }
 EOT;

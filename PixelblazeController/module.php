@@ -438,15 +438,12 @@ class PixelblazeController extends IPSModuleStrict
             "type": "Button",
             "label": "Programme vom Gerät laden",
             "onClick": "PB_FetchPrograms($id);"
-        },
-    "status": [
-        {
-            "code": 104,
-            "icon": "inactive",
-            "caption": "Nicht konfiguriert"
         }
-    ]
-
+    ],
+    "status": [
+        {"code": 102, "icon": "active",   "caption": "Aktiv"},
+        {"code": 104, "icon": "inactive", "caption": "Nicht konfiguriert"},
+        {"code": 200, "icon": "error",    "caption": "Verbindungsfehler"}
     ]
 }
 EOT;
