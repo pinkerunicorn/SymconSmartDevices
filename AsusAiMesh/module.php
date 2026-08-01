@@ -389,7 +389,18 @@ class AsusAiMesh extends IPSModuleStrict
 
         // Firmware update check
         $fwFlag = $data['webs_state_flag'] ?? '0';
-        $this->SetValue('FirmwareUpdate', $fwFlag !== '' && $fwFlag !== '0');
+        $updateAvailable = ($fwFlag !== '' && $fwFlag !== '0');
+
+        // Fallback for AP Mode: Check if any mesh node reports a new firmware version
+        if (!$updateAvailable && isset($data['get_cfg_clientlist']) && is_array($data['get_cfg_clientlist'])) {
+            foreach ($data['get_cfg_clientlist'] as $node) {
+                if (!empty($node['newfwver'])) {
+                    $updateAvailable = true;
+                    break;
+                }
+            }
+        }
+        $this->SetValue('FirmwareUpdate', $updateAvailable);
 
         // Temperature (separate endpoint)
         $this->FetchTemperatures($token);
