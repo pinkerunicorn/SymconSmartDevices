@@ -126,16 +126,17 @@ class MikroTikRouter extends IPSModuleStrict
         }
 
         $this->SetStatus(102);
-        $this->SetTimerInterval('UpdateTimer', $this->ReadPropertyInteger('UpdateInterval') * 1000);
+        if ($this->ReadPropertyInteger('UpdateInterval') > 0) {
+            $this->SetTimerInterval('UpdateTimer', 2000); // Async start
+        } else {
+            $this->SetTimerInterval('UpdateTimer', 0);
+        }
         
-        if ($this->ReadPropertyBoolean('AutoCheckUpdates')) {
-            $this->SetTimerInterval('CheckUpdateTimer', $this->ReadPropertyInteger('AutoCheckInterval') * 3600 * 1000);
-            $this->CheckForUpdate();
+        if ($this->ReadPropertyBoolean('AutoCheckUpdates') && $this->ReadPropertyInteger('AutoCheckInterval') > 0) {
+            $this->SetTimerInterval('CheckUpdateTimer', 3000); // Async start
         } else {
             $this->SetTimerInterval('CheckUpdateTimer', 0);
         }
-        
-        $this->Update();
     }
 
     public function RequestAction(string $Ident, mixed $Value): void
@@ -172,6 +173,11 @@ class MikroTikRouter extends IPSModuleStrict
 
     public function Update(): void
     {
+        $interval = $this->ReadPropertyInteger('UpdateInterval');
+        if ($interval > 0) {
+            $this->SetTimerInterval('UpdateTimer', $interval * 1000);
+        }
+
         // 1. Get System Resources (CPU, RAM, Uptime, Version)
         $resources = $this->SendRestRequest('/rest/system/resource');
         if ($resources === null) {
@@ -233,6 +239,13 @@ class MikroTikRouter extends IPSModuleStrict
 
     public function CheckForUpdate(): void
     {
+        if ($this->ReadPropertyBoolean('AutoCheckUpdates')) {
+            $interval = $this->ReadPropertyInteger('AutoCheckInterval');
+            if ($interval > 0) {
+                $this->SetTimerInterval('CheckUpdateTimer', $interval * 3600 * 1000);
+            }
+        }
+
         $res = $this->SendRestRequest('/rest/system/package/update/check-for-updates', 'POST');
         if ($res !== null) {
             $status = $res['status'] ?? '';

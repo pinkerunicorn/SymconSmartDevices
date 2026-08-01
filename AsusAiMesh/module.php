@@ -235,10 +235,11 @@ class AsusAiMesh extends IPSModuleStrict
 
         // Start timer
         $interval = $this->ReadPropertyInteger('UpdateInterval');
-        $this->SetTimerInterval('UpdateTimer', $interval * 1000);
-
-        // Initial fetch
-        $this->Update();
+        if ($interval > 0) {
+            $this->SetTimerInterval('UpdateTimer', 2000); // Asynchroner Start nach 2 Sekunden
+        } else {
+            $this->SetTimerInterval('UpdateTimer', 0);
+        }
     }
 
     /**
@@ -332,6 +333,11 @@ class AsusAiMesh extends IPSModuleStrict
      */
     public function Update(): void
     {
+        $interval = $this->ReadPropertyInteger('UpdateInterval');
+        if ($interval > 0) {
+            $this->SetTimerInterval('UpdateTimer', $interval * 1000);
+        }
+
         $token = $this->AsusGetToken();
         if ($token === null) {
             $this->DA_SetAvailable(false, 'Login fehlgeschlagen');

@@ -123,8 +123,12 @@ class MailcowMonitor extends IPSModuleStrict
         }
 
         if ($this->ReadPropertyString('URL') != '' && $this->ReadPropertyString('APIKey') != '') {
-            $this->SetTimerInterval('UpdateTimer', $this->ReadPropertyInteger('UpdateInterval') * 1000);
-            $this->Update();
+            $interval = $this->ReadPropertyInteger('UpdateInterval');
+            if ($interval > 0) {
+                $this->SetTimerInterval('UpdateTimer', 2000); // Asynchroner Start nach 2 Sekunden
+            } else {
+                $this->SetTimerInterval('UpdateTimer', 0);
+            }
         } else {
             $this->SetTimerInterval('UpdateTimer', 0);
         }
@@ -132,6 +136,11 @@ class MailcowMonitor extends IPSModuleStrict
 
     public function Update(): void
     {
+        $interval = $this->ReadPropertyInteger('UpdateInterval');
+        if ($interval > 0) {
+            $this->SetTimerInterval('UpdateTimer', $interval * 1000);
+        }
+
         $url = rtrim($this->ReadPropertyString('URL'), '/');
         $apiKey = $this->ReadPropertyString('APIKey');
 
