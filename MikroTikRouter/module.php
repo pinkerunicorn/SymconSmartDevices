@@ -20,12 +20,15 @@ class MikroTikRouter extends IPSModuleStrict
         $this->RegisterPropertyString('Password', '');
         $this->RegisterPropertyBoolean('UseHTTPS', false);
         $this->RegisterPropertyInteger('UpdateInterval', 60);
+        $this->RegisterPropertyBoolean('AutoCheckUpdates', true);
+        $this->RegisterPropertyInteger('AutoCheckInterval', 24);
 
         // DeviceAvailability
         $this->DA_RegisterAvailability(900);
 
         // Timer
         $this->RegisterTimer('UpdateTimer', 0, 'MIKROTIK_Update($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('CheckUpdateTimer', 0, 'MIKROTIK_CheckForUpdate($_IPS[\'TARGET\']);');
 
         // Monitoring Variables (Read-Only)
         $this->RegisterVariableFloat('CPU', 'CPU', '', 1);
@@ -112,11 +115,20 @@ class MikroTikRouter extends IPSModuleStrict
         if (empty($this->ReadPropertyString('Host'))) {
             $this->SetStatus(104);
             $this->SetTimerInterval('UpdateTimer', 0);
+            $this->SetTimerInterval('CheckUpdateTimer', 0);
             return;
         }
 
         $this->SetStatus(102);
         $this->SetTimerInterval('UpdateTimer', $this->ReadPropertyInteger('UpdateInterval') * 1000);
+        
+        if ($this->ReadPropertyBoolean('AutoCheckUpdates')) {
+            $this->SetTimerInterval('CheckUpdateTimer', $this->ReadPropertyInteger('AutoCheckInterval') * 3600 * 1000);
+            $this->CheckForUpdate();
+        } else {
+            $this->SetTimerInterval('CheckUpdateTimer', 0);
+        }
+        
         $this->Update();
     }
 
@@ -210,7 +222,7 @@ class MikroTikRouter extends IPSModuleStrict
         return print_r($res, true);
     }
 
-    private function CheckForUpdate(): void
+    public function CheckForUpdate(): void
     {
         $res = $this->SendRestRequest('/rest/system/package/update/check-for-updates', 'POST');
         if ($res !== null) {

@@ -29,6 +29,20 @@
             "minimum": 10,
             "maximum": 3600,
             "value": 60
+        },
+        {
+            "type": "CheckBox",
+            "name": "AutoCheckUpdates",
+            "caption": "Automatisch auf RouterOS-Updates prüfen",
+            "value": true
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "AutoCheckInterval",
+            "caption": "Intervall für Update-Prüfung (Stunden)",
+            "minimum": 1,
+            "maximum": 168,
+            "value": 24
         }
     ],
     "actions": [
