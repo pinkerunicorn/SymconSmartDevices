@@ -461,6 +461,43 @@ class AsusAiMesh extends IPSModuleStrict
         return "Verbindung erfolgreich! Router: {$productId}";
     }
 
+    /**
+     * Dumps the raw API response for debugging purposes.
+     */
+    public function DumpDebug(): string
+    {
+        $token = $this->AsusGetToken();
+        if ($token === null) {
+            return "Fehler: Kein Token erhalten.";
+        }
+
+        $hooks = implode(';', [
+            'get_cfg_clientlist()',
+            'get_clientlist()',
+            'cpu_usage(appobj)',
+            'memory_usage(appobj)',
+            'uptime()',
+        ]);
+
+        $data = $this->AsusGet($hooks, $token);
+        
+        $host = $this->ReadPropertyString('Host');
+        $useSSL = $this->ReadPropertyBoolean('UseHTTPS');
+        $protocol = $useSSL ? 'https' : 'http';
+        
+        $ch = curl_init("{$protocol}://{$host}/ajax_coretmp.asp");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_USERAGENT, self::ASUS_USER_AGENT);
+        curl_setopt($ch, CURLOPT_COOKIE, "asus_token={$token}");
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        $tempData = curl_exec($ch);
+        curl_close($ch);
+
+        return "APP_GET:\n" . print_r($data, true) . "\n\nTEMP_DATA:\n" . (string)$tempData;
+    }
+
     // =========================================================================
     // ASUS API Layer
     // =========================================================================
