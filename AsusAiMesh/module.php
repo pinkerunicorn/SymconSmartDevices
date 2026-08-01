@@ -63,46 +63,39 @@ class AsusAiMesh extends IPSModuleStrict
 
         // LED Control
         $this->RegisterVariableInteger('LED', 'LED', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'PROFILE'      => 'ASUSMESH.OnOff'
         ], 200);
         $this->EnableAction('LED');
 
         // WiFi Band Controls
         $this->RegisterVariableInteger('WiFi_2G', 'WiFi 2.4 GHz', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'PROFILE'      => 'ASUSMESH.OnOff'
         ], 201);
         $this->EnableAction('WiFi_2G');
 
         $this->RegisterVariableInteger('WiFi_5G1', 'WiFi 5 GHz (Band 1)', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'PROFILE'      => 'ASUSMESH.OnOff'
         ], 202);
         $this->EnableAction('WiFi_5G1');
 
         $this->RegisterVariableInteger('WiFi_5G2', 'WiFi 5 GHz (Band 2/Backhaul)', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'PROFILE'      => 'ASUSMESH.OnOff'
         ], 203);
         $this->EnableAction('WiFi_5G2');
 
         $this->RegisterVariableInteger('WiFi_6G', 'WiFi 6 GHz', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'PROFILE'      => 'ASUSMESH.OnOff'
         ], 204);
         $this->EnableAction('WiFi_6G');
 
         // Guest WiFi
         $this->RegisterVariableInteger('GuestWiFi', 'Gästenetzwerk (Party)', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'PROFILE'      => 'ASUSMESH.OnOff'
         ], 205);
         $this->EnableAction('GuestWiFi');
 
         // Reboot
         $this->RegisterVariableInteger('Reboot', 'Router neustarten', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'PROFILE'      => 'ASUSMESH.Reboot'
         ], 206);
         $this->EnableAction('Reboot');
@@ -657,42 +650,37 @@ class AsusAiMesh extends IPSModuleStrict
             foreach ($json as $key => $value) {
                 $key = strtolower((string)$key);
                 $val = (float)preg_replace('/[^0-9.]/', '', (string)$value);
-                if ($val <= 0) {
-                    continue;
+                if ($val <= 0) continue;
+                if (str_contains($key, 'cpu')) $temps['cpu'] = $val;
+                elseif (str_contains($key, '2.4') || str_contains($key, '2g')) $temps['2g'] = $val;
+                elseif (str_contains($key, '5g') || str_contains($key, '5 g')) {
+                    if (!isset($temps['5g'])) $temps['5g'] = $val;
                 }
-                if (str_contains($key, 'cpu')) {
-                    $temps['cpu'] = $val;
-                } elseif (str_contains($key, '2.4') || str_contains($key, '2g')) {
-                    $temps['2g'] = $val;
-                } elseif (str_contains($key, '5g') || str_contains($key, '5 g')) {
-                    if (!isset($temps['5g'])) {
-                        $temps['5g'] = $val;
-                    }
-                } elseif (str_contains($key, '6g') || str_contains($key, '6 g')) {
-                    $temps['6g'] = $val;
-                }
+                elseif (str_contains($key, '6g') || str_contains($key, '6 g')) $temps['6g'] = $val;
             }
             return $temps;
         }
 
-        // Try line-based format: "1 = 55\n2 = 48\n..."
-        // Or: "cpu_temperature:55&2.4 GHz:48&5 GHz:52"
-        preg_match_all('/(\d+(?:\.\d+)?)\s*[&°]?\s*/', $response, $matches);
-        if (!empty($matches[1])) {
-            $values = array_values(array_filter($matches[1], fn($v) => (float)$v > 0 && (float)$v < 120));
-            if (count($values) >= 1) {
-                $temps['cpu'] = (float)$values[0];
+        // Try query string format: curr_coreTmp_cpu=66.961&curr_coreTmp_wl0=39&curr_coreTmp_wl1=42...
+        if (str_contains($response, '=')) {
+            parse_str(str_replace("\n", "&", $response), $parsed);
+            foreach ($parsed as $key => $value) {
+                $key = strtolower((string)$key);
+                $val = (float)$value;
+                if ($val <= 0) continue;
+                if (str_contains($key, 'cpu')) $temps['cpu'] = $val;
+                elseif (str_contains($key, 'wl0') || str_contains($key, '2g')) $temps['2g'] = $val;
+                elseif (str_contains($key, 'wl1') || str_contains($key, '5g')) $temps['5g'] = $val;
+                elseif (str_contains($key, 'wl2') || str_contains($key, '6g')) $temps['6g'] = $val;
             }
-            if (count($values) >= 2) {
-                $temps['2g'] = (float)$values[1];
-            }
-            if (count($values) >= 3) {
-                $temps['5g'] = (float)$values[2];
-            }
-            if (count($values) >= 4) {
-                $temps['6g'] = (float)$values[3];
-            }
+            if (!empty($temps)) return $temps;
         }
+
+        // Fallback for simple line-based format like "cpu_temperature:55"
+        if (preg_match('/cpu.*?(\d+(?:\.\d+)?)/i', $response, $m) && (float)$m[1] > 0) $temps['cpu'] = (float)$m[1];
+        if (preg_match('/(?:2\.4|2g|wl0).*?(\d+(?:\.\d+)?)/i', $response, $m) && (float)$m[1] > 0) $temps['2g'] = (float)$m[1];
+        if (preg_match('/(?:5\s?g|wl1).*?(\d+(?:\.\d+)?)/i', $response, $m) && (float)$m[1] > 0) $temps['5g'] = (float)$m[1];
+        if (preg_match('/(?:6\s?g|wl2).*?(\d+(?:\.\d+)?)/i', $response, $m) && (float)$m[1] > 0) $temps['6g'] = (float)$m[1];
 
         return $temps;
     }
@@ -842,7 +830,7 @@ class AsusAiMesh extends IPSModuleStrict
 
             $clientName = $info['name'] ?? ($info['nickName'] ?? $mac);
             $clientIP = $info['ip'] ?? '';
-            $isOnline = ($info['isOnline'] ?? '0') === '1';
+            $isOnline = !empty($info['isOnline']) || !empty($info['online']);
             $rssi = $info['rssi'] ?? '';
             $connType = $info['isWL'] ?? '0'; // 0=wired, 1=2.4G, 2=5G, 3=5G-2, 4=6G
 
@@ -938,8 +926,14 @@ class AsusAiMesh extends IPSModuleStrict
             if (preg_match('/(\d+)\s*days?,?\s*(\d+):(\d+):(\d+)/', $uptime, $m)) {
                 $formatted = "{$m[1]}d {$m[2]}h {$m[3]}m";
                 $this->SetNodeValue(1, 'Uptime', $formatted);
+            } elseif (is_numeric($uptime) && (int)$uptime > 0) {
+                $u = (int)$uptime;
+                $d = floor($u / 86400);
+                $h = floor(($u % 86400) / 3600);
+                $m = floor(($u % 3600) / 60);
+                $this->SetNodeValue(1, 'Uptime', "{$d}d {$h}h {$m}m");
             } else {
-                $this->SetNodeValue(1, 'Uptime', $uptime);
+                $this->SetNodeValue(1, 'Uptime', trim($uptime));
             }
         }
     }
