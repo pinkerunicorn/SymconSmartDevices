@@ -30,6 +30,28 @@
             "type": "CheckBox",
             "name": "MonitorMailQueue",
             "caption": "Mail-Warteschlange (Queue) überwachen"
+        },
+        {
+            "type": "Label",
+            "caption": "Alarme (Gerätestatus Offline):"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "AlarmStorageThreshold",
+            "caption": "Alarm, wenn Festplatte voll (%)",
+            "minimum": 1,
+            "maximum": 100
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "AlarmMailQueueThreshold",
+            "caption": "Alarm, wenn Warteschlange > X",
+            "minimum": 1
+        },
+        {
+            "type": "CheckBox",
+            "name": "AlarmOnUpdate",
+            "caption": "Alarm bei neuem Mailcow-Update auslösen"
         }
     ],
     "actions": [

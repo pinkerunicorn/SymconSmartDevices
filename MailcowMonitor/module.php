@@ -20,6 +20,10 @@ class MailcowMonitor extends IPSModuleStrict
         $this->RegisterPropertyBoolean('MonitorStorage', true);
         $this->RegisterPropertyBoolean('MonitorMailQueue', true);
 
+        $this->RegisterPropertyInteger('AlarmStorageThreshold', 90);
+        $this->RegisterPropertyInteger('AlarmMailQueueThreshold', 10);
+        $this->RegisterPropertyBoolean('AlarmOnUpdate', false);
+
         $this->RegisterTimer('UpdateTimer', 0, 'MAILCOW_Update($_IPS[\'TARGET\']);');
 
         $this->DA_RegisterAvailability(900);
@@ -133,6 +137,8 @@ class MailcowMonitor extends IPSModuleStrict
         if ($url == '' || $apiKey == '') {
             return;
         }
+        
+        $errors = [];
 
         // Fetch Mailcow Version
         $ch = curl_init($url . '/api/v1/get/status/version');
@@ -199,7 +205,7 @@ class MailcowMonitor extends IPSModuleStrict
                     foreach ($data as $container) {
                         if (isset($container['state']) && $container['state'] !== 'running') {
                             $allRunning = false;
-                            break;
+                            $errors[] = 'Container ausgefallen: ' . $container['container'];
                         }
                     }
                     $this->SetValue('ContainersRunning', $allRunning);
@@ -225,6 +231,9 @@ class MailcowMonitor extends IPSModuleStrict
                 if (isset($data['used_percent'])) {
                     $percent = (int)str_replace('%', '', $data['used_percent']);
                     $this->SetValue('StorageUsage', $percent);
+                    if ($percent >= $this->ReadPropertyInteger('AlarmStorageThreshold')) {
+                        $errors[] = 'Festplatte fast voll (' . $percent . '%)';
+                    }
                 }
             }
         }
@@ -245,7 +254,11 @@ class MailcowMonitor extends IPSModuleStrict
             if ($response !== false && $httpCode == 200) {
                 $data = json_decode($response, true);
                 if (is_array($data)) {
-                    $this->SetValue('MailQueue', count($data));
+                    $queueCount = count($data);
+                    $this->SetValue('MailQueue', $queueCount);
+                    if ($queueCount >= $this->ReadPropertyInteger('AlarmMailQueueThreshold')) {
+                        $errors[] = 'Mail-Warteschlange hoch (' . $queueCount . ')';
+                    }
                 }
             }
         }
@@ -270,6 +283,9 @@ class MailcowMonitor extends IPSModuleStrict
                 // Compare local version vs github latest version
                 if (strcmp($latestVersion, $localVersion) > 0) {
                     $this->SetValue('UpdateAvailable', true);
+                    if ($this->ReadPropertyBoolean('AlarmOnUpdate')) {
+                        $errors[] = 'Update verfügbar (' . $latestVersion . ')';
+                    }
                 } else {
                     $this->SetValue('UpdateAvailable', false);
                 }
@@ -277,6 +293,11 @@ class MailcowMonitor extends IPSModuleStrict
         }
 
         $this->SetValue('LastUpdate', date('d.m.Y H:i:s'));
-        $this->DA_SetAvailable(true);
+        
+        if (count($errors) > 0) {
+            $this->DA_SetAvailable(false, implode(' | ', $errors));
+        } else {
+            $this->DA_SetAvailable(true);
+        }
     }
 }
