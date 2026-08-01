@@ -23,6 +23,7 @@ class MailcowMonitor extends IPSModuleStrict
         $this->RegisterPropertyInteger('AlarmStorageThreshold', 90);
         $this->RegisterPropertyInteger('AlarmMailQueueThreshold', 10);
         $this->RegisterPropertyBoolean('AlarmOnUpdate', false);
+        $this->RegisterPropertyBoolean('AlarmOnQuarantine', false);
 
         $this->RegisterTimer('UpdateTimer', 0, 'MAILCOW_Update($_IPS[\'TARGET\']);');
 
@@ -181,7 +182,11 @@ class MailcowMonitor extends IPSModuleStrict
         if ($response !== false && $httpCode == 200) {
             $data = json_decode($response, true);
             if (is_array($data)) {
-                $this->SetValue('QuarantineCount', count($data));
+                $qCount = count($data);
+                $this->SetValue('QuarantineCount', $qCount);
+                if ($qCount > 0 && $this->ReadPropertyBoolean('AlarmOnQuarantine')) {
+                    $errors[] = 'Mails in Quarantäne (' . $qCount . ')';
+                }
             }
         }
 

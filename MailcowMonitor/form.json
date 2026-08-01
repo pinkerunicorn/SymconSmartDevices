@@ -52,6 +52,11 @@
             "type": "CheckBox",
             "name": "AlarmOnUpdate",
             "caption": "Alarm bei neuem Mailcow-Update auslösen"
+        },
+        {
+            "type": "CheckBox",
+            "name": "AlarmOnQuarantine",
+            "caption": "Alarm auslösen, wenn Mails in Quarantäne sind (> 0)"
         }
     ],
     "actions": [
