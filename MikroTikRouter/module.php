@@ -34,8 +34,9 @@ class MikroTikRouter extends IPSModuleStrict
         $this->RegisterVariableFloat('CPU', 'CPU', '', 1);
         $this->RegisterVariableFloat('RAM', 'RAM', '', 2);
         $this->RegisterVariableFloat('Temperature', 'Temperatur', '', 3);
-        $this->RegisterVariableString('FirmwareVersion', 'Firmware', '', 4);
-        $this->RegisterVariableString('Uptime', 'Uptime', '', 5);
+        $this->RegisterVariableString('BoardName', 'Modell', '', 4);
+        $this->RegisterVariableString('FirmwareVersion', 'Firmware', '', 5);
+        $this->RegisterVariableString('Uptime', 'Uptime', '', 6);
         $this->RegisterVariableBoolean('UpdateAvailable', 'OS-Update verfügbar', '', 10);
         $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', '', 999);
 
@@ -82,6 +83,11 @@ class MikroTikRouter extends IPSModuleStrict
             'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
             'ICON' => 'Temperature',
             'SUFFIX' => ' °C',
+            'SHOW_PREVIEW' => true
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('BoardName'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Information',
             'SHOW_PREVIEW' => true
         ]);
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('FirmwareVersion'), [
@@ -187,6 +193,9 @@ class MikroTikRouter extends IPSModuleStrict
         }
         if (isset($resources['uptime'])) {
             $this->SetValue('Uptime', (string)$resources['uptime']);
+        }
+        if (isset($resources['board-name'])) {
+            $this->SetValue('BoardName', (string)$resources['board-name']);
         }
         if (isset($resources['version'])) {
             $this->SetValue('FirmwareVersion', (string)$resources['version']);
