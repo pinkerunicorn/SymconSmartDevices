@@ -383,6 +383,7 @@ class AsusAiMesh extends IPSModuleStrict
         $hooks = implode(';', [
             'get_cfg_clientlist()',
             'get_clientlist()',
+            'get_allclientlist()',
             'cpu_usage(appobj)',
             'memory_usage(appobj)',
             'nvram_get(led_val)',
@@ -474,12 +475,13 @@ class AsusAiMesh extends IPSModuleStrict
         $hooks = implode(';', [
             'get_cfg_clientlist()',
             'get_clientlist()',
+            'get_allclientlist()',
+            'netdev(all)',
             'cpu_usage(appobj)',
             'memory_usage(appobj)',
             'uptime()',
-        ]);
-
-        $data = $this->AsusGet($hooks, $token);
+            'sysinfo()'
+        ]); $data = $this->AsusGet($hooks, $token);
         
         $host = $this->ReadPropertyString('Host');
         $useSSL = $this->ReadPropertyBoolean('UseHTTPS');
@@ -830,9 +832,9 @@ class AsusAiMesh extends IPSModuleStrict
      */
     private function ParseClients(array $data): void
     {
-        $clientList = $data['get_clientlist'] ?? [];
-        if (!is_array($clientList)) {
-            $this->SendDebug('ParseClients', 'Keine Client-Liste erhalten', 0);
+        $clientList = $data['get_clientlist'] ?? ($data['get_allclientlist'] ?? []);
+        if (!is_array($clientList) || empty($clientList)) {
+            $this->SendDebug('ParseClients', 'Keine Client-Liste erhalten (evtl. AP-Modus)', 0);
             return;
         }
 
