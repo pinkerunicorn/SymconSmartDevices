@@ -1,0 +1,19 @@
+{
+    "id": "{A8E3F2B1-9C4D-5E6F-7A8B-1C2D3E4F5A6B}",
+    "name": "ASUS AiMesh",
+    "type": 3,
+    "vendor": "ASUS",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/AsusAiMesh",
+    "aliases": [
+        "ASUS AiMesh",
+        "ZenWiFi",
+        "ZenWiFi BQ16",
+        "ASUS Router",
+        "AiMesh"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "ASUSMESH",
+    "author": "Florian Gra\u00dfinger"
+}
