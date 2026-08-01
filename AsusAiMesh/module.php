@@ -851,29 +851,65 @@ class AsusAiMesh extends IPSModuleStrict
      */
     private function ParseControlStates(array $data): void
     {
-        // LED state
-        if (isset($data['led_val'])) {
-            $this->SetValue('LED', (int)$data['led_val']);
+        // 1. Try to read from top-level nvram_get keys
+        $ledVal = isset($data['led_val']) ? (string)$data['led_val'] : null;
+        $wl0 = isset($data['wl0_radio']) ? (string)$data['wl0_radio'] : null;
+        $wl1 = isset($data['wl1_radio']) ? (string)$data['wl1_radio'] : null;
+        $wl2 = isset($data['wl2_radio']) ? (string)$data['wl2_radio'] : null;
+        $wl3 = isset($data['wl3_radio']) ? (string)$data['wl3_radio'] : null;
+        $guest24 = isset($data['wl0.1_bss_enabled']) ? (string)$data['wl0.1_bss_enabled'] : null;
+        $guest5 = isset($data['wl1.1_bss_enabled']) ? (string)$data['wl1.1_bss_enabled'] : null;
+
+        // 2. Fallback to get_cfg_clientlist data if top-level is missing (AP Mode)
+        $nodes = $data['get_cfg_clientlist'] ?? [];
+        if (is_array($nodes)) {
+            foreach ($nodes as $node) {
+                if (!isset($node['config']) || !is_array($node['config'])) continue;
+                $cfg = $node['config'];
+                
+                // LED Fallback (take from first node that has it)
+                if ($ledVal === null && isset($cfg['ctrl_led']['led_val'])) {
+                    $ledVal = (string)$cfg['ctrl_led']['led_val'];
+                }
+                
+                // WiFi Radios Fallback
+                if (isset($cfg['wireless']) && is_array($cfg['wireless'])) {
+                    $wl = $cfg['wireless'];
+                    if ($wl0 === null && isset($wl['wl0_radio'])) $wl0 = (string)$wl['wl0_radio'];
+                    if ($wl1 === null && isset($wl['wl1_radio'])) $wl1 = (string)$wl['wl1_radio'];
+                    if ($wl2 === null && isset($wl['wl2_radio'])) $wl2 = (string)$wl['wl2_radio'];
+                    if ($wl3 === null && isset($wl['wl3_radio'])) $wl3 = (string)$wl['wl3_radio'];
+                }
+            }
         }
 
-        // WiFi radios
-        if (isset($data['wl0_radio'])) {
-            $this->SetValue('WiFi_2G', (int)$data['wl0_radio']);
-        }
-        if (isset($data['wl1_radio'])) {
-            $this->SetValue('WiFi_5G1', (int)$data['wl1_radio']);
-        }
-        if (isset($data['wl2_radio'])) {
-            $this->SetValue('WiFi_5G2', (int)$data['wl2_radio']);
-        }
-        if (isset($data['wl3_radio'])) {
-            $this->SetValue('WiFi_6G', (int)$data['wl3_radio']);
-        }
+        // Update Variables
+        if ($ledVal !== null) $this->SetValue('LED', (int)$ledVal);
+        if ($wl0 !== null) $this->SetValue('WiFi_2G', (int)$wl0);
+        if ($wl1 !== null) $this->SetValue('WiFi_5G1', (int)$wl1);
+        if ($wl2 !== null) $this->SetValue('WiFi_5G2', (int)$wl2);
+        if ($wl3 !== null) $this->SetValue('WiFi_6G', (int)$wl3);
 
-        // Guest WiFi (check if any guest interface is enabled)
-        $guest24 = (int)($data['wl0.1_bss_enabled'] ?? 0);
-        $guest5 = (int)($data['wl1.1_bss_enabled'] ?? 0);
-        $this->SetValue('GuestWiFi', ($guest24 > 0 || $guest5 > 0) ? 1 : 0);
+        // Guest WiFi
+        // In AP mode, nvram_get might fail. As a fallback, check if guest SSID fields exist in nodes.
+        if ($guest24 === null && $guest5 === null) {
+            $guestActive = false;
+            if (is_array($nodes)) {
+                foreach ($nodes as $node) {
+                    // Check if any Guest SSID field is populated (often ends with _fh or _gh)
+                    if (!empty($node['ap2g_ssid_fh']) || !empty($node['ap5g_ssid_fh']) || 
+                        !empty($node['ap5g1_ssid_fh']) || !empty($node['ap6g_ssid_fh'])) {
+                        $guestActive = true;
+                        break;
+                    }
+                }
+            }
+            $this->SetValue('GuestWiFi', $guestActive ? 1 : 0);
+        } else {
+            $g24 = (int)($guest24 ?? 0);
+            $g5 = (int)($guest5 ?? 0);
+            $this->SetValue('GuestWiFi', ($g24 > 0 || $g5 > 0) ? 1 : 0);
+        }
     }
 
     // =========================================================================
