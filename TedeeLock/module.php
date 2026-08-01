@@ -381,9 +381,11 @@ class TedeeLock extends IPSModuleStrict
             
             if ($found) {
                 $this->SetStatus(102);
+                $this->DA_SetAvailable(true);
             } else {
                 $this->SetStatus(201); // Error state
                 $this->SLogError("Schloss mit ID $targetLockId wurde von der Bridge nicht gemeldet.");
+                $this->DA_SetAvailable(false, 'Schloss auf Bridge nicht gefunden');
             }
         }
     }
