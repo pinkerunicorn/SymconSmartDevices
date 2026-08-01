@@ -58,10 +58,6 @@ class AsusAiMesh extends IPSModuleStrict
             'ICON'         => 'Repeat'
         ], 5);
 
-        // --- Node Variables (dynamically based on MaxNodes) ---
-        // These are registered for the configured MaxNodes count
-        $this->RegisterNodeVariables();
-
         // --- Control Variables (200-209) with Legacy Profiles ---
         $this->RegisterControlProfiles();
 
@@ -119,82 +115,89 @@ class AsusAiMesh extends IPSModuleStrict
     }
 
     /**
-     * Registers node-specific variables for all configured nodes.
+     * Helper to set a variable value within a Dummy Module.
+     */
+    private function SetNodeValue(int $nodeNum, string $ident, mixed $value): void
+    {
+        $dummyID = @IPS_GetObjectIDByIdent("Node{$nodeNum}", $this->InstanceID);
+        if ($dummyID !== false) {
+            $vid = @IPS_GetObjectIDByIdent($ident, $dummyID);
+            if ($vid !== false) {
+                SetValue($vid, $value);
+            }
+        }
+    }
+
+    /**
+     * Helper to get a variable value from a Dummy Module.
+     */
+    private function GetNodeValue(int $nodeNum, string $ident): mixed
+    {
+        $dummyID = @IPS_GetObjectIDByIdent("Node{$nodeNum}", $this->InstanceID);
+        if ($dummyID !== false) {
+            $vid = @IPS_GetObjectIDByIdent($ident, $dummyID);
+            if ($vid !== false) {
+                return GetValue($vid);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Helper to maintain a variable under a Dummy Module.
+     */
+    private function MaintainNodeVariable(int $parentID, string $Ident, string $Name, int $Type, int $Position, string $Icon = '', string $Suffix = ''): void
+    {
+        $vid = @IPS_GetObjectIDByIdent($Ident, $parentID);
+        if ($vid === false) {
+            $vid = IPS_CreateVariable($Type);
+            IPS_SetParent($vid, $parentID);
+            IPS_SetIdent($vid, $Ident);
+            IPS_SetName($vid, $Name);
+            IPS_SetPosition($vid, $Position);
+        }
+        
+        // Enforce presentation settings (read-only value presentation)
+        IPS_SetVariableCustomPresentation($vid, [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => $Icon,
+            'SUFFIX'       => $Suffix
+        ]);
+    }
+
+    /**
+     * Registers node-specific Dummy Modules and their variables.
      */
     private function RegisterNodeVariables(): void
     {
-        $maxNodes = 4; // Register for max 4 always in Create()
+        $maxNodes = $this->ReadPropertyInteger('MaxNodes');
         for ($n = 1; $n <= $maxNodes; $n++) {
-            $basePos = 10 + (($n - 1) * 15);
-            $monBase = 100 + (($n - 1) * 10);
+            // Get or create Dummy Module
+            $dummyID = @IPS_GetObjectIDByIdent("Node{$n}", $this->InstanceID);
+            if ($dummyID === false) {
+                // '{485D0419-BE97-4548-AA9C-C083EB82E61E}' is the GUID for Dummy Module
+                $dummyID = IPS_CreateInstance('{485D0419-BE97-4548-AA9C-C083EB82E61E}');
+                IPS_SetParent($dummyID, $this->InstanceID);
+                IPS_SetIdent($dummyID, "Node{$n}");
+                IPS_SetName($dummyID, "Node {$n}");
+                IPS_SetPosition($dummyID, 10 + $n);
+            }
 
-            // Node Status
-            $this->RegisterVariableBoolean("Node{$n}_Online", "Node {$n}: Status", [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Network'
-            ], $basePos);
-
-            $this->RegisterVariableString("Node{$n}_Name", "Node {$n}: Name", [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Information'
-            ], $basePos + 1);
-
-            $this->RegisterVariableString("Node{$n}_IP", "Node {$n}: IP-Adresse", [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Distance'
-            ], $basePos + 2);
-
-            $this->RegisterVariableString("Node{$n}_Firmware", "Node {$n}: Firmware", [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Gear'
-            ], $basePos + 3);
-
-            $this->RegisterVariableInteger("Node{$n}_Clients", "Node {$n}: Clients", [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'People'
-            ], $basePos + 4);
-
-            $this->RegisterVariableString("Node{$n}_Uptime", "Node {$n}: Uptime", [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Clock'
-            ], $basePos + 5);
+            // Node Status (0=Boolean, 1=Integer, 2=Float, 3=String)
+            $this->MaintainNodeVariable($dummyID, 'Online', 'Status', 0, 1, 'Network');
+            $this->MaintainNodeVariable($dummyID, 'Name', 'Name', 3, 2, 'Information');
+            $this->MaintainNodeVariable($dummyID, 'IP', 'IP-Adresse', 3, 3, 'Distance');
+            $this->MaintainNodeVariable($dummyID, 'Firmware', 'Firmware', 3, 4, 'Gear');
+            $this->MaintainNodeVariable($dummyID, 'Clients', 'Clients', 1, 5, 'People');
+            $this->MaintainNodeVariable($dummyID, 'Uptime', 'Uptime', 3, 6, 'Clock');
 
             // System Monitoring
-            $this->RegisterVariableFloat("Node{$n}_CPU", "Node {$n}: CPU", [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Gauge',
-                'SUFFIX'       => ' %'
-            ], $monBase);
-
-            $this->RegisterVariableFloat("Node{$n}_RAM", "Node {$n}: RAM", [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Gauge',
-                'SUFFIX'       => ' %'
-            ], $monBase + 1);
-
-            $this->RegisterVariableFloat("Node{$n}_TempCPU", "Node {$n}: CPU Temperatur", [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Temperature',
-                'SUFFIX'       => ' °C'
-            ], $monBase + 2);
-
-            $this->RegisterVariableFloat("Node{$n}_Temp2G", "Node {$n}: 2.4 GHz Temperatur", [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Temperature',
-                'SUFFIX'       => ' °C'
-            ], $monBase + 3);
-
-            $this->RegisterVariableFloat("Node{$n}_Temp5G", "Node {$n}: 5 GHz Temperatur", [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Temperature',
-                'SUFFIX'       => ' °C'
-            ], $monBase + 4);
-
-            $this->RegisterVariableFloat("Node{$n}_Temp6G", "Node {$n}: 6 GHz Temperatur", [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Temperature',
-                'SUFFIX'       => ' °C'
-            ], $monBase + 5);
+            $this->MaintainNodeVariable($dummyID, 'CPU', 'CPU', 2, 10, 'Gauge', ' %');
+            $this->MaintainNodeVariable($dummyID, 'RAM', 'RAM', 2, 11, 'Gauge', ' %');
+            $this->MaintainNodeVariable($dummyID, 'TempCPU', 'CPU Temperatur', 2, 12, 'Temperature', ' °C');
+            $this->MaintainNodeVariable($dummyID, 'Temp2G', '2.4 GHz Temperatur', 2, 13, 'Temperature', ' °C');
+            $this->MaintainNodeVariable($dummyID, 'Temp5G', '5 GHz Temperatur', 2, 14, 'Temperature', ' °C');
+            $this->MaintainNodeVariable($dummyID, 'Temp6G', '6 GHz Temperatur', 2, 15, 'Temperature', ' °C');
         }
     }
 
@@ -235,6 +238,9 @@ class AsusAiMesh extends IPSModuleStrict
 
         // DeviceAvailability Presentation
         $this->DA_ApplyPresentation();
+
+        // Setup Dummy Modules and Node Variables
+        $this->RegisterNodeVariables();
 
         // Node Online/Offline Presentations
         $maxNodes = $this->ReadPropertyInteger('MaxNodes');
@@ -287,7 +293,12 @@ class AsusAiMesh extends IPSModuleStrict
      */
     private function ApplyNodeOnlinePresentation(int $n): void
     {
-        $varID = @$this->GetIDForIdent("Node{$n}_Online");
+        $dummyID = @IPS_GetObjectIDByIdent("Node{$n}", $this->InstanceID);
+        if ($dummyID === false) {
+            return;
+        }
+
+        $varID = @IPS_GetObjectIDByIdent('Online', $dummyID);
         if ($varID === false || $varID === 0) {
             return;
         }
@@ -618,16 +629,16 @@ class AsusAiMesh extends IPSModuleStrict
         // Apply to Node 1 (controller) - for AiMesh nodes we'd need per-node queries
         if (!empty($temps)) {
             if (isset($temps['cpu'])) {
-                $this->SetValue('Node1_TempCPU', (float)$temps['cpu']);
+                $this->SetNodeValue(1, 'TempCPU', (float)$temps['cpu']);
             }
             if (isset($temps['2g'])) {
-                $this->SetValue('Node1_Temp2G', (float)$temps['2g']);
+                $this->SetNodeValue(1, 'Temp2G', (float)$temps['2g']);
             }
             if (isset($temps['5g'])) {
-                $this->SetValue('Node1_Temp5G', (float)$temps['5g']);
+                $this->SetNodeValue(1, 'Temp5G', (float)$temps['5g']);
             }
             if (isset($temps['6g'])) {
-                $this->SetValue('Node1_Temp6G', (float)$temps['6g']);
+                $this->SetNodeValue(1, 'Temp6G', (float)$temps['6g']);
             }
         }
     }
@@ -768,19 +779,19 @@ class AsusAiMesh extends IPSModuleStrict
 
             $macMap[$n] = $mac;
 
-            $this->SetValue("Node{$n}_Online", $isOnline);
-            $this->SetValue("Node{$n}_Name", (string)$alias);
-            $this->SetValue("Node{$n}_IP", (string)$ip);
-            $this->SetValue("Node{$n}_Firmware", (string)$fwVer);
+            $this->SetNodeValue($n, 'Online', $isOnline);
+            $this->SetNodeValue($n, 'Name', (string)$alias);
+            $this->SetNodeValue($n, 'IP', (string)$ip);
+            $this->SetNodeValue($n, 'Firmware', (string)$fwVer);
         }
 
         // Clear unused nodes
         for ($n = count($nodeList) + 1; $n <= $maxNodes; $n++) {
-            $this->SetValue("Node{$n}_Online", false);
-            $this->SetValue("Node{$n}_Name", 'Nicht konfiguriert');
-            $this->SetValue("Node{$n}_IP", '');
-            $this->SetValue("Node{$n}_Firmware", '');
-            $this->SetValue("Node{$n}_Clients", 0);
+            $this->SetNodeValue($n, 'Online', false);
+            $this->SetNodeValue($n, 'Name', 'Nicht konfiguriert');
+            $this->SetNodeValue($n, 'IP', '');
+            $this->SetNodeValue($n, 'Firmware', '');
+            $this->SetNodeValue($n, 'Clients', 0);
         }
 
         $this->SetValue('MeshNodesOnline', $onlineCount);
@@ -870,7 +881,7 @@ class AsusAiMesh extends IPSModuleStrict
 
         // Update node client counts
         foreach ($nodeClientCount as $n => $count) {
-            $this->SetValue("Node{$n}_Clients", $count);
+            $this->SetNodeValue($n, 'Clients', $count);
         }
 
         // Total clients
@@ -901,9 +912,9 @@ class AsusAiMesh extends IPSModuleStrict
                     }
                 }
                 if ($coreCount > 0) {
-                    $this->SetValue('Node1_CPU', round($totalUsage / $coreCount, 1));
+                    $this->SetNodeValue(1, 'CPU', round($totalUsage / $coreCount, 1));
                 } elseif (isset($cpuData['cpu_total'])) {
-                    $this->SetValue('Node1_CPU', (float)$cpuData['cpu_total']);
+                    $this->SetNodeValue(1, 'CPU', (float)$cpuData['cpu_total']);
                 }
             }
         }
@@ -915,7 +926,7 @@ class AsusAiMesh extends IPSModuleStrict
                 $total = (float)($memData['mem_total'] ?? 0);
                 $used = (float)($memData['mem_used'] ?? 0);
                 if ($total > 0) {
-                    $this->SetValue('Node1_RAM', round(($used / $total) * 100, 1));
+                    $this->SetNodeValue(1, 'RAM', round(($used / $total) * 100, 1));
                 }
             }
         }
@@ -926,9 +937,9 @@ class AsusAiMesh extends IPSModuleStrict
             // Format the uptime string
             if (preg_match('/(\d+)\s*days?,?\s*(\d+):(\d+):(\d+)/', $uptime, $m)) {
                 $formatted = "{$m[1]}d {$m[2]}h {$m[3]}m";
-                $this->SetValue('Node1_Uptime', $formatted);
+                $this->SetNodeValue(1, 'Uptime', $formatted);
             } else {
-                $this->SetValue('Node1_Uptime', $uptime);
+                $this->SetNodeValue(1, 'Uptime', $uptime);
             }
         }
     }
@@ -1085,7 +1096,7 @@ class AsusAiMesh extends IPSModuleStrict
             $nodeNum = $client['node'];
             $nodeName = '';
             if (is_array($macMap) && isset($macMap[$nodeNum])) {
-                $nodeName = @$this->GetValue("Node{$nodeNum}_Name");
+                $nodeName = (string)$this->GetNodeValue($nodeNum, 'Name');
             }
             if (empty($nodeName)) {
                 $nodeName = "Node {$nodeNum}";
