@@ -434,8 +434,15 @@ class AsusAiMesh extends IPSModuleStrict
             'netdev(all)',
             'cpu_usage(appobj)',
             'memory_usage(appobj)',
+            'nvram_get(led_val)',
+            'nvram_get(wl0_radio)',
+            'nvram_get(wl1_radio)',
+            'nvram_get(wl2_radio)',
+            'nvram_get(wl3_radio)',
+            'nvram_get(wl0.1_bss_enabled)',
+            'nvram_get(wl1.1_bss_enabled)',
+            'nvram_get(webs_state_flag)',
             'uptime()',
-            'sysinfo()'
         ]); $data = $this->AsusGet($hooks, $token);
         
         $host = $this->ReadPropertyString('Host');
