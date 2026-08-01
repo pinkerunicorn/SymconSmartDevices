@@ -1,0 +1,52 @@
+{
+    "elements": [
+        {
+            "type": "ValidationTextBox",
+            "name": "Host",
+            "caption": "IP-Adresse / Hostname"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "Username",
+            "caption": "Benutzername",
+            "value": "admin"
+        },
+        {
+            "type": "PasswordTextBox",
+            "name": "Password",
+            "caption": "Passwort"
+        },
+        {
+            "type": "CheckBox",
+            "name": "UseHTTPS",
+            "caption": "HTTPS verwenden",
+            "value": false
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "UpdateInterval",
+            "caption": "Abfrage-Intervall (Sekunden)",
+            "minimum": 10,
+            "maximum": 3600,
+            "value": 60
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "label": "Verbindung testen",
+            "onClick": "echo MIKROTIK_TestConnection($id);"
+        },
+        {
+            "type": "Button",
+            "label": "Debug-Daten ausgeben",
+            "onClick": "echo MIKROTIK_DumpDebug($id);"
+        }
+    ],
+    "status": [
+        { "code": 102, "icon": "active", "caption": "Modul ist aktiv" },
+        { "code": 104, "icon": "inactive", "caption": "Modul ist inaktiv (Konfiguration unvollständig)" },
+        { "code": 200, "icon": "error", "caption": "Verbindung zum Router fehlgeschlagen" },
+        { "code": 201, "icon": "error", "caption": "Login fehlgeschlagen / API nicht erreichbar" }
+    ]
+}

@@ -1,0 +1,15 @@
+{
+    "id": "{CE5BEBEF-4340-410F-A16F-159E4579F2DA}",
+    "name": "MikroTik Router",
+    "type": 3,
+    "vendor": "Florian Graßinger",
+    "aliases": [
+        "MikroTik Router"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "MIKROTIK",
+    "author": "Florian Graßinger",
+    "url": "https://github.com/pinkerunicorn/"
+}
