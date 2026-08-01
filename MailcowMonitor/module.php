@@ -18,6 +18,7 @@ class MailcowMonitor extends IPSModuleStrict
         
         $this->RegisterPropertyBoolean('MonitorContainers', true);
         $this->RegisterPropertyBoolean('MonitorStorage', true);
+        $this->RegisterPropertyBoolean('MonitorMailQueue', true);
 
         $this->RegisterTimer('UpdateTimer', 0, 'MAILCOW_Update($_IPS[\'TARGET\']);');
 
@@ -105,6 +106,14 @@ class MailcowMonitor extends IPSModuleStrict
                 'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
                 'ICON'         => 'Database',
                 'SUFFIX'       => '%'
+            ]);
+        }
+
+        $this->MaintainVariable('MailQueue', 'Mail Warteschlange', 1, '', 7, $this->ReadPropertyBoolean('MonitorMailQueue'));
+        if ($this->ReadPropertyBoolean('MonitorMailQueue')) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('MailQueue'), [
+                'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+                'ICON'         => 'Mail'
             ]);
         }
 
@@ -216,6 +225,27 @@ class MailcowMonitor extends IPSModuleStrict
                 if (isset($data['used_percent'])) {
                     $percent = (int)str_replace('%', '', $data['used_percent']);
                     $this->SetValue('StorageUsage', $percent);
+                }
+            }
+        }
+
+        // Fetch Mail Queue
+        if ($this->ReadPropertyBoolean('MonitorMailQueue')) {
+            $ch = curl_init($url . '/api/v1/get/mailq/all');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $apiKey]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($response !== false && $httpCode == 200) {
+                $data = json_decode($response, true);
+                if (is_array($data)) {
+                    $this->SetValue('MailQueue', count($data));
                 }
             }
         }

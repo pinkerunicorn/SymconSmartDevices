@@ -25,6 +25,11 @@
             "type": "CheckBox",
             "name": "MonitorStorage",
             "caption": "vMail Festplattenplatz überwachen"
+        },
+        {
+            "type": "CheckBox",
+            "name": "MonitorMailQueue",
+            "caption": "Mail-Warteschlange (Queue) überwachen"
         }
     ],
     "actions": [
