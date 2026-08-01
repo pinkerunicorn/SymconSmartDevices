@@ -3,6 +3,7 @@
     "name": "MailcowMonitor",
     "type": 3,
     "vendor": "Florian Graßinger",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices",
     "aliases": [],
     "parentRequirements": [],
     "childRequirements": [],
