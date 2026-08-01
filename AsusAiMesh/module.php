@@ -891,21 +891,8 @@ class AsusAiMesh extends IPSModuleStrict
         if ($wl3 !== null) $this->SetValue('WiFi_6G', (int)$wl3);
 
         // Guest WiFi
-        // In AP mode, nvram_get might fail. As a fallback, check if guest SSID fields exist in nodes.
-        if ($guest24 === null && $guest5 === null) {
-            $guestActive = false;
-            if (is_array($nodes)) {
-                foreach ($nodes as $node) {
-                    // Check if any Guest SSID field is populated (often ends with _fh or _gh)
-                    if (!empty($node['ap2g_ssid_fh']) || !empty($node['ap5g_ssid_fh']) || 
-                        !empty($node['ap5g1_ssid_fh']) || !empty($node['ap6g_ssid_fh'])) {
-                        $guestActive = true;
-                        break;
-                    }
-                }
-            }
-            $this->SetValue('GuestWiFi', $guestActive ? 1 : 0);
-        } else {
+        // In AP mode, nvram_get might fail. We need the exact field from get_cfg_clientlist.
+        if ($guest24 !== null || $guest5 !== null) {
             $g24 = (int)($guest24 ?? 0);
             $g5 = (int)($guest5 ?? 0);
             $this->SetValue('GuestWiFi', ($g24 > 0 || $g5 > 0) ? 1 : 0);
