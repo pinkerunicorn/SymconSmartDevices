@@ -43,16 +43,6 @@ class AsusAiMesh extends IPSModuleStrict
             'ICON'         => 'Network'
         ], 1);
 
-        $this->RegisterVariableInteger('TotalClients', 'Verbundene Geräte', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'People'
-        ], 2);
-
-        $this->RegisterVariableString('ClientList', 'Client-Übersicht', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Database'
-        ], 3);
-
         $this->RegisterVariableBoolean('FirmwareUpdate', 'Firmware-Update verfügbar', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Repeat'
@@ -62,42 +52,28 @@ class AsusAiMesh extends IPSModuleStrict
         $this->RegisterControlProfiles();
 
         // LED Control
-        $this->RegisterVariableInteger('LED', 'LED', [
-            'PROFILE'      => 'ASUSMESH.OnOff'
-        ], 200);
+        $this->RegisterVariableInteger('LED', 'LED', 'ASUSMESH.OnOff', 200);
         $this->EnableAction('LED');
 
         // WiFi Band Controls
-        $this->RegisterVariableInteger('WiFi_2G', 'WiFi 2.4 GHz', [
-            'PROFILE'      => 'ASUSMESH.OnOff'
-        ], 201);
+        $this->RegisterVariableInteger('WiFi_2G', 'WiFi 2.4 GHz', 'ASUSMESH.OnOff', 201);
         $this->EnableAction('WiFi_2G');
 
-        $this->RegisterVariableInteger('WiFi_5G1', 'WiFi 5 GHz (Band 1)', [
-            'PROFILE'      => 'ASUSMESH.OnOff'
-        ], 202);
+        $this->RegisterVariableInteger('WiFi_5G1', 'WiFi 5 GHz (Band 1)', 'ASUSMESH.OnOff', 202);
         $this->EnableAction('WiFi_5G1');
 
-        $this->RegisterVariableInteger('WiFi_5G2', 'WiFi 5 GHz (Band 2/Backhaul)', [
-            'PROFILE'      => 'ASUSMESH.OnOff'
-        ], 203);
+        $this->RegisterVariableInteger('WiFi_5G2', 'WiFi 5 GHz (Band 2/Backhaul)', 'ASUSMESH.OnOff', 203);
         $this->EnableAction('WiFi_5G2');
 
-        $this->RegisterVariableInteger('WiFi_6G', 'WiFi 6 GHz', [
-            'PROFILE'      => 'ASUSMESH.OnOff'
-        ], 204);
+        $this->RegisterVariableInteger('WiFi_6G', 'WiFi 6 GHz', 'ASUSMESH.OnOff', 204);
         $this->EnableAction('WiFi_6G');
 
         // Guest WiFi
-        $this->RegisterVariableInteger('GuestWiFi', 'Gästenetzwerk (Party)', [
-            'PROFILE'      => 'ASUSMESH.OnOff'
-        ], 205);
+        $this->RegisterVariableInteger('GuestWiFi', 'Gästenetzwerk (Party)', 'ASUSMESH.OnOff', 205);
         $this->EnableAction('GuestWiFi');
 
         // Reboot
-        $this->RegisterVariableInteger('Reboot', 'Router neustarten', [
-            'PROFILE'      => 'ASUSMESH.Reboot'
-        ], 206);
+        $this->RegisterVariableInteger('Reboot', 'Router neustarten', 'ASUSMESH.Reboot', 206);
         $this->EnableAction('Reboot');
 
         // --- Diagnostik (900+) ---
@@ -181,16 +157,12 @@ class AsusAiMesh extends IPSModuleStrict
             $this->MaintainNodeVariable($dummyID, 'Name', 'Name', 3, 2, 'Information');
             $this->MaintainNodeVariable($dummyID, 'IP', 'IP-Adresse', 3, 3, 'Distance');
             $this->MaintainNodeVariable($dummyID, 'Firmware', 'Firmware', 3, 4, 'Gear');
-            $this->MaintainNodeVariable($dummyID, 'Clients', 'Clients', 1, 5, 'People');
             $this->MaintainNodeVariable($dummyID, 'Uptime', 'Uptime', 3, 6, 'Clock');
 
             // System Monitoring
             $this->MaintainNodeVariable($dummyID, 'CPU', 'CPU', 2, 10, 'Gauge', ' %');
             $this->MaintainNodeVariable($dummyID, 'RAM', 'RAM', 2, 11, 'Gauge', ' %');
             $this->MaintainNodeVariable($dummyID, 'TempCPU', 'CPU Temperatur', 2, 12, 'Temperature', ' °C');
-            $this->MaintainNodeVariable($dummyID, 'Temp2G', '2.4 GHz Temperatur', 2, 13, 'Temperature', ' °C');
-            $this->MaintainNodeVariable($dummyID, 'Temp5G', '5 GHz Temperatur', 2, 14, 'Temperature', ' °C');
-            $this->MaintainNodeVariable($dummyID, 'Temp6G', '6 GHz Temperatur', 2, 15, 'Temperature', ' °C');
         }
     }
 
@@ -259,18 +231,6 @@ class AsusAiMesh extends IPSModuleStrict
             'PREVIEW_STYLE' => 1,
             'SHOW_PREVIEW'  => true,
             'OPTIONS'       => $fwOptions
-        ]);
-
-        // ClientList as HTMLBox display
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ClientList'), [
-            'PRESENTATION'  => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON'          => 'Database',
-            'COLOR'         => -1,
-            'CONTENT_COLOR' => -1,
-            'DISPLAY_TYPE'  => 1, // HTML display
-            'PREVIEW_STYLE' => 0,
-            'SHOW_PREVIEW'  => false,
-            'OPTIONS'       => '[]'
         ]);
 
         // Start timer
@@ -421,9 +381,6 @@ class AsusAiMesh extends IPSModuleStrict
         // Parse mesh nodes
         $this->ParseMeshNodes($data);
 
-        // Parse clients
-        $this->ParseClients($data);
-
         // Parse system stats (CPU, RAM)
         $this->ParseSystemStats($data);
 
@@ -474,8 +431,6 @@ class AsusAiMesh extends IPSModuleStrict
 
         $hooks = implode(';', [
             'get_cfg_clientlist()',
-            'get_clientlist()',
-            'get_allclientlist()',
             'netdev(all)',
             'cpu_usage(appobj)',
             'memory_usage(appobj)',
@@ -818,105 +773,12 @@ class AsusAiMesh extends IPSModuleStrict
             $this->SetNodeValue($n, 'Name', 'Nicht konfiguriert');
             $this->SetNodeValue($n, 'IP', '');
             $this->SetNodeValue($n, 'Firmware', '');
-            $this->SetNodeValue($n, 'Clients', 0);
         }
 
         $this->SetValue('MeshNodesOnline', $onlineCount);
 
         // Save MAC map for client assignment
         $this->SetBuffer(self::ASUS_NODE_MAC_MAP, json_encode($macMap));
-    }
-
-    /**
-     * Parses client list and builds HTML table.
-     */
-    private function ParseClients(array $data): void
-    {
-        $clientList = $data['get_clientlist'] ?? ($data['get_allclientlist'] ?? []);
-        if (!is_array($clientList) || empty($clientList)) {
-            $this->SendDebug('ParseClients', 'Keine Client-Liste erhalten (evtl. AP-Modus)', 0);
-            return;
-        }
-
-        $macMap = json_decode($this->GetBuffer(self::ASUS_NODE_MAC_MAP), true);
-        if (!is_array($macMap)) {
-            $macMap = [];
-        }
-
-        // Reverse map: MAC -> Node Index
-        $macToNode = [];
-        foreach ($macMap as $nodeIndex => $mac) {
-            $macToNode[strtoupper((string)$mac)] = (int)$nodeIndex;
-        }
-
-        $clients = [];
-        $nodeClientCount = [];
-        $maxNodes = $this->ReadPropertyInteger('MaxNodes');
-        for ($n = 1; $n <= $maxNodes; $n++) {
-            $nodeClientCount[$n] = 0;
-        }
-
-        // Client list format can vary; iterate over entries
-        foreach ($clientList as $mac => $info) {
-            if (!is_array($info)) {
-                continue;
-            }
-
-            // Skip the 'maclist' and 'ClientAPILevel' meta entries
-            if ($mac === 'maclist' || $mac === 'ClientAPILevel') {
-                continue;
-            }
-
-            $clientName = $info['name'] ?? ($info['nickName'] ?? $mac);
-            $clientIP = $info['ip'] ?? '';
-            $isOnline = !empty($info['isOnline']) || !empty($info['online']);
-            $rssi = $info['rssi'] ?? '';
-            $connType = $info['isWL'] ?? '0'; // 0=wired, 1=2.4G, 2=5G, 3=5G-2, 4=6G
-
-            // Determine which node this client is connected to
-            $connectedNodeMAC = strtoupper((string)($info['isGateway'] ?? ''));
-            if (empty($connectedNodeMAC)) {
-                // Try to find via other fields
-                $connectedNodeMAC = strtoupper((string)($info['ap'] ?? ''));
-            }
-
-            $nodeIndex = $macToNode[$connectedNodeMAC] ?? 1; // Default to controller
-            if ($isOnline && isset($nodeClientCount[$nodeIndex])) {
-                $nodeClientCount[$nodeIndex]++;
-            }
-
-            if ($isOnline) {
-                $connTypeLabel = match ((string)$connType) {
-                    '0' => 'LAN',
-                    '1' => '2.4 GHz',
-                    '2' => '5 GHz',
-                    '3' => '5 GHz-2',
-                    '4' => '6 GHz',
-                    default => 'WiFi'
-                };
-
-                $clients[] = [
-                    'name'     => (string)$clientName,
-                    'ip'       => (string)$clientIP,
-                    'mac'      => strtoupper((string)$mac),
-                    'node'     => $nodeIndex,
-                    'connType' => $connTypeLabel,
-                    'rssi'     => (string)$rssi,
-                ];
-            }
-        }
-
-        // Update node client counts
-        foreach ($nodeClientCount as $n => $count) {
-            $this->SetNodeValue($n, 'Clients', $count);
-        }
-
-        // Total clients
-        $this->SetValue('TotalClients', count($clients));
-
-        // Build HTML table
-        $html = $this->BuildClientHTML($clients);
-        $this->SetValue('ClientList', $html);
     }
 
     /**
@@ -1085,68 +947,6 @@ class AsusAiMesh extends IPSModuleStrict
             $this->AsusInvalidateToken();
         }
     }
-
-    // =========================================================================
-    // HTML Builder
-    // =========================================================================
-
-    /**
-     * Builds a styled HTML table of connected clients.
-     */
-    private function BuildClientHTML(array $clients): string
-    {
-        if (empty($clients)) {
-            return '<div style="padding:10px;color:#888;">Keine Geräte verbunden</div>';
-        }
-
-        // Sort by node, then by name
-        usort($clients, function ($a, $b) {
-            if ($a['node'] !== $b['node']) {
-                return $a['node'] <=> $b['node'];
-            }
-            return strcasecmp($a['name'], $b['name']);
-        });
-
-        $macMap = json_decode($this->GetBuffer(self::ASUS_NODE_MAC_MAP), true);
-
-        $html = '<style>
-            .mesh-table { width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:13px; }
-            .mesh-table th { background:#1a1a2e; color:#eee; padding:8px 10px; text-align:left; border-bottom:2px solid #16213e; }
-            .mesh-table td { padding:6px 10px; border-bottom:1px solid #2a2a4a; color:#ccc; }
-            .mesh-table tr:hover td { background:#16213e; }
-            .mesh-table .node-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:bold; color:#fff; }
-            .node-1 { background:#0066cc; }
-            .node-2 { background:#cc6600; }
-            .node-3 { background:#00aa66; }
-            .node-4 { background:#aa00aa; }
-            .conn-type { display:inline-block; padding:2px 6px; border-radius:8px; font-size:11px; background:#2a2a4a; color:#88aacc; }
-        </style>';
-
-        $html .= '<table class="mesh-table">';
-        $html .= '<tr><th>Gerät</th><th>IP</th><th>Node</th><th>Verbindung</th></tr>';
-
-        foreach ($clients as $client) {
-            $nodeNum = $client['node'];
-            $nodeName = '';
-            if (is_array($macMap) && isset($macMap[$nodeNum])) {
-                $nodeName = (string)$this->GetNodeValue($nodeNum, 'Name');
-            }
-            if (empty($nodeName)) {
-                $nodeName = "Node {$nodeNum}";
-            }
-
-            $html .= '<tr>';
-            $html .= '<td><b>' . htmlspecialchars($client['name']) . '</b><br><small style="color:#666">' . htmlspecialchars($client['mac']) . '</small></td>';
-            $html .= '<td>' . htmlspecialchars($client['ip']) . '</td>';
-            $html .= '<td><span class="node-badge node-' . $nodeNum . '">' . htmlspecialchars($nodeName) . '</span></td>';
-            $html .= '<td><span class="conn-type">' . htmlspecialchars($client['connType']) . '</span></td>';
-            $html .= '</tr>';
-        }
-
-        $html .= '</table>';
-        return $html;
-    }
-
     // =========================================================================
     // Configuration Form
     // =========================================================================
