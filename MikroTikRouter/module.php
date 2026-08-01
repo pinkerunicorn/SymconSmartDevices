@@ -184,7 +184,7 @@ class MikroTikRouter extends IPSModuleStrict
         $health = $this->SendRestRequest('/rest/system/health');
         if (is_array($health)) {
             foreach ($health as $item) {
-                if (isset($item['name']) && $item['name'] === 'temperature') {
+                if (isset($item['name']) && strpos($item['name'], 'temperature') !== false) {
                     $this->SetValue('Temperature', (float)$item['value']);
                     break;
                 }
