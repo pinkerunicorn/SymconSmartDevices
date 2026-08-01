@@ -15,6 +15,16 @@
             "name": "UpdateInterval",
             "caption": "Update Intervall (Sekunden)",
             "minimum": 60
+        },
+        {
+            "type": "CheckBox",
+            "name": "MonitorContainers",
+            "caption": "Container-Status überwachen"
+        },
+        {
+            "type": "CheckBox",
+            "name": "MonitorStorage",
+            "caption": "vMail Festplattenplatz überwachen"
         }
     ],
     "actions": [

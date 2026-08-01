@@ -15,6 +15,9 @@ class MailcowMonitor extends IPSModuleStrict
         $this->RegisterPropertyString('URL', 'https://mail.ubyte.pink');
         $this->RegisterPropertyString('APIKey', '');
         $this->RegisterPropertyInteger('UpdateInterval', 3600);
+        
+        $this->RegisterPropertyBoolean('MonitorContainers', true);
+        $this->RegisterPropertyBoolean('MonitorStorage', true);
 
         $this->RegisterTimer('UpdateTimer', 0, 'MAILCOW_Update($_IPS[\'TARGET\']);');
 
@@ -69,6 +72,41 @@ class MailcowMonitor extends IPSModuleStrict
             'SHOW_PREVIEW' => true,
             'OPTIONS'      => $updateOptions
         ]);
+
+        $this->MaintainVariable('ContainersRunning', 'Container Status', 0, '', 5, $this->ReadPropertyBoolean('MonitorContainers'));
+        if ($this->ReadPropertyBoolean('MonitorContainers')) {
+            $containerOptions = json_encode([
+                [
+                    'Value' => false, 'Caption' => 'Fehler', 'IconValue' => 'Warning', 'IconActive' => true,
+                    'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false,
+                    'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000
+                ],
+                [
+                    'Value' => true, 'Caption' => 'Alle OK', 'IconValue' => 'check', 'IconActive' => true,
+                    'ColorActive' => true, 'ColorDisplay' => 0x00FF00, 'ContentColorActive' => false,
+                    'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00FF00
+                ]
+            ]);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('ContainersRunning'), [
+                'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+                'ICON'         => 'Network',
+                'COLOR'        => -1,
+                'CONTENT_COLOR' => -1,
+                'DISPLAY_TYPE' => 0,
+                'PREVIEW_STYLE' => 1,
+                'SHOW_PREVIEW' => true,
+                'OPTIONS'      => $containerOptions
+            ]);
+        }
+
+        $this->MaintainVariable('StorageUsage', 'vMail Auslastung', 1, '', 6, $this->ReadPropertyBoolean('MonitorStorage'));
+        if ($this->ReadPropertyBoolean('MonitorStorage')) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('StorageUsage'), [
+                'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+                'ICON'         => 'Database',
+                'SUFFIX'       => '%'
+            ]);
+        }
 
         if ($this->ReadPropertyString('URL') != '' && $this->ReadPropertyString('APIKey') != '') {
             $this->SetTimerInterval('UpdateTimer', $this->ReadPropertyInteger('UpdateInterval') * 1000);
@@ -129,6 +167,56 @@ class MailcowMonitor extends IPSModuleStrict
             $data = json_decode($response, true);
             if (is_array($data)) {
                 $this->SetValue('QuarantineCount', count($data));
+            }
+        }
+
+        // Fetch Container Status
+        if ($this->ReadPropertyBoolean('MonitorContainers')) {
+            $ch = curl_init($url . '/api/v1/get/status/containers');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $apiKey]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($response !== false && $httpCode == 200) {
+                $data = json_decode($response, true);
+                $allRunning = true;
+                if (is_array($data)) {
+                    foreach ($data as $container) {
+                        if (isset($container['state']) && $container['state'] !== 'running') {
+                            $allRunning = false;
+                            break;
+                        }
+                    }
+                    $this->SetValue('ContainersRunning', $allRunning);
+                }
+            }
+        }
+
+        // Fetch Storage Usage
+        if ($this->ReadPropertyBoolean('MonitorStorage')) {
+            $ch = curl_init($url . '/api/v1/get/status/vmail');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $apiKey]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($response !== false && $httpCode == 200) {
+                $data = json_decode($response, true);
+                if (isset($data['used_percent'])) {
+                    $percent = (int)str_replace('%', '', $data['used_percent']);
+                    $this->SetValue('StorageUsage', $percent);
+                }
             }
         }
 
