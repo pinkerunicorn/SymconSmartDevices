@@ -1,0 +1,164 @@
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
+
+class MailcowMonitor extends IPSModuleStrict
+{
+    use DeviceAvailability_Trait;
+
+    public function Create(): void
+    {
+        parent::Create();
+
+        $this->RegisterPropertyString('URL', 'https://mail.ubyte.pink');
+        $this->RegisterPropertyString('APIKey', '');
+        $this->RegisterPropertyInteger('UpdateInterval', 3600);
+
+        $this->RegisterTimer('UpdateTimer', 0, 'MAILCOW_Update($_IPS[\'TARGET\']);');
+
+        $this->DA_RegisterAvailability(900);
+
+        $this->RegisterVariableString('Version', 'Version', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Information'
+        ], 1);
+
+        $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfügbar', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Information'
+        ], 2);
+
+        $this->RegisterVariableInteger('QuarantineCount', 'Quarantäne Einträge', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Warning'
+        ], 3);
+
+        $this->RegisterVariableString('LastUpdate', 'Letztes Update', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Clock'
+        ], 4);
+    }
+
+    public function ApplyChanges(): void
+    {
+        parent::ApplyChanges();
+
+        $this->DA_ApplyPresentation();
+
+        $updateOptions = json_encode([
+            [
+                'Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'check', 'IconActive' => true,
+                'ColorActive' => true, 'ColorDisplay' => 0x00FF00, 'ContentColorActive' => false,
+                'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00FF00
+            ],
+            [
+                'Value' => true, 'Caption' => 'Update verfügbar', 'IconValue' => 'Warning', 'IconActive' => true,
+                'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false,
+                'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000
+            ]
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('UpdateAvailable'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON'         => 'Information',
+            'COLOR'        => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS'      => $updateOptions
+        ]);
+
+        if ($this->ReadPropertyString('URL') != '' && $this->ReadPropertyString('APIKey') != '') {
+            $this->SetTimerInterval('UpdateTimer', $this->ReadPropertyInteger('UpdateInterval') * 1000);
+            $this->Update();
+        } else {
+            $this->SetTimerInterval('UpdateTimer', 0);
+        }
+    }
+
+    public function Update(): void
+    {
+        $url = rtrim($this->ReadPropertyString('URL'), '/');
+        $apiKey = $this->ReadPropertyString('APIKey');
+
+        if ($url == '' || $apiKey == '') {
+            return;
+        }
+
+        // Fetch Mailcow Version
+        $ch = curl_init($url . '/api/v1/get/status/version');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $apiKey]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($response === false || $httpCode != 200) {
+            $this->DA_SetAvailable(false, 'API Fehler: Version konnte nicht geladen werden');
+            return;
+        }
+
+        $data = json_decode($response, true);
+        if (isset($data['version'])) {
+            $localVersion = $data['version'];
+            $this->SetValue('Version', $localVersion);
+        } else {
+            $this->DA_SetAvailable(false, 'Ungültige API Antwort (Version)');
+            return;
+        }
+
+        // Fetch Quarantine Count
+        $ch = curl_init($url . '/api/v1/get/quarantine/all');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $apiKey]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($response !== false && $httpCode == 200) {
+            $data = json_decode($response, true);
+            if (is_array($data)) {
+                $this->SetValue('QuarantineCount', count($data));
+            }
+        }
+
+        // Check for Updates on Github
+        $ch = curl_init('https://api.github.com/repos/mailcow/mailcow-dockerized/releases/latest');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['User-Agent: IP-Symcon-MailcowMonitor']);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        
+        $githubResponse = curl_exec($ch);
+        $githubHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($githubResponse !== false && $githubHttpCode == 200) {
+            $githubData = json_decode($githubResponse, true);
+            if (isset($githubData['tag_name'])) {
+                $latestVersion = $githubData['tag_name'];
+                
+                // Compare local version vs github latest version
+                if (strcmp($latestVersion, $localVersion) > 0) {
+                    $this->SetValue('UpdateAvailable', true);
+                } else {
+                    $this->SetValue('UpdateAvailable', false);
+                }
+            }
+        }
+
+        $this->SetValue('LastUpdate', date('d.m.Y H:i:s'));
+        $this->DA_SetAvailable(true);
+    }
+}

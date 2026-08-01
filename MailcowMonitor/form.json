@@ -1,0 +1,27 @@
+{
+    "elements": [
+        {
+            "type": "ValidationTextBox",
+            "name": "URL",
+            "caption": "Mailcow URL (z.B. https://mail.ubyte.pink)"
+        },
+        {
+            "type": "PasswordTextBox",
+            "name": "APIKey",
+            "caption": "API Key (Read-Only)"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "UpdateInterval",
+            "caption": "Update Intervall (Sekunden)",
+            "minimum": 60
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Manuelles Update",
+            "onClick": "MAILCOW_Update($id);"
+        }
+    ]
+}

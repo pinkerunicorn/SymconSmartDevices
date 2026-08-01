@@ -1,0 +1,11 @@
+{
+    "id": "{721752D8-76D4-48FE-9502-AC1420790F16}",
+    "name": "MailcowMonitor",
+    "type": 3,
+    "vendor": "Florian Graßinger",
+    "aliases": [],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "MAILCOW"
+}
