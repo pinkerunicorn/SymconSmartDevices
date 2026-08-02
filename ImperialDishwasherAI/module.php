@@ -78,15 +78,64 @@ class ImperialDishwasherAI extends IPSModuleStrict {
             $this->RegisterMessage($powerVarID, VM_UPDATE);
         }
 
-        
-        if (!IPS_VariableProfileExists('Dishwasher.Status')) {
-            IPS_CreateVariableProfile('Dishwasher.Status', 1);
+        $statusIntervals = json_encode([
+            [
+                'IntervalMinValue' => 0, 'IntervalMaxValue' => 1,
+                'ConstantActive' => true, 'ConstantValue' => 'Aus',
+                'ConversionFactor' => 1,
+                'PrefixActive' => false, 'PrefixValue' => '',
+                'SuffixActive' => false, 'SuffixValue' => '',
+                'DigitsActive' => false, 'DigitsValue' => 0,
+                'IconActive' => true, 'IconValue' => 'Information',
+                'ColorActive' => true, 'ColorValue' => -1,
+                'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
+            ],
+            [
+                'IntervalMinValue' => 1, 'IntervalMaxValue' => 2,
+                'ConstantActive' => true, 'ConstantValue' => 'Start',
+                'ConversionFactor' => 1,
+                'PrefixActive' => false, 'PrefixValue' => '',
+                'SuffixActive' => false, 'SuffixValue' => '',
+                'DigitsActive' => false, 'DigitsValue' => 0,
+                'IconActive' => true, 'IconValue' => 'Information',
+                'ColorActive' => true, 'ColorValue' => 0x0088FF,
+                'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
+            ],
+            [
+                'IntervalMinValue' => 2, 'IntervalMaxValue' => 3,
+                'ConstantActive' => true, 'ConstantValue' => 'Aktiv',
+                'ConversionFactor' => 1,
+                'PrefixActive' => false, 'PrefixValue' => '',
+                'SuffixActive' => false, 'SuffixValue' => '',
+                'DigitsActive' => false, 'DigitsValue' => 0,
+                'IconActive' => true, 'IconValue' => 'Information',
+                'ColorActive' => true, 'ColorValue' => 0x00CC00,
+                'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
+            ],
+            [
+                'IntervalMinValue' => 3, 'IntervalMaxValue' => 4,
+                'ConstantActive' => true, 'ConstantValue' => 'Fertig',
+                'ConversionFactor' => 1,
+                'PrefixActive' => false, 'PrefixValue' => '',
+                'SuffixActive' => false, 'SuffixValue' => '',
+                'DigitsActive' => false, 'DigitsValue' => 0,
+                'IconActive' => true, 'IconValue' => 'Information',
+                'ColorActive' => true, 'ColorValue' => 0xFFA500,
+                'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
+            ]
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Status'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Information',
+            'INTERVALS_ACTIVE' => true,
+            'INTERVALS' => $statusIntervals
+        ]);
+        IPS_SetVariableCustomProfile($this->GetIDForIdent('Status'), '');
+
+        if (IPS_VariableProfileExists('Dishwasher.Status')) {
+            IPS_DeleteVariableProfile('Dishwasher.Status');
         }
-        IPS_SetVariableCustomProfile($this->GetIDForIdent('Status'), 'Dishwasher.Status');
-        IPS_SetVariableProfileAssociation('Dishwasher.Status', 0, 'Aus', 'Information', -1);
-        IPS_SetVariableProfileAssociation('Dishwasher.Status', 1, 'Start', 'Information', 0x0088FF);
-        IPS_SetVariableProfileAssociation('Dishwasher.Status', 2, 'Aktiv', 'Information', 0x00CC00);
-        IPS_SetVariableProfileAssociation('Dishwasher.Status', 3, 'Fertig', 'Information', 0xFFA500);
 
         $this->MaintainTimer();
     }

@@ -48,32 +48,47 @@ class AsusAiMesh extends IPSModuleStrict
             'ICON'         => 'Repeat'
         ], 5);
 
-        // --- Control Variables (200-209) with Legacy Profiles ---
-        $this->RegisterControlProfiles();
+        $onOffPres = [
+            'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+            'ICON'         => 'Power',
+            'OPTIONS'      => json_encode([
+                ['Value' => 0, 'Caption' => 'Aus', 'IconActive' => true, 'IconValue' => 'Cross', 'Color' => 0xFF4444],
+                ['Value' => 1, 'Caption' => 'An', 'IconActive' => true, 'IconValue' => 'Ok', 'Color' => 0x00CC44]
+            ])
+        ];
+        
+        $rebootPres = [
+            'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+            'ICON'         => 'Power',
+            'OPTIONS'      => json_encode([
+                ['Value' => 0, 'Caption' => 'Bereit', 'IconActive' => true, 'IconValue' => 'Ok', 'Color' => 0x00CC44],
+                ['Value' => 1, 'Caption' => 'Neustarten!', 'IconActive' => true, 'IconValue' => 'Warning', 'Color' => 0xFF4444]
+            ])
+        ];
 
         // LED Control
-        $this->RegisterVariableInteger('LED', 'LED', 'ASUSMESH.OnOff', 200);
+        $this->RegisterVariableInteger('LED', 'LED', $onOffPres, 200);
         $this->EnableAction('LED');
 
         // WiFi Band Controls
-        $this->RegisterVariableInteger('WiFi_2G', 'WiFi 2.4 GHz', 'ASUSMESH.OnOff', 201);
+        $this->RegisterVariableInteger('WiFi_2G', 'WiFi 2.4 GHz', $onOffPres, 201);
         $this->EnableAction('WiFi_2G');
 
-        $this->RegisterVariableInteger('WiFi_5G1', 'WiFi 5 GHz (Band 1)', 'ASUSMESH.OnOff', 202);
+        $this->RegisterVariableInteger('WiFi_5G1', 'WiFi 5 GHz (Band 1)', $onOffPres, 202);
         $this->EnableAction('WiFi_5G1');
 
-        $this->RegisterVariableInteger('WiFi_5G2', 'WiFi 5 GHz (Band 2/Backhaul)', 'ASUSMESH.OnOff', 203);
+        $this->RegisterVariableInteger('WiFi_5G2', 'WiFi 5 GHz (Band 2/Backhaul)', $onOffPres, 203);
         $this->EnableAction('WiFi_5G2');
 
-        $this->RegisterVariableInteger('WiFi_6G', 'WiFi 6 GHz', 'ASUSMESH.OnOff', 204);
+        $this->RegisterVariableInteger('WiFi_6G', 'WiFi 6 GHz', $onOffPres, 204);
         $this->EnableAction('WiFi_6G');
 
         // Guest WiFi
-        $this->RegisterVariableInteger('GuestWiFi', 'Gästenetzwerk (Party)', 'ASUSMESH.OnOff', 205);
+        $this->RegisterVariableInteger('GuestWiFi', 'Gästenetzwerk (Party)', $onOffPres, 205);
         $this->EnableAction('GuestWiFi');
 
         // Reboot
-        $this->RegisterVariableInteger('Reboot', 'Router neustarten', 'ASUSMESH.Reboot', 206);
+        $this->RegisterVariableInteger('Reboot', 'Router neustarten', $rebootPres, 206);
         $this->EnableAction('Reboot');
 
         // --- Diagnostik (900+) ---
@@ -166,27 +181,7 @@ class AsusAiMesh extends IPSModuleStrict
         }
     }
 
-    /**
-     * Creates legacy variable profiles for actionable controls.
-     */
-    private function RegisterControlProfiles(): void
-    {
-        // On/Off Profile
-        if (!IPS_VariableProfileExists('ASUSMESH.OnOff')) {
-            IPS_CreateVariableProfile('ASUSMESH.OnOff', 1); // Integer
-            IPS_SetVariableProfileIcon('ASUSMESH.OnOff', 'Power');
-            IPS_SetVariableProfileAssociation('ASUSMESH.OnOff', 0, 'Aus', 'Cross', 0xFF4444);
-            IPS_SetVariableProfileAssociation('ASUSMESH.OnOff', 1, 'An', 'Ok', 0x00CC44);
-        }
 
-        // Reboot Profile
-        if (!IPS_VariableProfileExists('ASUSMESH.Reboot')) {
-            IPS_CreateVariableProfile('ASUSMESH.Reboot', 1); // Integer
-            IPS_SetVariableProfileIcon('ASUSMESH.Reboot', 'Power');
-            IPS_SetVariableProfileAssociation('ASUSMESH.Reboot', 0, 'Bereit', 'Ok', 0x00CC44);
-            IPS_SetVariableProfileAssociation('ASUSMESH.Reboot', 1, 'Neustarten!', 'Warning', 0xFF4444);
-        }
-    }
 
     public function ApplyChanges(): void
     {
@@ -200,6 +195,17 @@ class AsusAiMesh extends IPSModuleStrict
         }
 
         $this->SetStatus(102); // IS_ACTIVE
+
+        // Migration: Delete legacy profiles
+        foreach (['ASUSMESH.OnOff', 'ASUSMESH.Reboot'] as $p) {
+            if (IPS_VariableProfileExists($p)) {
+                $vars = ['LED', 'WiFi_2G', 'WiFi_5G1', 'WiFi_5G2', 'WiFi_6G', 'GuestWiFi', 'Reboot'];
+                foreach ($vars as $v) {
+                    IPS_SetVariableCustomProfile($this->GetIDForIdent($v), '');
+                }
+                IPS_DeleteVariableProfile($p);
+            }
+        }
 
         // DeviceAvailability Presentation
         $this->DA_ApplyPresentation();

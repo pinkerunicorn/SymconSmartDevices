@@ -47,22 +47,13 @@ class EMSESPDevice extends IPSModuleStrict
     {
         parent::ApplyChanges();
 
-        $this->CreateModeProfile();
+        if (IPS_VariableProfileExists('EMSESP.Mode')) {
+            IPS_DeleteVariableProfile('EMSESP.Mode');
+        }
 
         $topic = $this->ReadPropertyString('MQTTTopic');
         $this->SetReceiveDataFilter('.*' . preg_quote($topic, '.') . '.*');
         $this->DA_ApplyPresentation();
-    }
-
-    private function CreateModeProfile(): void
-    {
-        if (!IPS_VariableProfileExists('EMSESP.Mode')) {
-            IPS_CreateVariableProfile('EMSESP.Mode', 1);
-            IPS_SetVariableProfileIcon('EMSESP.Mode', 'cog');
-            IPS_SetVariableProfileAssociation('EMSESP.Mode', 0, 'Auto', 'calendar', -1);
-            IPS_SetVariableProfileAssociation('EMSESP.Mode', 1, 'Manuell', 'user', -1);
-            IPS_SetVariableProfileAssociation('EMSESP.Mode', 2, 'Aus', 'power', -1);
-        }
     }
 
     public function ReceiveData(string $JSONString): string
@@ -176,7 +167,19 @@ class EMSESPDevice extends IPSModuleStrict
 
         if ($isWritable) {
             $this->EnableAction($ident);
-            if ($profile !== '') {
+            if ($profile === 'EMSESP.Mode') {
+                $modeOptions = json_encode([
+                    ['Value' => 0, 'Caption' => 'Auto', 'IconActive' => true, 'IconValue' => 'calendar', 'Color' => -1],
+                    ['Value' => 1, 'Caption' => 'Manuell', 'IconActive' => true, 'IconValue' => 'user', 'Color' => -1],
+                    ['Value' => 2, 'Caption' => 'Aus', 'IconActive' => true, 'IconValue' => 'power', 'Color' => -1]
+                ]);
+                IPS_SetVariableCustomPresentation($varID, [
+                    'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+                    'ICON' => 'cog',
+                    'OPTIONS' => $modeOptions
+                ]);
+                IPS_SetVariableCustomProfile($varID, '');
+            } elseif ($profile !== '') {
                 IPS_SetVariableCustomProfile($varID, $profile);
             }
         } else {

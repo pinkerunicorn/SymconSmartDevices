@@ -90,9 +90,31 @@ class PixelblazeController extends IPSModuleStrict
         $map = json_decode($mapRaw, true);
         
         if (is_array($map)) {
+            $options = [];
             foreach ($map as $i => $prog) {
-                IPS_SetVariableProfileAssociation('Pixelblaze.Program', $i, $prog['name'], '', -1);
+                $options[] = [
+                    'Value' => $i,
+                    'Caption' => $prog['name'],
+                    'IconActive' => false,
+                    'IconValue' => '',
+                    'Color' => -1
+                ];
             }
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveProgram'), [
+                'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+                'ICON' => 'Script',
+                'OPTIONS' => json_encode($options)
+            ]);
+            IPS_SetVariableCustomProfile($this->GetIDForIdent('ActiveProgram'), '');
+        }
+
+        // Migration: Delete legacy profiles
+        if (IPS_VariableProfileExists('Pixelblaze.Program')) {
+            IPS_DeleteVariableProfile('Pixelblaze.Program');
+        }
+        $profileName = 'Pixelblaze.Program.' . $this->InstanceID;
+        if (IPS_VariableProfileExists($profileName)) {
+            IPS_DeleteVariableProfile($profileName);
         }
         
         $this->UpdateVisibility($this->GetValue('Power'));
@@ -334,17 +356,23 @@ class PixelblazeController extends IPSModuleStrict
                 if (count($programs) > 0) {
             $this->WriteAttributeString('ProgramMap', json_encode($programs));
 
-            $profileName = 'Pixelblaze.Program.' . $this->InstanceID;
-            if (!IPS_VariableProfileExists($profileName)) {
-                IPS_CreateVariableProfile($profileName, 1);
-                IPS_SetVariableProfileIcon($profileName, 'Script');
-            }
-            
+            $options = [];
             foreach ($programs as $i => $prog) {
-                IPS_SetVariableProfileAssociation($profileName, $i, $prog['name'], '', -1);
+                $options[] = [
+                    'Value' => $i,
+                    'Caption' => $prog['name'],
+                    'IconActive' => false,
+                    'IconValue' => '',
+                    'Color' => -1
+                ];
             }
             
-            IPS_SetVariableCustomProfile($this->GetIDForIdent('ActiveProgram'), $profileName);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveProgram'), [
+                'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+                'ICON' => 'Script',
+                'OPTIONS' => json_encode($options)
+            ]);
+            IPS_SetVariableCustomProfile($this->GetIDForIdent('ActiveProgram'), '');
 
             $this->SLogInfo(count($programs) . " Programme geladen und als Dropdown hinterlegt.");
         }

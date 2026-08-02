@@ -61,13 +61,13 @@ class SmartFountain extends IPSModuleStrict
         $this->MaintainVariable('PumpSpeed', 'Pumpengeschwindigkeit', 1, '', 20, true);
         $this->EnableAction('PumpSpeed');
 
-        $this->MaintainVariable('Choreography', 'Muster', 1, 'SFTN.Choreography', 30, true);
+        $this->MaintainVariable('Choreography', 'Muster', 1, '', 30, true);
         $this->EnableAction('Choreography');
 
         // Alte Variable entfernen, falls sie existiert
         $this->MaintainVariable('ChoreographyActive', 'Choreografie aktiv', 0, '', 40, false);
 
-        $this->MaintainVariable('ChoreographySpeed', 'Geschwindigkeit', 1, 'SFTN.Percent', 50, true);
+        $this->MaintainVariable('ChoreographySpeed', 'Geschwindigkeit', 1, '', 50, true);
         $this->EnableAction('ChoreographySpeed');
 
         $this->MaintainVariable('ChoreographyIntensity', 'Intensität', 1, '', 60, true);
@@ -77,18 +77,10 @@ class SmartFountain extends IPSModuleStrict
 
         $this->SetupVariablePresentations();
 
-        if (!IPS_VariableProfileExists('SFTN.Choreography')) {
-            IPS_CreateVariableProfile('SFTN.Choreography', 1);
-            IPS_SetVariableProfileIcon('SFTN.Choreography', 'Menu');
+        // Migration: Delete legacy profile
+        if (IPS_VariableProfileExists('SFTN.Choreography')) {
+            IPS_DeleteVariableProfile('SFTN.Choreography');
         }
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 0, 'Manuell', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 1, 'Sinuswelle', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 2, 'Puls', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 3, 'Atmen', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 4, 'Zufall', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 5, 'Treppe', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 6, 'Herzschlag', '', 0x000000);
-        IPS_SetVariableProfileAssociation('SFTN.Choreography', 7, 'Zufalls-Mix', '', 0x000000);
 
         // Set Default Values if unset
         if ($this->GetValue('ChoreographySpeed') == 0) {
@@ -159,9 +151,22 @@ class SmartFountain extends IPSModuleStrict
 
         $varID = @$this->GetIDForIdent('Choreography');
         if ($varID !== false && $varID > 0) {
+            $choreoOptions = json_encode([
+                ['Value' => 0, 'Caption' => 'Manuell', 'Color' => 0x000000],
+                ['Value' => 1, 'Caption' => 'Sinuswelle', 'Color' => 0x000000],
+                ['Value' => 2, 'Caption' => 'Puls', 'Color' => 0x000000],
+                ['Value' => 3, 'Caption' => 'Atmen', 'Color' => 0x000000],
+                ['Value' => 4, 'Caption' => 'Zufall', 'Color' => 0x000000],
+                ['Value' => 5, 'Caption' => 'Treppe', 'Color' => 0x000000],
+                ['Value' => 6, 'Caption' => 'Herzschlag', 'Color' => 0x000000],
+                ['Value' => 7, 'Caption' => 'Zufalls-Mix', 'Color' => 0x000000],
+            ]);
+            
+            $enumPres = defined('VARIABLE_PRESENTATION_ENUMERATION') ? VARIABLE_PRESENTATION_ENUMERATION : 5;
             IPS_SetVariableCustomPresentation($varID, [
-                'PRESENTATION' => $valPres,
-                'ICON' => 'Menu'
+                'PRESENTATION' => $enumPres,
+                'ICON' => 'Menu',
+                'OPTIONS' => $choreoOptions
             ]);
         }
     }

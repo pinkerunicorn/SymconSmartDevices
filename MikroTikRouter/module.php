@@ -42,25 +42,26 @@ class MikroTikRouter extends IPSModuleStrict
         $this->RegisterVariableBoolean('UpdateAvailable', 'OS-Update verfügbar', '', 10);
         $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', '', 999);
 
-        // Action Profiles
-        if (!IPS_VariableProfileExists('MIKROTIK.Action')) {
-            IPS_CreateVariableProfile('MIKROTIK.Action', 1); // Integer
-            IPS_SetVariableProfileIcon('MIKROTIK.Action', 'Execute');
-            IPS_SetVariableProfileAssociation('MIKROTIK.Action', 0, 'Bereit', 'Ok', 0x00CC44);
-            IPS_SetVariableProfileAssociation('MIKROTIK.Action', 1, 'Ausführen!', 'Warning', 0xFF4444);
-        }
+        $actionPres = [
+            'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+            'ICON'         => 'Execute',
+            'OPTIONS'      => json_encode([
+                ['Value' => 0, 'Caption' => 'Bereit', 'IconActive' => true, 'IconValue' => 'Ok', 'Color' => 0x00CC44],
+                ['Value' => 1, 'Caption' => 'Ausführen!', 'IconActive' => true, 'IconValue' => 'Warning', 'Color' => 0xFF4444]
+            ])
+        ];
 
         // Action Variables
-        $this->RegisterVariableInteger('ActionCheckUpdate', 'Auf Updates prüfen', 'MIKROTIK.Action', 100);
+        $this->RegisterVariableInteger('ActionCheckUpdate', 'Auf Updates prüfen', $actionPres, 100);
         $this->EnableAction('ActionCheckUpdate');
 
-        $this->RegisterVariableInteger('ActionInstallOS', 'OS-Update installieren', 'MIKROTIK.Action', 101);
+        $this->RegisterVariableInteger('ActionInstallOS', 'OS-Update installieren', $actionPres, 101);
         $this->EnableAction('ActionInstallOS');
 
-        $this->RegisterVariableInteger('ActionUpgradeFW', 'Firmware upgraden', 'MIKROTIK.Action', 102);
+        $this->RegisterVariableInteger('ActionUpgradeFW', 'Firmware upgraden', $actionPres, 102);
         $this->EnableAction('ActionUpgradeFW');
 
-        $this->RegisterVariableInteger('ActionReboot', 'Neustarten', 'MIKROTIK.Action', 103);
+        $this->RegisterVariableInteger('ActionReboot', 'Neustarten', $actionPres, 103);
         $this->EnableAction('ActionReboot');
     }
 
@@ -138,6 +139,15 @@ class MikroTikRouter extends IPSModuleStrict
             $this->SetTimerInterval('CheckUpdateTimer', 3000); // Async start
         } else {
             $this->SetTimerInterval('CheckUpdateTimer', 0);
+        }
+
+        // Migration: Delete legacy profile
+        if (IPS_VariableProfileExists('MIKROTIK.Action')) {
+            $vars = ['ActionCheckUpdate', 'ActionInstallOS', 'ActionUpgradeFW', 'ActionReboot'];
+            foreach ($vars as $v) {
+                IPS_SetVariableCustomProfile($this->GetIDForIdent($v), '');
+            }
+            IPS_DeleteVariableProfile('MIKROTIK.Action');
         }
     }
 
