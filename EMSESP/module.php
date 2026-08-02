@@ -158,7 +158,13 @@ class EMSESPDevice extends IPSModuleStrict
             }
         }
 
-        $this->MaintainVariable($ident, $name, $type, $profile, 0, true);
+        switch ($type) {
+            case 0: $this->RegisterVariableBoolean($ident, $name, $profile, 0); break;
+            case 1: $this->RegisterVariableInteger($ident, $name, $profile, 0); break;
+            case 2: $this->RegisterVariableFloat($ident, $name, $profile, 0); break;
+            case 3: $this->RegisterVariableString($ident, $name, $profile, 0); break;
+        }
+        
         $varID = $this->GetIDForIdent($ident);
 
         if (!$varID) {

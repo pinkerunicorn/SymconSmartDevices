@@ -54,28 +54,66 @@ class SmartFountain extends IPSModuleStrict
             $this->RegisterMessage($powerMeterID, VM_UPDATE);
         }
 
+        $switchPres = defined('VARIABLE_PRESENTATION_SWITCH') ? VARIABLE_PRESENTATION_SWITCH : 3;
+        $sliderPres = defined('VARIABLE_PRESENTATION_SLIDER') ? VARIABLE_PRESENTATION_SLIDER : 2;
+        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
+        $enumPres = defined('VARIABLE_PRESENTATION_ENUMERATION') ? VARIABLE_PRESENTATION_ENUMERATION : 5;
+
         // --- Variables ---
-        $this->MaintainVariable('Active', 'Aktiv', 0, '', 10, true);
+        $this->RegisterVariableBoolean('Active', 'Aktiv', [
+            'PRESENTATION' => $switchPres,
+            'ICON' => 'Power'
+        ], 10);
         $this->EnableAction('Active');
 
-        $this->MaintainVariable('PumpSpeed', 'Pumpengeschwindigkeit', 1, '', 20, true);
+        $percentPresentation = [
+            'PRESENTATION' => $sliderPres,
+            'ICON' => 'Intensity',
+            'MIN' => 0,
+            'MAX' => 100,
+            'STEP' => 1,
+            'SUFFIX' => ' %'
+        ];
+
+        $this->RegisterVariableInteger('PumpSpeed', 'Pumpengeschwindigkeit', $percentPresentation, 20);
         $this->EnableAction('PumpSpeed');
 
-        $this->MaintainVariable('Choreography', 'Muster', 1, '', 30, true);
+        $choreoOptions = json_encode([
+            ['Value' => 0, 'Caption' => 'Manuell', 'Color' => 0x000000],
+            ['Value' => 1, 'Caption' => 'Sinuswelle', 'Color' => 0x000000],
+            ['Value' => 2, 'Caption' => 'Puls', 'Color' => 0x000000],
+            ['Value' => 3, 'Caption' => 'Atmen', 'Color' => 0x000000],
+            ['Value' => 4, 'Caption' => 'Zufall', 'Color' => 0x000000],
+            ['Value' => 5, 'Caption' => 'Treppe', 'Color' => 0x000000],
+            ['Value' => 6, 'Caption' => 'Herzschlag', 'Color' => 0x000000],
+            ['Value' => 7, 'Caption' => 'Zufalls-Mix', 'Color' => 0x000000],
+        ]);
+        
+        $this->RegisterVariableInteger('Choreography', 'Muster', [
+            'PRESENTATION' => $enumPres,
+            'ICON' => 'Menu',
+            'OPTIONS' => $choreoOptions
+        ], 30);
         $this->EnableAction('Choreography');
 
         // Alte Variable entfernen, falls sie existiert
-        $this->MaintainVariable('ChoreographyActive', 'Choreografie aktiv', 0, '', 40, false);
+        $this->UnregisterVariable('ChoreographyActive');
 
-        $this->MaintainVariable('ChoreographySpeed', 'Geschwindigkeit', 1, '', 50, true);
+        $this->RegisterVariableInteger('ChoreographySpeed', 'Geschwindigkeit', $percentPresentation, 50);
         $this->EnableAction('ChoreographySpeed');
 
-        $this->MaintainVariable('ChoreographyIntensity', 'Intensität', 1, '', 60, true);
+        $this->RegisterVariableInteger('ChoreographyIntensity', 'Intensität', $percentPresentation, 60);
         $this->EnableAction('ChoreographyIntensity');
 
-        $this->MaintainVariable('CurrentPower', 'Aktuelle Leistung', 2, '', 70, $powerMeterID > 0);
-
-        $this->SetupVariablePresentations();
+        if ($powerMeterID > 0) {
+            $this->RegisterVariableFloat('CurrentPower', 'Aktuelle Leistung', [
+                'PRESENTATION' => $valPres,
+                'ICON' => 'Electricity',
+                'SUFFIX' => ' W'
+            ], 70);
+        } else {
+            $this->UnregisterVariable('CurrentPower');
+        }
 
         // Migration: Delete legacy profile
         if (IPS_VariableProfileExists('SFTN.Choreography')) {
@@ -92,83 +130,6 @@ class SmartFountain extends IPSModuleStrict
 
         // Ensure timer matches state
         $this->UpdateTimerState();
-    }
-
-    private function SetupVariablePresentations(): void
-    {
-        $valPres = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
-        $switchPres = defined('VARIABLE_PRESENTATION_SWITCH') ? VARIABLE_PRESENTATION_SWITCH : 3;
-        $sliderPres = defined('VARIABLE_PRESENTATION_SLIDER') ? VARIABLE_PRESENTATION_SLIDER : 2;
-        
-        $varID = @$this->GetIDForIdent('Active');
-        if ($varID !== false && $varID > 0) {
-            IPS_SetVariableCustomPresentation($varID, [
-                'PRESENTATION' => $switchPres,
-                'ICON' => 'Power'
-            ]);
-        }
-
-        $varID = @$this->GetIDForIdent('ChoreographyActive');
-        if ($varID !== false && $varID > 0) {
-            IPS_SetVariableCustomPresentation($varID, [
-                'PRESENTATION' => $switchPres,
-                'ICON' => 'Power'
-            ]);
-        }
-
-        $percentPresentation = [
-            'PRESENTATION' => $sliderPres,
-            'ICON' => 'Intensity',
-            'MIN' => 0,
-            'MAX' => 100,
-            'STEP' => 1,
-            'SUFFIX' => ' %'
-        ];
-        
-        $varID = @$this->GetIDForIdent('PumpSpeed');
-        if ($varID !== false && $varID > 0) {
-            IPS_SetVariableCustomPresentation($varID, $percentPresentation);
-        }
-        
-        $varID = @$this->GetIDForIdent('ChoreographySpeed');
-        if ($varID !== false && $varID > 0) {
-            IPS_SetVariableCustomPresentation($varID, $percentPresentation);
-        }
-        
-        $varID = @$this->GetIDForIdent('ChoreographyIntensity');
-        if ($varID !== false && $varID > 0) {
-            IPS_SetVariableCustomPresentation($varID, $percentPresentation);
-        }
-
-        $varID = @$this->GetIDForIdent('CurrentPower');
-        if ($varID !== false && $varID > 0) {
-            IPS_SetVariableCustomPresentation($varID, [
-                'PRESENTATION' => $valPres,
-                'ICON' => 'Electricity',
-                'SUFFIX' => ' W'
-            ]);
-        }
-
-        $varID = @$this->GetIDForIdent('Choreography');
-        if ($varID !== false && $varID > 0) {
-            $choreoOptions = json_encode([
-                ['Value' => 0, 'Caption' => 'Manuell', 'Color' => 0x000000],
-                ['Value' => 1, 'Caption' => 'Sinuswelle', 'Color' => 0x000000],
-                ['Value' => 2, 'Caption' => 'Puls', 'Color' => 0x000000],
-                ['Value' => 3, 'Caption' => 'Atmen', 'Color' => 0x000000],
-                ['Value' => 4, 'Caption' => 'Zufall', 'Color' => 0x000000],
-                ['Value' => 5, 'Caption' => 'Treppe', 'Color' => 0x000000],
-                ['Value' => 6, 'Caption' => 'Herzschlag', 'Color' => 0x000000],
-                ['Value' => 7, 'Caption' => 'Zufalls-Mix', 'Color' => 0x000000],
-            ]);
-            
-            $enumPres = defined('VARIABLE_PRESENTATION_ENUMERATION') ? VARIABLE_PRESENTATION_ENUMERATION : 5;
-            IPS_SetVariableCustomPresentation($varID, [
-                'PRESENTATION' => $enumPres,
-                'ICON' => 'Menu',
-                'OPTIONS' => $choreoOptions
-            ]);
-        }
     }
 
     public function RequestAction(string $Ident, mixed $Value): void

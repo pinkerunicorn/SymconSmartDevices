@@ -508,15 +508,14 @@ class WithingsDevice extends IPSModuleStrict {
         $bmi = round($weight / ($height * $height), 1);
         $ident = "Calculated_BMI";
 
-        $this->MaintainVariable($ident, "BMI (Body Mass Index)", 2, "", 10, true);
+        $this->RegisterVariableFloat($ident, "BMI (Body Mass Index)", [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX' => ' kg/m²',
+            'DIGITS' => 1,
+            'ICON' => 'Information'
+        ], 10);
         $bmiID = @IPS_GetObjectIDByIdent($ident, $this->InstanceID);
         if ($bmiID !== false) {
-            IPS_SetVariableCustomPresentation($bmiID, [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'SUFFIX' => ' kg/m²',
-                'DIGITS' => 1
-            ]);
-            IPS_SetIcon($bmiID, "Information");
 
             $archiveIds = IPS_GetInstanceListByModuleID("{43192F0B-135B-4CE7-A0A7-1475603F3060}");
             if (count($archiveIds) > 0) {
@@ -679,7 +678,17 @@ class WithingsDevice extends IPSModuleStrict {
 
         // Variable dynamisch anlegen falls nicht existent (Cache pro Request-Zyklus)
         if (!isset($this->createdIdents[$ident])) {
-            $this->MaintainVariable($ident, $config['name'], 2, "", 0, true);
+            $presentation = [];
+            if ($config['suffix'] != "") {
+                $presentation['PRESENTATION'] = VARIABLE_PRESENTATION_VALUE_PRESENTATION;
+                $presentation['SUFFIX'] = ' ' . $config['suffix'];
+            }
+            if ($config['icon'] != "") {
+                $presentation['ICON'] = $config['icon'];
+            }
+            
+            $this->RegisterVariableFloat($ident, $config['name'], $presentation, 0);
+            
             $varID = @IPS_GetObjectIDByIdent($ident, $this->InstanceID);
             
             if ($varID !== false) {
@@ -687,17 +696,6 @@ class WithingsDevice extends IPSModuleStrict {
                 if (count($archiveIds) > 0) {
                     @AC_SetLoggingStatus($archiveIds[0], $varID, true);
                     @IPS_ApplyChanges($archiveIds[0]);
-                }
-                
-                if ($config['suffix'] != "") {
-                    IPS_SetVariableCustomPresentation($varID, [
-                        'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                        'SUFFIX' => ' ' . $config['suffix']
-                    ]);
-                }
-                
-                if ($config['icon'] != "") {
-                    IPS_SetIcon($varID, $config['icon']);
                 }
             }
             

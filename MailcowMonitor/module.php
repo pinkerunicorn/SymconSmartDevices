@@ -83,7 +83,6 @@ class MailcowMonitor extends IPSModuleStrict
             'OPTIONS'      => $updateOptions
         ]);
 
-        $this->MaintainVariable('ContainersRunning', 'Container Status', 0, '', 5, $this->ReadPropertyBoolean('MonitorContainers'));
         if ($this->ReadPropertyBoolean('MonitorContainers')) {
             $containerOptions = json_encode([
                 [
@@ -97,7 +96,7 @@ class MailcowMonitor extends IPSModuleStrict
                     'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00FF00
                 ]
             ]);
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('ContainersRunning'), [
+            $this->RegisterVariableBoolean('ContainersRunning', 'Container Status', [
                 'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
                 'ICON'         => 'Network',
                 'COLOR'        => -1,
@@ -106,24 +105,28 @@ class MailcowMonitor extends IPSModuleStrict
                 'PREVIEW_STYLE' => 1,
                 'SHOW_PREVIEW' => true,
                 'OPTIONS'      => $containerOptions
-            ]);
+            ], 5);
+        } else {
+            $this->UnregisterVariable('ContainersRunning');
         }
 
-        $this->MaintainVariable('StorageUsage', 'vMail Auslastung', 1, '', 6, $this->ReadPropertyBoolean('MonitorStorage'));
         if ($this->ReadPropertyBoolean('MonitorStorage')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('StorageUsage'), [
+            $this->RegisterVariableInteger('StorageUsage', 'vMail Auslastung', [
                 'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
                 'ICON'         => 'Database',
                 'SUFFIX'       => '%'
-            ]);
+            ], 6);
+        } else {
+            $this->UnregisterVariable('StorageUsage');
         }
 
-        $this->MaintainVariable('MailQueue', 'Mail Warteschlange', 1, '', 7, $this->ReadPropertyBoolean('MonitorMailQueue'));
         if ($this->ReadPropertyBoolean('MonitorMailQueue')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('MailQueue'), [
+            $this->RegisterVariableInteger('MailQueue', 'Mail Warteschlange', [
                 'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
                 'ICON'         => 'Mail'
-            ]);
+            ], 7);
+        } else {
+            $this->UnregisterVariable('MailQueue');
         }
 
         if ($this->ReadPropertyString('URL') != '' && $this->ReadPropertyString('APIKey') != '') {

@@ -90,6 +90,11 @@ class TedeeLock extends IPSModuleStrict
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('LockState'), [
             'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
             'ICON' => 'Information',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
             'INTERVALS_ACTIVE' => true,
             'INTERVALS' => $stateIntervals
         ]);

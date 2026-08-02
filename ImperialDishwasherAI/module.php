@@ -70,7 +70,7 @@ class ImperialDishwasherAI extends IPSModuleStrict {
     public function ApplyChanges(): void {
         parent::ApplyChanges();
 
-        $this->DisableAction('Status');
+        IPS_SetDisabled($this->GetIDForIdent('Status'), true);
 
         $powerVarID = $this->ReadPropertyInteger('PowerVariableID');
         if ($powerVarID > 1 && @IPS_ObjectExists($powerVarID)) {
