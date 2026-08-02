@@ -61,7 +61,6 @@ class TedeeLock extends IPSModuleStrict
         if (empty($this->ReadPropertyString('BridgeIP'))) {
             $this->SetStatus(104);
             return;
-        $this->DA_ApplyPresentation();
         }
         // --- Auto-generated References ---
         $ref_LockID = $this->ReadPropertyInteger('LockID');
@@ -112,6 +111,7 @@ class TedeeLock extends IPSModuleStrict
         if (!empty($baseUrl)) {
             $this->RegisterWebhookAtBridge();
         }
+        $this->DA_ApplyPresentation();
     }
 
 

@@ -71,7 +71,6 @@ class PixelblazeController extends IPSModuleStrict
         $oldVar = @$this->GetIDForIdent('ActiveProgramID');
         if ($oldVar > 0) {
             $this->UnregisterVariable('ActiveProgramID');
-        $this->DA_ApplyPresentation();
         }
 
 
@@ -94,6 +93,7 @@ class PixelblazeController extends IPSModuleStrict
         }
         
         $this->UpdateVisibility($this->GetValue('Power'));
+        $this->DA_ApplyPresentation();
     }
 
     private function UpdateVisibility(bool $isVisible): void

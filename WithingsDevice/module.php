@@ -90,7 +90,6 @@ class WithingsDevice extends IPSModuleStrict {
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
-        $this->DA_ApplyPresentation();
         }
         $ref_SMTPInstanceID = $this->ReadPropertyInteger('SMTPInstanceID');
         if ($ref_SMTPInstanceID > 1 && @IPS_ObjectExists($ref_SMTPInstanceID)) {
@@ -114,6 +113,7 @@ class WithingsDevice extends IPSModuleStrict {
         $this->UpdatePresentations();
         $this->UpdateStatusIcons();
         $this->UpdateConnectionStatus();
+        $this->DA_ApplyPresentation();
     }
 
     /**
@@ -455,7 +455,7 @@ class WithingsDevice extends IPSModuleStrict {
 
             } else {
                 $this->SLog('ERROR', 'Fehler beim Abruf der Messwerte.');
-                $this->SendDebug("Fetch", "Fehler beim Abruf: ". $response, 0);
+                $this->SendDebug("Fetch", "Fehler beim Abruf: ". json_encode($data), 0);
                 $offset = 0; // stop on error
             }
         } while ($offset > 0);
@@ -560,7 +560,7 @@ class WithingsDevice extends IPSModuleStrict {
             return;
         }
         if (!isset($data['status']) || $data['status'] != 0 || !isset($data['body']['devices'])) {
-            $this->SendDebug("DeviceInfo", "Ungültige Antwort: " . $response, 0);
+            $this->SendDebug("DeviceInfo", "Ungültige Antwort: " . json_encode($data), 0);
             return;
         }
 

@@ -31,10 +31,10 @@ class VestaboardLocal extends IPSModuleStrict {
         // Wenn kein Key oder noch die Platzhalter-IP drin ist -> Status Inaktiv/Fehler
         if (empty($localUrl) || strpos($localUrl, '<IP-ADRESSE>') !== false || empty($apiKey)) {
             $this->SetStatus(104); // IS_INACTIVE
-        $this->DA_ApplyPresentation();
         } else {
             $this->SetStatus(102); // IS_ACTIVE
         }
+        $this->DA_ApplyPresentation();
     }
 
     /**
@@ -271,6 +271,3 @@ class VestaboardLocal extends IPSModuleStrict {
 EOT;
     }
 }
-
-
-?>

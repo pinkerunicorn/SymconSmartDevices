@@ -8,5 +8,6 @@
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
-    "prefix": "MAILCOW"
+    "prefix": "MAILCOW",
+    "author": "Florian Graßinger"
 }

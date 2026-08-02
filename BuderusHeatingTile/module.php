@@ -70,7 +70,6 @@ class BuderusHeatingTile extends IPSModuleStrict
         foreach ($this->GetMessageList() as $senderID => $messages) {
             foreach ($messages as $message) {
                 $this->UnregisterMessage($senderID, $message);
-        $this->DA_ApplyPresentation();
             }
         }
 
@@ -84,6 +83,7 @@ class BuderusHeatingTile extends IPSModuleStrict
         $this->RegisterVariableMessages($sourceID);
 
         $this->SetStatus(102); // Aktiv
+        $this->DA_ApplyPresentation();
     }
 
     private function RegisterVariableMessages(int $instanceID): void

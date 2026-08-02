@@ -181,7 +181,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         if ($this->HandleCentralStateMessage($SenderID, $Message, $Data)) return;
     }
 
-    private function OnCentralStateChanged(string $stateName, mixed $newValue): void {}
+    protected function OnCentralStateChanged(string $stateName, mixed $newValue): void {}
 
     public function PlayMessage(string $Text, bool $isAlarm = false): string|bool
     {

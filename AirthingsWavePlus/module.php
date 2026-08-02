@@ -52,8 +52,7 @@ class AirthingsWavePlus extends IPSModuleStrict
             ['Value' => true, 'Caption' => 'Online', 'IconValue' => 'Network', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
         ]);
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('Online'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75
-        $this->DA_ApplyPresentation();}',
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
             'ICON' => 'Network',
             'COLOR' => -1,
             'CONTENT_COLOR' => -1,
@@ -82,6 +81,7 @@ class AirthingsWavePlus extends IPSModuleStrict
         $this->ResetWatchdog();
                 $this->DA_ResetWatchdog(1800);
                 $this->DA_SetAvailable(true);
+        $this->DA_ApplyPresentation();
     }
     
     public function WatchdogTriggered(): void

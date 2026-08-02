@@ -65,7 +65,7 @@ class EMSESPDevice extends IPSModuleStrict
         }
     }
 
-    public function ReceiveData($JSONString): string
+    public function ReceiveData(string $JSONString): string
     {
         $data = json_decode($JSONString, true);
         if (!isset($data['Buffer'])) {

@@ -151,7 +151,7 @@ class VestaboardGenerator extends IPSModuleStrict {
         $this->DoUpdateBoard($force, false);
     }
 
-    private function OnCentralStateChanged(string $stateName, mixed $newValue): void
+    protected function OnCentralStateChanged(string $stateName, mixed $newValue): void
     {
         $isAbsent = !$this->IsHome();
         $isHeimkinoActive = $this->IsCinema();
