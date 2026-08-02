@@ -27,15 +27,21 @@ class TedeeLock extends IPSModuleStrict
         
         $this->RegisterAttributeInteger('DetectedLockID', 0);
 
+        $this->RegisterVariables();
+    }
+
+    private function RegisterVariables(): void
+    {
         $this->RegisterVariableInteger('LockState', 'Schloss Status', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Information'
         ], 1);
+        
         $this->RegisterVariableInteger('BatteryLevel', 'Batterie', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Battery',
-            'SUFFIX' => ' %'
+            'ICON' => 'Battery'
         ], 2);
+        
         $this->RegisterVariableBoolean('IsCharging', 'Wird geladen', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Plug'
@@ -59,6 +65,7 @@ class TedeeLock extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        $this->RegisterVariables();
         if (empty($this->ReadPropertyString('BridgeIP'))) {
             $this->SetTimerInterval('StatusUpdateTimer', 0);
             $this->SetStatus(104);
@@ -108,6 +115,26 @@ class TedeeLock extends IPSModuleStrict
             IPS_SetVariableCustomProfile($this->GetIDForIdent('LockControl'), '');
             IPS_DeleteVariableProfile('Tedee.LockControl');
         }
+        if (IPS_VariableProfileExists('Tedee.Battery')) {
+            IPS_SetVariableCustomProfile($this->GetIDForIdent('BatteryLevel'), '');
+            IPS_DeleteVariableProfile('Tedee.Battery');
+        }
+
+        $batteryIntervals = json_encode([
+            [ 'IntervalMinValue' => 0, 'IntervalMaxValue' => 101, 'ConstantActive' => false, 'ConstantValue' => '', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => true, 'SuffixValue' => ' %', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Battery', 'ColorActive' => false, 'ColorValue' => -1, 'ContentColorActive' => false, 'ContentColorValue' => -1 ]
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('BatteryLevel'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Battery',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'INTERVALS_ACTIVE' => true,
+            'INTERVALS' => $batteryIntervals
+        ]);
+        IPS_SetVariableCustomProfile($this->GetIDForIdent('BatteryLevel'), '');
 
         $chargingOptions = json_encode([
             ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'Plug', 'IconActive' => false, 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
