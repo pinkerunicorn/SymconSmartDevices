@@ -23,6 +23,8 @@ class TedeeLock extends IPSModuleStrict
         $this->RegisterPropertyInteger('LockID', 0);
         $this->RegisterPropertyString('SymconBaseURL', 'http://10.1.60.150:3777');
         
+        $this->RegisterTimer('StatusUpdateTimer', 0, 'TEDEE_UpdateStatus($_IPS[\'TARGET\']);');
+        
         $this->RegisterAttributeInteger('DetectedLockID', 0);
 
         $this->RegisterVariableInteger('LockState', 'Schloss Status', [
@@ -59,9 +61,11 @@ class TedeeLock extends IPSModuleStrict
     {
         parent::ApplyChanges();
         if (empty($this->ReadPropertyString('BridgeIP'))) {
+            $this->SetTimerInterval('StatusUpdateTimer', 0);
             $this->SetStatus(104);
             return;
         }
+        $this->SetTimerInterval('StatusUpdateTimer', 900000);
         // --- Auto-generated References ---
         $ref_LockID = $this->ReadPropertyInteger('LockID');
         if ($ref_LockID > 1 && @IPS_ObjectExists($ref_LockID)) {
@@ -382,6 +386,7 @@ class TedeeLock extends IPSModuleStrict
             if ($found) {
                 $this->SetStatus(102);
                 $this->DA_SetAvailable(true);
+                $this->DA_ResetWatchdog(3600);
             } else {
                 $this->SetStatus(201); // Error state
                 $this->SLogError("Schloss mit ID $targetLockId wurde von der Bridge nicht gemeldet.");
