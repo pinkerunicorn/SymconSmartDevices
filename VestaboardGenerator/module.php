@@ -29,9 +29,9 @@ class VestaboardGenerator extends IPSModuleStrict {
         $this->RegisterPropertyInteger("UpdateDelayMinutes", 1);
         $this->RegisterPropertyString("SleepText", "");
 
-        $this->RegisterTimer("VestaboardUpdateTimer", 0, 'VESTA_UpdateBoard($_IPS[\'TARGET\'], false);');
-        $this->RegisterTimer("VestaboardSleepTimer", 0, 'VESTA_SendSleepText($_IPS[\'TARGET\']);');
-        $this->RegisterTimer("VestaboardWakeupTimer", 0, 'VESTA_Wakeup($_IPS[\'TARGET\']);');
+        $this->RegisterTimer("VestaboardUpdateTimer", 0, 'VESTAG_UpdateBoard($_IPS[\'TARGET\'], false);');
+        $this->RegisterTimer("VestaboardSleepTimer", 0, 'VESTAG_SendSleepText($_IPS[\'TARGET\']);');
+        $this->RegisterTimer("VestaboardWakeupTimer", 0, 'VESTAG_Wakeup($_IPS[\'TARGET\']);');
 
         for ($i = 1; $i <= 6; $i++) {
             $this->RegisterVariableString("Line{$i}", "Zeile {$i}", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'List'], $i);
