@@ -3,9 +3,12 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 
 class XeroxPrinter extends IPSModuleStrict
 {
+    use SmartLog_Trait;
+
     use DeviceAvailability_Trait;
 
     public function Create(): void
@@ -161,11 +164,7 @@ class XeroxPrinter extends IPSModuleStrict
         }
     }
 
-    protected function LogMessage(string $Message, int $Type): bool
-    {
-        IPS_LogMessage('SmartVillaKunterbunt', 'XeroxPrinter: '. $Message);
-        return true;
-    }
+    
 
     public function GetConfigurationForm(): string
     {

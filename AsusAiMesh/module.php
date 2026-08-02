@@ -1097,9 +1097,5 @@ EOT;
     // Logging
     // =========================================================================
 
-    protected function LogMessage(string $Message, int $Type): bool
-    {
-        IPS_LogMessage('SmartVillaKunterbunt', 'AsusAiMesh: ' . $Message);
-        return true;
-    }
+    
 }

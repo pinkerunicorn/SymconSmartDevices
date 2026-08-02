@@ -3,9 +3,12 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 
 class PixelblazeController extends IPSModuleStrict
 {
+    use SmartLog_Trait;
+
     use DeviceAvailability_Trait;
 
 
@@ -111,11 +114,7 @@ class PixelblazeController extends IPSModuleStrict
         }
     }
 
-    protected function LogMessage(string $Message, int $Type = KL_MESSAGE): bool
-    {
-        parent::LogMessage('PixelblazeController: ' . $Message, $Type);
-        return true;
-    }
+    
 
     public function RequestAction(string $Ident, mixed $Value): void
     {
@@ -134,7 +133,7 @@ class PixelblazeController extends IPSModuleStrict
                     $this->SetValue('Power', true);
                     $this->SetValue('Brightness', $brightness);
                     $this->UpdateVisibility(true);
-                    $this->LogMessage("Angeschaltet mit Helligkeit: " . $brightness . "%");
+                    $this->SLogInfo("Angeschaltet mit Helligkeit: " . $brightness . "%");
                 } else {
                     // Ausschalten -> Aktuelle Helligkeit speichern, dann auf 0 setzen
                     $current = $this->GetValue('Brightness');
@@ -145,7 +144,7 @@ class PixelblazeController extends IPSModuleStrict
                     $this->SetValue('Power', false);
                     $this->SetValue('Brightness', 0);
                     $this->UpdateVisibility(false);
-                    $this->LogMessage("Ausgeschaltet. Letzte Helligkeit " . $current . "% gespeichert.");
+                    $this->SLogInfo("Ausgeschaltet. Letzte Helligkeit " . $current . "% gespeichert.");
                 }
                 break;
 
@@ -156,11 +155,11 @@ class PixelblazeController extends IPSModuleStrict
                 if ($Value > 0) {
                     $this->SetValue('Power', true);
                     $this->UpdateVisibility(true);
-                    $this->LogMessage("Helligkeit auf " . $Value . "% gesetzt (Gerät AN).");
+                    $this->SLogInfo("Helligkeit auf " . $Value . "% gesetzt (Gerät AN).");
                 } else {
                     $this->SetValue('Power', false);
                     $this->UpdateVisibility(false);
-                    $this->LogMessage("Helligkeit auf 0% gesetzt (Gerät AUS).");
+                    $this->SLogInfo("Helligkeit auf 0% gesetzt (Gerät AUS).");
                 }
                 break;
 
@@ -172,9 +171,9 @@ class PixelblazeController extends IPSModuleStrict
                     $progName = $map[(int)$Value]['name'];
                     $this->SetActiveProgram($progId);
                     $this->SetValue('ActiveProgram', (int)$Value);
-                    $this->LogMessage("Programm gewechselt auf: " . $progName);
+                    $this->SLogInfo("Programm gewechselt auf: " . $progName);
                 } else {
-                    $this->LogMessage("Fehler: Programm-Index " . $Value . " nicht gefunden.");
+                    $this->SLogInfo("Fehler: Programm-Index " . $Value . " nicht gefunden.");
                 }
                 break;
 
@@ -202,7 +201,7 @@ class PixelblazeController extends IPSModuleStrict
                 $parentConfig = json_decode(IPS_GetConfiguration($parentID), true);
                 $propName = isset($parentConfig['Active']) ? 'Active' : (isset($parentConfig['Open']) ? 'Open' : '');
                 if ($propName !== '' && IPS_GetProperty($parentID, $propName)) {
-                    $this->LogMessage("Verbindung getrennt. Versuche Reconnect...");
+                    $this->SLogInfo("Verbindung getrennt. Versuche Reconnect...");
                     @IPS_SetProperty($parentID, $propName, false);
                     @IPS_ApplyChanges($parentID);
                     @IPS_SetProperty($parentID, $propName, true);
@@ -347,7 +346,7 @@ class PixelblazeController extends IPSModuleStrict
             
             IPS_SetVariableCustomProfile($this->GetIDForIdent('ActiveProgram'), $profileName);
 
-            $this->LogMessage(count($programs) . " Programme geladen und als Dropdown hinterlegt.", KL_MESSAGE);
+            $this->SLogInfo(count($programs) . " Programme geladen und als Dropdown hinterlegt.");
         }
     }
 
@@ -374,7 +373,7 @@ class PixelblazeController extends IPSModuleStrict
         if ($data) {
             $this->SendWebSocketCommand($data);
         } else {
-            $this->LogMessage("SendJsonCommand: Ungültiges JSON Format.");
+            $this->SLogInfo("SendJsonCommand: Ungültiges JSON Format.");
         }
     }
 

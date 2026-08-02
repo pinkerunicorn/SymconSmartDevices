@@ -372,10 +372,7 @@ class WithingsDevice extends IPSModuleStrict {
         return false;
     }
 
-    protected function Log(string $text): void
-    {
-        $this->SLog('INFO', $text);
-    }
+    
 
     public function FetchMeasurements(): void {
         $accessToken = $this->ReadAttributeString("AccessToken");
@@ -855,12 +852,7 @@ class WithingsDevice extends IPSModuleStrict {
         }
     }
 
-    protected function LogMessage(string $Message, int $Type): bool
-    {
-        $this->SLog('INFO', $Message);
-        IPS_LogMessage('SmartVillaKunterbunt', 'WithingsDevice: '. $Message);
-        return true;
-    }
+    
 
     public function GetConfigurationForm(): string
     {

@@ -90,7 +90,7 @@ class AirthingsWavePlus extends IPSModuleStrict
         $this->SetTimerInterval('WatchdogTimer', 0); // Stop timer until new data arrives
         $this->SetValue('Online', false);
         $this->SetValue('Alarm', true);
-        IPS_LogMessage('AirthingsWavePlus', 'Watchdog ausgelöst: Keine Daten seit ' . $this->ReadPropertyInteger('Timeout') . ' Minuten empfangen!');
+        $this->SLogInfo('AirthingsWavePlus: Watchdog ausgelöst: Keine Daten seit ' . $this->ReadPropertyInteger('Timeout') . ' Minuten empfangen!');
     }
     
     private function ResetWatchdog(): void
@@ -201,7 +201,7 @@ class AirthingsWavePlus extends IPSModuleStrict
 
             return "OK";
         } catch (Throwable $e) {
-            IPS_LogMessage('AirthingsWavePlus', 'ReceiveData Exception: ' . $e->getMessage());
+            $this->SLogError('AirthingsWavePlus: ReceiveData Exception: ' . $e->getMessage());
             return "NOK";
         }
     }

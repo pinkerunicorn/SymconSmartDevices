@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
+require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 
 class MikroTikRouter extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use DeviceAvailability_Trait;
+    use SmartHttp_Trait;
 
     public function Create(): void
     {
@@ -285,42 +287,10 @@ class MikroTikRouter extends IPSModuleStrict
         $protocol = $useHTTPS ? 'https' : 'http';
         $url = "{$protocol}://{$host}{$endpoint}";
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        curl_setopt($ch, CURLOPT_USERPWD, "{$user}:{$pass}");
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        $headers = [
+            'Authorization: Basic ' . base64_encode("{$user}:{$pass}")
+        ];
 
-        if ($payload !== null) {
-            $json = json_encode($payload);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Content-Length: ' . strlen($json)]);
-        } else {
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        }
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($response === false || $httpCode >= 400) {
-            $this->SendDebug('REST Error', "Code: {$httpCode} | Response: {$response}", 0);
-            return null;
-        }
-
-        if (empty($response)) {
-            return [];
-        }
-
-        $data = json_decode($response, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->SendDebug('REST JSON Error', json_last_error_msg(), 0);
-            return null;
-        }
-
-        return $data;
+        return $this->HttpRequest($url, $method, $headers, $payload, 10, true);
     }
 }

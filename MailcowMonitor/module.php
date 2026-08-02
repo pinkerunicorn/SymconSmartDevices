@@ -3,10 +3,14 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
+require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 
 class MailcowMonitor extends IPSModuleStrict
 {
     use DeviceAvailability_Trait;
+    use SmartHttp_Trait;
+    use SmartLog_Trait;
 
     public function Create(): void
     {
@@ -150,24 +154,15 @@ class MailcowMonitor extends IPSModuleStrict
         
         $errors = [];
 
-        // Fetch Mailcow Version
-        $ch = curl_init($url . '/api/v1/get/status/version');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $apiKey]);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $headers = ['X-API-Key: ' . $apiKey];
 
-        if ($response === false || $httpCode != 200) {
+        // Fetch Mailcow Version
+        $data = $this->HttpRequest($url . '/api/v1/get/status/version', 'GET', $headers, null, 10);
+        if ($data === null) {
             $this->DA_SetAvailable(false, 'API Fehler: Version konnte nicht geladen werden');
             return;
         }
 
-        $data = json_decode($response, true);
         if (isset($data['version'])) {
             $localVersion = $data['version'];
             $this->SetValue('Version', $localVersion);
@@ -177,19 +172,8 @@ class MailcowMonitor extends IPSModuleStrict
         }
 
         // Fetch Quarantine Count
-        $ch = curl_init($url . '/api/v1/get/quarantine/all');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $apiKey]);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($response !== false && $httpCode == 200) {
-            $data = json_decode($response, true);
+        $data = $this->HttpRequest($url . '/api/v1/get/quarantine/all', 'GET', $headers, null, 10);
+        if ($data !== null) {
             if (is_array($data)) {
                 $qCount = count($data);
                 $this->SetValue('QuarantineCount', $qCount);
@@ -201,19 +185,8 @@ class MailcowMonitor extends IPSModuleStrict
 
         // Fetch Container Status
         if ($this->ReadPropertyBoolean('MonitorContainers')) {
-            $ch = curl_init($url . '/api/v1/get/status/containers');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $apiKey]);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($response !== false && $httpCode == 200) {
-                $data = json_decode($response, true);
+            $data = $this->HttpRequest($url . '/api/v1/get/status/containers', 'GET', $headers, null, 10);
+            if ($data !== null) {
                 $allRunning = true;
                 if (is_array($data)) {
                     foreach ($data as $container) {
@@ -229,19 +202,8 @@ class MailcowMonitor extends IPSModuleStrict
 
         // Fetch Storage Usage
         if ($this->ReadPropertyBoolean('MonitorStorage')) {
-            $ch = curl_init($url . '/api/v1/get/status/vmail');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $apiKey]);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($response !== false && $httpCode == 200) {
-                $data = json_decode($response, true);
+            $data = $this->HttpRequest($url . '/api/v1/get/status/vmail', 'GET', $headers, null, 10);
+            if ($data !== null) {
                 if (isset($data['used_percent'])) {
                     $percent = (int)str_replace('%', '', $data['used_percent']);
                     $this->SetValue('StorageUsage', $percent);
@@ -254,19 +216,8 @@ class MailcowMonitor extends IPSModuleStrict
 
         // Fetch Mail Queue
         if ($this->ReadPropertyBoolean('MonitorMailQueue')) {
-            $ch = curl_init($url . '/api/v1/get/mailq/all');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-API-Key: ' . $apiKey]);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($response !== false && $httpCode == 200) {
-                $data = json_decode($response, true);
+            $data = $this->HttpRequest($url . '/api/v1/get/mailq/all', 'GET', $headers, null, 10);
+            if ($data !== null) {
                 if (is_array($data)) {
                     $queueCount = count($data);
                     $this->SetValue('MailQueue', $queueCount);
@@ -278,19 +229,9 @@ class MailcowMonitor extends IPSModuleStrict
         }
 
         // Check for Updates on Github
-        $ch = curl_init('https://api.github.com/repos/mailcow/mailcow-dockerized/releases/latest');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['User-Agent: IP-Symcon-MailcowMonitor']);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        
-        $githubResponse = curl_exec($ch);
-        $githubHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($githubResponse !== false && $githubHttpCode == 200) {
-            $githubData = json_decode($githubResponse, true);
+        $githubHeaders = ['User-Agent: IP-Symcon-MailcowMonitor'];
+        $githubData = $this->HttpRequest('https://api.github.com/repos/mailcow/mailcow-dockerized/releases/latest', 'GET', $githubHeaders, null, 5);
+        if ($githubData !== null) {
             if (isset($githubData['tag_name'])) {
                 $latestVersion = $githubData['tag_name'];
                 

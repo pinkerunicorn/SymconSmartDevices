@@ -48,7 +48,7 @@ class VestaboardLocal extends IPSModuleStrict {
         $align = $this->ReadPropertyString("AlignVertical");
 
         if (empty($localUrl) || empty($apiKey)) {
-            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: ' . "Fehler: Lokale URL oder API-Key nicht konfiguriert.");
+            $this->SLogInfo('VestaboardLocal: ' . "Fehler: Lokale URL oder API-Key nicht konfiguriert.");
             return false;
         }
 
@@ -71,7 +71,7 @@ class VestaboardLocal extends IPSModuleStrict {
         // cURL Request an die Vestaboard Cloud
         $compiledBoardArray = $this->HttpRequest($cloudUrl, 'POST', ["Content-Type: application/json"], $inputArray, 5);
         if ($compiledBoardArray === null || empty($compiledBoardArray)) {
-            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: Cloud-Kompilierung fehlgeschlagen!');
+            $this->SLogInfo('VestaboardLocal: Cloud-Kompilierung fehlgeschlagen!');
             return false;
         }
         $compiledBoardJson = json_encode($compiledBoardArray);
@@ -87,7 +87,7 @@ class VestaboardLocal extends IPSModuleStrict {
         $responseLocal = $this->HttpRequest($localUrl, 'POST', $headersLocal, $compiledBoardArray, 10, false);
         if ($responseLocal === null) {
             $this->DA_SetAvailable(false, 'Lokale API nicht erreichbar');
-            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardLocal: Lokaler API Fehler!');
+            $this->SLogInfo('VestaboardLocal: Lokaler API Fehler!');
             return false;
         }
 
@@ -95,17 +95,7 @@ class VestaboardLocal extends IPSModuleStrict {
         return true;
     }
 
-    protected function LogMessage(string $Message, int $Type): bool
-    {
-        $level = match(true) {
-            $Type >= IS_EBASE => 'ERROR',
-            $Type >= IS_WBASE => 'WARNING',
-            default           => 'INFO',
-        };
-        IPS_LogMessage('VestaboardLocal', "$level: $Message");
-        $this->DA_SetAvailable(true);
-        return true;
-    }
+    
 
     public function GetConfigurationForm(): string
     {

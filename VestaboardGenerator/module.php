@@ -2,9 +2,12 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_CentralStateAware.php';
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 
 class VestaboardGenerator extends IPSModuleStrict {
+    use SmartLog_Trait;
+
     use CentralStateAware_Trait;
     use DeviceAvailability_Trait;
 
@@ -170,15 +173,15 @@ class VestaboardGenerator extends IPSModuleStrict {
     public function PushAlert(string $text, bool $resume = false): void {
         $instId = $this->ReadPropertyInteger("InstIdVestaboardLocal");
         if ($instId <= 0 || !IPS_InstanceExists($instId)) {
-            $this->LogMessage("PushAlert: Keine gueltige Vestaboard Local Instanz.", KL_WARNING);
+            $this->SLogInfo("PushAlert: Keine gueltige Vestaboard Local Instanz.");
             return;
         }
 
-        $this->LogMessage("PushAlert: Sende Alarm-Nachricht direkt auf Board.", KL_NOTIFY);
+        $this->SLogInfo("PushAlert: Sende Alarm-Nachricht direkt auf Board.");
         try {
             VESTA_SendMessage($instId, $text);
         } catch (Exception $e) {
-            $this->LogMessage("PushAlert: Fehler beim Senden: " . $e->getMessage(), KL_ERROR);
+            $this->SLogInfo("PushAlert: Fehler beim Senden: " . $e->getMessage());
         }
 
         // Optional: normalen Board-Inhalt nach kurzer Zeit wiederherstellen
@@ -287,7 +290,7 @@ class VestaboardGenerator extends IPSModuleStrict {
 
         if ($instId > 0 && IPS_InstanceExists($instId)) {
             if ($isAbsent) {
-                IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardGenerator: Aktualisierung uebersprungen (Haus im Abwesenheitsmodus)');
+                $this->SLogInfo('VestaboardGenerator: Aktualisierung uebersprungen (Haus im Abwesenheitsmodus)');
             } elseif ($isActiveTime || $force) {
                 // Direkt die Funktion der Vestaboard Local Instanz aufrufen
                 VESTA_SendMessage($instId, $textBasis);
@@ -297,11 +300,11 @@ class VestaboardGenerator extends IPSModuleStrict {
                     $sleepText = $this->SanitizeTextForVestaboard($sleepText);
                     VESTA_SendMessage($instId, $sleepText);
                 } else {
-                    IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardGenerator: '. "Aktualisierung uebersprungen (Ruhezeit aktiv: ". $currentHour . "Uhr)");
+                    $this->SLogInfo('VestaboardGenerator: '. "Aktualisierung uebersprungen (Ruhezeit aktiv: ". $currentHour . "Uhr)");
                 }
             }
         } else {
-            IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardGenerator: '. "Keine gueltige Vestaboard Local Instanz hinterlegt.");
+            $this->SLogInfo('VestaboardGenerator: '. "Keine gueltige Vestaboard Local Instanz hinterlegt.");
         }
     }
 
@@ -607,11 +610,7 @@ class VestaboardGenerator extends IPSModuleStrict {
         $this->SetTimerInterval("VestaboardWakeupTimer", $interval);
     }
 
-    protected function LogMessage(string $Message, int $Type): bool
-    {
-        IPS_LogMessage('SmartVillaKunterbunt', 'VestaboardGenerator: '. $Message);
-        return true;
-    }
+    
 
     public function GetConfigurationForm(): string
     {
