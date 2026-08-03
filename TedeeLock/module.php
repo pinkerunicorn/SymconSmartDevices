@@ -39,7 +39,8 @@ class TedeeLock extends IPSModuleStrict
         
         $this->RegisterVariableInteger('BatteryLevel', 'Batterie', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Battery'
+            'ICON' => 'Battery',
+            'SUFFIX' => ' %'
         ], 2);
         
         $this->RegisterVariableBoolean('IsCharging', 'Wird geladen', [
@@ -90,7 +91,7 @@ class TedeeLock extends IPSModuleStrict
             [ 'IntervalMinValue' => 6, 'IntervalMaxValue' => 7, 'ConstantActive' => true, 'ConstantValue' => 'Gesperrt', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'LockClosed', 'ColorActive' => true, 'ColorValue' => 0x00CC00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 7, 'IntervalMaxValue' => 8, 'ConstantActive' => true, 'ConstantValue' => 'Falle gezogen', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Door', 'ColorActive' => true, 'ColorValue' => 0x00AAFF, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 8, 'IntervalMaxValue' => 9, 'ConstantActive' => true, 'ConstantValue' => 'Falle zieht...', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Door', 'ColorActive' => true, 'ColorValue' => 0x0066CC, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-            [ 'IntervalMinValue' => 9, 'IntervalMaxValue' => 18, 'ConstantActive' => true, 'ConstantValue' => 'Unbekannt', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Information', 'ColorActive' => true, 'ColorValue' => -1, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+            [ 'IntervalMinValue' => 9, 'IntervalMaxValue' => 18, 'ConstantActive' => true, 'ConstantValue' => 'Unbekannt', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Information', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 18, 'IntervalMaxValue' => 19, 'ConstantActive' => true, 'ConstantValue' => 'Aktualisiert...', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Gear', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ]
         ]);
 
@@ -120,20 +121,8 @@ class TedeeLock extends IPSModuleStrict
             IPS_DeleteVariableProfile('Tedee.Battery');
         }
 
-        $batteryIntervals = json_encode([
-            [ 'IntervalMinValue' => 0, 'IntervalMaxValue' => 101, 'ConstantActive' => false, 'ConstantValue' => '', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => true, 'SuffixValue' => ' %', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Battery', 'ColorActive' => false, 'ColorValue' => -1, 'ContentColorActive' => false, 'ContentColorValue' => -1 ]
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('BatteryLevel'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Battery',
-            'COLOR' => -1,
-            'CONTENT_COLOR' => -1,
-            'DISPLAY_TYPE' => 0,
-            'PREVIEW_STYLE' => 1,
-            'SHOW_PREVIEW' => true,
-            'INTERVALS_ACTIVE' => true,
-            'INTERVALS' => $batteryIntervals
-        ]);
+        // To make sure any previously incorrectly set custom presentation for battery is cleared:
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('BatteryLevel'), []);
         IPS_SetVariableCustomProfile($this->GetIDForIdent('BatteryLevel'), '');
 
         $chargingOptions = json_encode([
