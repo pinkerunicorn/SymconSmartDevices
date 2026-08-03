@@ -150,7 +150,7 @@ class EMSESPDevice extends IPSModuleStrict
                     $value = (float)$value;
                 }
                 if ($isWritable) {
-                    $profile = '~Temperature';
+                    $profile = ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Temperature', 'SUFFIX' => ' °C', 'DECIMALPLACES' => 1];
                 }
             } elseif (is_int($value)) {
                 $type = 1; // Integer
