@@ -83,7 +83,7 @@ class BuderusHeatingTile extends IPSModuleStrict
         $this->RegisterVariableMessages($sourceID);
 
         $this->SetStatus(102); // Aktiv
-        $this->DA_ApplyPresentation();
+
     }
 
     private function RegisterVariableMessages(int $instanceID): void

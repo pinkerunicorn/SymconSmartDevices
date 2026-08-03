@@ -41,7 +41,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
-        $this->DA_ApplyPresentation();
+
         }
         $list_SonosInstances = json_decode($this->ReadPropertyString('SonosInstances'), true);
         if (is_array($list_SonosInstances)) {

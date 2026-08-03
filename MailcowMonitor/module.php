@@ -38,9 +38,28 @@ class MailcowMonitor extends IPSModuleStrict
             'ICON'         => 'Information'
         ], 1);
 
+        $updateOptions = json_encode([
+            [
+                'Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'check', 'IconActive' => true,
+                'ColorActive' => true, 'ColorDisplay' => 0x00FF00, 'ContentColorActive' => false,
+                'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00FF00
+            ],
+            [
+                'Value' => true, 'Caption' => 'Update verfügbar', 'IconValue' => 'Warning', 'IconActive' => true,
+                'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false,
+                'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000
+            ]
+        ]);
+
         $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfügbar', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Information'
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON'         => 'Information',
+            'COLOR'        => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS'      => $updateOptions
         ], 2);
 
         $this->RegisterVariableInteger('QuarantineCount', 'Quarantäne Einträge', [
@@ -58,30 +77,7 @@ class MailcowMonitor extends IPSModuleStrict
     {
         parent::ApplyChanges();
 
-        $this->DA_ApplyPresentation();
 
-        $updateOptions = json_encode([
-            [
-                'Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'check', 'IconActive' => true,
-                'ColorActive' => true, 'ColorDisplay' => 0x00FF00, 'ContentColorActive' => false,
-                'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00FF00
-            ],
-            [
-                'Value' => true, 'Caption' => 'Update verfügbar', 'IconValue' => 'Warning', 'IconActive' => true,
-                'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false,
-                'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000
-            ]
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('UpdateAvailable'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON'         => 'Information',
-            'COLOR'        => -1,
-            'CONTENT_COLOR' => -1,
-            'DISPLAY_TYPE' => 0,
-            'PREVIEW_STYLE' => 1,
-            'SHOW_PREVIEW' => true,
-            'OPTIONS'      => $updateOptions
-        ]);
 
         if ($this->ReadPropertyBoolean('MonitorContainers')) {
             $containerOptions = json_encode([

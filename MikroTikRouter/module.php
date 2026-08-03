@@ -33,14 +33,54 @@ class MikroTikRouter extends IPSModuleStrict
         $this->RegisterTimer('CheckUpdateTimer', 0, 'MIKROTIK_CheckForUpdate($_IPS[\'TARGET\']);');
 
         // Monitoring Variables (Read-Only)
-        $this->RegisterVariableFloat('CPU', 'CPU', '', 1);
-        $this->RegisterVariableFloat('RAM', 'RAM', '', 2);
-        $this->RegisterVariableFloat('Temperature', 'Temperatur', '', 3);
-        $this->RegisterVariableString('BoardName', 'Modell', '', 4);
-        $this->RegisterVariableString('FirmwareVersion', 'Firmware', '', 5);
-        $this->RegisterVariableString('Uptime', 'Uptime', '', 6);
-        $this->RegisterVariableBoolean('UpdateAvailable', 'OS-Update verfügbar', '', 10);
-        $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', '', 999);
+        $this->RegisterVariableFloat('CPU', 'CPU', [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Gauge',
+            'SUFFIX' => ' %',
+            'SHOW_PREVIEW' => true
+        ], 1);
+        $this->RegisterVariableFloat('RAM', 'RAM', [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Gauge',
+            'SUFFIX' => ' %',
+            'SHOW_PREVIEW' => true
+        ], 2);
+        $this->RegisterVariableFloat('Temperature', 'Temperatur', [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Temperature',
+            'SUFFIX' => ' °C',
+            'SHOW_PREVIEW' => true
+        ], 3);
+        $this->RegisterVariableString('BoardName', 'Modell', [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Information',
+            'SHOW_PREVIEW' => true
+        ], 4);
+        $this->RegisterVariableString('FirmwareVersion', 'Firmware', [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Information',
+            'SHOW_PREVIEW' => true
+        ], 5);
+        $this->RegisterVariableString('Uptime', 'Uptime', [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Clock',
+            'SHOW_PREVIEW' => true
+        ], 6);
+
+        $updateOptions = json_encode([
+            ['Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'Ok', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC44, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC44],
+            ['Value' => true, 'Caption' => 'Verfügbar', 'IconValue' => 'Repeat', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF8800, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF8800]
+        ]);
+        $this->RegisterVariableBoolean('UpdateAvailable', 'OS-Update verfügbar', [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Repeat',
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $updateOptions
+        ], 10);
+        $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Clock'
+        ], 999);
 
         $actionPres = [
             'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
@@ -69,57 +109,7 @@ class MikroTikRouter extends IPSModuleStrict
     {
         parent::ApplyChanges();
 
-        // Custom Presentations
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('CPU'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Gauge',
-            'SUFFIX' => ' %',
-            'SHOW_PREVIEW' => true
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('RAM'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Gauge',
-            'SUFFIX' => ' %',
-            'SHOW_PREVIEW' => true
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Temperature'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Temperature',
-            'SUFFIX' => ' °C',
-            'SHOW_PREVIEW' => true
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('BoardName'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Information',
-            'SHOW_PREVIEW' => true
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('FirmwareVersion'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Information',
-            'SHOW_PREVIEW' => true
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Uptime'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Clock',
-            'SHOW_PREVIEW' => true
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('LastUpdate'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Clock'
-        ]);
 
-        $updateOptions = json_encode([
-            ['Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'Ok', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC44, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC44],
-            ['Value' => true, 'Caption' => 'Verfügbar', 'IconValue' => 'Repeat', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF8800, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF8800]
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('UpdateAvailable'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Repeat',
-            'SHOW_PREVIEW' => true,
-            'OPTIONS' => $updateOptions
-        ]);
-
-        $this->DA_ApplyPresentation();
 
         if (empty($this->ReadPropertyString('Host'))) {
             $this->SetStatus(104);

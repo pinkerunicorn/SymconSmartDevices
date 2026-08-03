@@ -136,7 +136,7 @@ class TedeeLock extends IPSModuleStrict
         if (!empty($baseUrl)) {
             $this->RegisterWebhookAtBridge();
         }
-        $this->DA_ApplyPresentation();
+
     }
 
 

@@ -53,7 +53,7 @@ class EMSESPDevice extends IPSModuleStrict
 
         $topic = $this->ReadPropertyString('MQTTTopic');
         $this->SetReceiveDataFilter('.*' . preg_quote($topic, '.') . '.*');
-        $this->DA_ApplyPresentation();
+
     }
 
     public function ReceiveData(string $JSONString): string
@@ -158,19 +158,7 @@ class EMSESPDevice extends IPSModuleStrict
             }
         }
 
-        switch ($type) {
-            case 0: $this->RegisterVariableBoolean($ident, $name, $profile, 0); break;
-            case 1: $this->RegisterVariableInteger($ident, $name, $profile, 0); break;
-            case 2: $this->RegisterVariableFloat($ident, $name, $profile, 0); break;
-            case 3: $this->RegisterVariableString($ident, $name, $profile, 0); break;
-        }
-        
-        $varID = $this->GetIDForIdent($ident);
-
-        if (!$varID) {
-            return;
-        }
-
+        $presArray = [];
         if ($isWritable) {
             $this->EnableAction($ident);
             if ($profile === 'EMSESP.Mode') {
@@ -179,17 +167,14 @@ class EMSESPDevice extends IPSModuleStrict
                     ['Value' => 1, 'Caption' => 'Manuell', 'IconActive' => true, 'IconValue' => 'user', 'Color' => -1],
                     ['Value' => 2, 'Caption' => 'Aus', 'IconActive' => true, 'IconValue' => 'power', 'Color' => -1]
                 ]);
-                IPS_SetVariableCustomPresentation($varID, [
+                $presArray = [
                     'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
                     'ICON' => 'cog',
                     'OPTIONS' => $modeOptions
-                ]);
-                IPS_SetVariableCustomProfile($varID, '');
-            } elseif ($profile !== '') {
-                IPS_SetVariableCustomProfile($varID, $profile);
+                ];
+                $profile = '';
             }
         } else {
-            // Apply Custom Presentation for Read-Only variables (Symcon 8 standard)
             if (is_bool($value)) {
                 $boolOptions = json_encode([
                     ['Value' => false, 'Caption' => 'Aus', 'IconValue' => 'power', 'IconActive' => true,
@@ -199,7 +184,7 @@ class EMSESPDevice extends IPSModuleStrict
                      'ColorActive' => true, 'ColorDisplay' => 0x00FF00, 'ContentColorActive' => false,
                      'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00FF00]
                 ]);
-                IPS_SetVariableCustomPresentation($varID, [
+                $presArray = [
                     'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
                     'ICON' => $icon ?: 'power',
                     'COLOR' => -1,
@@ -208,22 +193,38 @@ class EMSESPDevice extends IPSModuleStrict
                     'PREVIEW_STYLE' => 1,
                     'SHOW_PREVIEW' => true,
                     'OPTIONS' => $boolOptions
-                ]);
+                ];
             } else {
-                $presConfig = [
+                $presArray = [
                     'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}'
                 ];
                 if ($icon !== '') {
-                    $presConfig['ICON'] = $icon;
+                    $presArray['ICON'] = $icon;
                 }
                 if (isset($keyInfo['suffix'])) {
-                    $presConfig['SUFFIX'] = $keyInfo['suffix'];
+                    $presArray['SUFFIX'] = $keyInfo['suffix'];
                 }
                 if (isset($keyInfo['decimals'])) {
-                    $presConfig['DECIMALS'] = $keyInfo['decimals'];
+                    $presArray['DECIMALS'] = $keyInfo['decimals'];
                 }
-                IPS_SetVariableCustomPresentation($varID, $presConfig);
             }
+        }
+
+        switch ($type) {
+            case 0: $this->RegisterVariableBoolean($ident, $name, $presArray ?: $profile, 0); break;
+            case 1: $this->RegisterVariableInteger($ident, $name, $presArray ?: $profile, 0); break;
+            case 2: $this->RegisterVariableFloat($ident, $name, $presArray ?: $profile, 0); break;
+            case 3: $this->RegisterVariableString($ident, $name, $presArray ?: $profile, 0); break;
+        }
+
+        $varID = $this->GetIDForIdent($ident);
+
+        if (!$varID) {
+            return;
+        }
+
+        if ($isWritable && $profile !== '') {
+            IPS_SetVariableCustomProfile($varID, $profile);
         }
 
         $this->SetValue($ident, $value);

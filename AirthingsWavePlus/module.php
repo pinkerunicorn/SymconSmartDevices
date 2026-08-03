@@ -23,8 +23,35 @@ class AirthingsWavePlus extends IPSModuleStrict
         $this->SetReceiveDataFilter('.*' . preg_quote($this->ReadPropertyString('MQTTBaseTopic')) . '.*');
 
         // Variables
-        $this->RegisterVariableBoolean('Online', 'Online', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Network']);
-        $this->RegisterVariableBoolean('Alarm', 'Alarm', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Alert']);
+        $onlineOptions = json_encode([
+            ['Value' => false, 'Caption' => 'Offline', 'IconValue' => 'Network', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000],
+            ['Value' => true, 'Caption' => 'Online', 'IconValue' => 'Network', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
+        ]);
+        $this->RegisterVariableBoolean('Online', 'Online', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Network',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $onlineOptions
+        ]);
+        
+        $alarmOptions = json_encode([
+            ['Value' => false, 'Caption' => 'OK', 'IconValue' => 'Alert', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00],
+            ['Value' => true, 'Caption' => 'Alarm!', 'IconValue' => 'Alert', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000]
+        ]);
+        $this->RegisterVariableBoolean('Alarm', 'Alarm', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Alert',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $alarmOptions
+        ]);
         $this->RegisterVariableFloat('AirTemp', 'Temperatur', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' °C', 'ICON' => 'Temperature']);
         $this->RegisterVariableFloat('AirHum', 'Luftfeuchtigkeit', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' %', 'ICON' => 'Drops']);
         $this->RegisterVariableFloat('AirPress', 'Luftdruck', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' hPa', 'ICON' => 'Gauge']);
@@ -47,41 +74,12 @@ class AirthingsWavePlus extends IPSModuleStrict
         $topic = $this->ReadPropertyString('MQTTBaseTopic');
         $this->SetReceiveDataFilter('.*' . preg_quote($topic) . '.*');
 
-        $onlineOptions = json_encode([
-            ['Value' => false, 'Caption' => 'Offline', 'IconValue' => 'Network', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000],
-            ['Value' => true, 'Caption' => 'Online', 'IconValue' => 'Network', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Online'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Network',
-            'COLOR' => -1,
-            'CONTENT_COLOR' => -1,
-            'DISPLAY_TYPE' => 0,
-            'PREVIEW_STYLE' => 1,
-            'SHOW_PREVIEW' => true,
-            'OPTIONS' => $onlineOptions
-        ]);
-
-        $alarmOptions = json_encode([
-            ['Value' => false, 'Caption' => 'OK', 'IconValue' => 'Alert', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00],
-            ['Value' => true, 'Caption' => 'Alarm!', 'IconValue' => 'Alert', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000]
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Alarm'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Alert',
-            'COLOR' => -1,
-            'CONTENT_COLOR' => -1,
-            'DISPLAY_TYPE' => 0,
-            'PREVIEW_STYLE' => 1,
-            'SHOW_PREVIEW' => true,
-            'OPTIONS' => $alarmOptions
-        ]);
 
         // Reset Watchdog Timer if enabled
         $this->ResetWatchdog();
                 $this->DA_ResetWatchdog(1800);
                 $this->DA_SetAvailable(true);
-        $this->DA_ApplyPresentation();
+
     }
     
     public function WatchdogTriggered(): void

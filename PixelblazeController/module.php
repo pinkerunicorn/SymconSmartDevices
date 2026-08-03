@@ -100,11 +100,11 @@ class PixelblazeController extends IPSModuleStrict
                     'Color' => -1
                 ];
             }
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveProgram'), [
+            $this->RegisterVariableInteger('ActiveProgram', 'Programm', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
                 'ICON' => 'Script',
                 'OPTIONS' => json_encode($options)
-            ]);
+            ], 30);
             IPS_SetVariableCustomProfile($this->GetIDForIdent('ActiveProgram'), '');
         }
 
@@ -118,7 +118,7 @@ class PixelblazeController extends IPSModuleStrict
         }
         
         $this->UpdateVisibility($this->GetValue('Power'));
-        $this->DA_ApplyPresentation();
+
     }
 
     private function UpdateVisibility(bool $isVisible): void
@@ -367,11 +367,11 @@ class PixelblazeController extends IPSModuleStrict
                 ];
             }
             
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveProgram'), [
+            $this->RegisterVariableInteger('ActiveProgram', 'Programm', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
                 'ICON' => 'Script',
                 'OPTIONS' => json_encode($options)
-            ]);
+            ], 30);
             IPS_SetVariableCustomProfile($this->GetIDForIdent('ActiveProgram'), '');
 
             $this->SLogInfo(count($programs) . " Programme geladen und als Dropdown hinterlegt.");

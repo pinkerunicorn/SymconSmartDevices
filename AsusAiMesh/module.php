@@ -43,9 +43,24 @@ class AsusAiMesh extends IPSModuleStrict
             'ICON'         => 'Network'
         ], 1);
 
+        $fwOptions = json_encode([
+            ['Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'Ok', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0x00CC44, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC44],
+            ['Value' => true, 'Caption' => 'Update verfügbar', 'IconValue' => 'Repeat', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0xFF8800, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF8800]
+        ]);
+
         $this->RegisterVariableBoolean('FirmwareUpdate', 'Firmware-Update verfügbar', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Repeat'
+            'PRESENTATION'  => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON'          => 'Repeat',
+            'COLOR'         => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE'  => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW'  => true,
+            'OPTIONS'       => $fwOptions
         ], 5);
 
         $onOffPres = [
@@ -208,7 +223,6 @@ class AsusAiMesh extends IPSModuleStrict
         }
 
         // DeviceAvailability Presentation
-        $this->DA_ApplyPresentation();
 
         // Setup Dummy Modules and Node Variables
         $this->RegisterNodeVariables();
@@ -220,24 +234,7 @@ class AsusAiMesh extends IPSModuleStrict
         }
 
         // Firmware Update Presentation
-        $fwOptions = json_encode([
-            ['Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'Ok', 'IconActive' => true,
-             'ColorActive' => true, 'ColorDisplay' => 0x00CC44, 'ContentColorActive' => false,
-             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC44],
-            ['Value' => true, 'Caption' => 'Update verfügbar', 'IconValue' => 'Repeat', 'IconActive' => true,
-             'ColorActive' => true, 'ColorDisplay' => 0xFF8800, 'ContentColorActive' => false,
-             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF8800]
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('FirmwareUpdate'), [
-            'PRESENTATION'  => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON'          => 'Repeat',
-            'COLOR'         => -1,
-            'CONTENT_COLOR' => -1,
-            'DISPLAY_TYPE'  => 0,
-            'PREVIEW_STYLE' => 1,
-            'SHOW_PREVIEW'  => true,
-            'OPTIONS'       => $fwOptions
-        ]);
+
 
         // Start timer
         $interval = $this->ReadPropertyInteger('UpdateInterval');

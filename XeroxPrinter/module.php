@@ -92,7 +92,7 @@ class XeroxPrinter extends IPSModuleStrict
         } else {
             $this->SetTimerInterval('UpdateTimer', 0);
         }
-        $this->DA_ApplyPresentation();
+
     }
 
     public function UpdateStatus(): void

@@ -34,7 +34,7 @@ class VestaboardLocal extends IPSModuleStrict {
         } else {
             $this->SetStatus(102); // IS_ACTIVE
         }
-        $this->DA_ApplyPresentation();
+
     }
 
     /**

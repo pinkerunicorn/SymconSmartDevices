@@ -74,15 +74,15 @@ class WithingsDevice extends IPSModuleStrict {
 
         $this->RegisterTimer("FetchTimer", 0, 'WITHINGS_FetchMeasurements($_IPS[\'TARGET\']);');
 
-        $this->RegisterVariableString("ConnectionStatus", "Verbindungsstatus", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION], -1);
-        $this->RegisterVariableString("LastMeasurement", "Letzte Messung", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION], 0);
-        $this->RegisterVariableString("DeviceBattery", "Geräte-Akku", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION], 1);
-        $this->RegisterVariableString("DailyReport", "Gemini Analyse", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION], 99);
-        $this->RegisterVariableString("GeminiInsight1", "Insight 1", "", 10);
-        $this->RegisterVariableString("GeminiInsight2", "Insight 2", "", 11);
-        $this->RegisterVariableString("GeminiInsight3", "Insight 3", "", 12);
-        $this->RegisterVariableString("GeminiInsight4", "Insight 4", "", 13);
-        $this->RegisterVariableString("GeminiInsight5", "Insight 5", "", 14);
+        $this->RegisterVariableString("ConnectionStatus", "Verbindungsstatus", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Network'], -1);
+        $this->RegisterVariableString("LastMeasurement", "Letzte Messung", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 0);
+        $this->RegisterVariableString("DeviceBattery", "Geräte-Akku", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Battery'], 1);
+        $this->RegisterVariableString("DailyReport", "Gemini Analyse", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Book'], 99);
+        $this->RegisterVariableString("GeminiInsight1", "Insight 1", ['ICON' => 'Information'], 10);
+        $this->RegisterVariableString("GeminiInsight2", "Insight 2", ['ICON' => 'Information'], 11);
+        $this->RegisterVariableString("GeminiInsight3", "Insight 3", ['ICON' => 'Information'], 12);
+        $this->RegisterVariableString("GeminiInsight4", "Insight 4", ['ICON' => 'Information'], 13);
+        $this->RegisterVariableString("GeminiInsight5", "Insight 5", ['ICON' => 'Information'], 14);
     }
 
     public function ApplyChanges(): void {
@@ -111,9 +111,8 @@ class WithingsDevice extends IPSModuleStrict {
         $this->SetTimerInterval("FetchTimer", $interval * 60 * 1000);
 
         $this->UpdatePresentations();
-        $this->UpdateStatusIcons();
         $this->UpdateConnectionStatus();
-        $this->DA_ApplyPresentation();
+
     }
 
     /**
@@ -142,37 +141,6 @@ class WithingsDevice extends IPSModuleStrict {
         }
     }
 
-    /**
-     * Setzt Icons und Presentations für die Status-Variablen (ConnectionStatus, LastMeasurement, DeviceBattery, DailyReport).
-     */
-    private function UpdateStatusIcons(): void {
-        $iconMap = [
-            'ConnectionStatus' => 'Network',
-            'LastMeasurement'  => 'Clock',
-            'DeviceBattery'    => 'Battery',
-            'DailyReport'      => 'Book',
-            'GeminiInsight1'   => 'Information',
-            'GeminiInsight2'   => 'Information',
-            'GeminiInsight3'   => 'Information',
-            'GeminiInsight4'   => 'Information',
-            'GeminiInsight5'   => 'Information',
-        ];
-
-        foreach ($iconMap as $ident => $icon) {
-            $varID = @IPS_GetObjectIDByIdent($ident, $this->InstanceID);
-            if ($varID !== false) {
-                IPS_SetIcon($varID, $icon);
-            }
-        }
-
-        // DailyReport bekommt zusätzlich die VALUE_PRESENTATION für Markdown-Anzeige
-        $reportID = @IPS_GetObjectIDByIdent('DailyReport', $this->InstanceID);
-        if ($reportID !== false) {
-            IPS_SetVariableCustomPresentation($reportID, [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION
-            ]);
-        }
-    }
 
     protected function RegisterHook(string $HookPath): bool {
         $ids = IPS_GetInstanceListByModuleID("{015A6EB8-D6E5-4B93-B496-0D3F77AE9FE1}");
@@ -649,18 +617,16 @@ class WithingsDevice extends IPSModuleStrict {
                 $type = (int)substr($ident, 8);
                 $config = $this->GetMeasurementConfig($type);
                 
-                IPS_SetName($childID, $config['name']);
-                
+                $presentation = [];
                 if ($config['suffix'] != "") {
-                    IPS_SetVariableCustomPresentation($childID, [
-                        'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                        'SUFFIX' => ' ' . $config['suffix']
-                    ]);
+                    $presentation['PRESENTATION'] = VARIABLE_PRESENTATION_VALUE_PRESENTATION;
+                    $presentation['SUFFIX'] = ' ' . $config['suffix'];
+                }
+                if ($config['icon'] != "") {
+                    $presentation['ICON'] = $config['icon'];
                 }
                 
-                if ($config['icon'] != "") {
-                    IPS_SetIcon($childID, $config['icon']);
-                }
+                $this->RegisterVariableFloat($ident, $config['name'], $presentation, 0);
             }
         }
     }
