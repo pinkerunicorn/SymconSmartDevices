@@ -22,19 +22,19 @@ class PixelblazeController extends IPSModuleStrict
         $this->RegisterPropertyInteger('AutoReconnectInterval', 30);
         $this->RegisterPropertyInteger('FetchStateInterval', 10);
 
-        // Internes Attribut für die letzte Helligkeit vor dem Ausschalten
+        // Internes Attribut fÃ¼r die letzte Helligkeit vor dem Ausschalten
         $this->RegisterAttributeInteger('LastBrightness', 50);
-        // Internes Attribut für die Programmliste (Map von Index -> String ID)
+        // Internes Attribut fÃ¼r die Programmliste (Map von Index -> String ID)
         $this->RegisterAttributeString('ProgramMap', '[]');
 
         // Variablen
-        $this->RegisterVariableBoolean('Power', '💡 Status', [
+        $this->RegisterVariableBoolean('Power', 'ðŸ’¡ Status', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
             'ICON' => 'Power'
         ], 10);
         $this->EnableAction('Power');
 
-        $this->RegisterVariableInteger('Brightness', '🔆 Helligkeit', [
+        $this->RegisterVariableInteger('Brightness', 'ðŸ”† Helligkeit', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
             'ICON' => 'Sun',
             'MIN' => 0.0,
@@ -49,7 +49,7 @@ class PixelblazeController extends IPSModuleStrict
 
         $this->RegisterVariableString('ActiveProgramName', 'Aktuelles Programm (Name)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 35);
 
-        // Timer für Auto-Reconnect
+        // Timer fÃ¼r Auto-Reconnect
         $this->RegisterTimer('ReconnectTimer', 0, 'PB_Reconnect($_IPS[\'TARGET\']);');
         $this->RegisterTimer('FetchStateTimer', 0, 'PB_FetchState($_IPS[\'TARGET\']);');
     }
@@ -69,8 +69,9 @@ class PixelblazeController extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        $this->DA_ApplyPresentation();
 
-        // Alte String-Variable löschen falls vorhanden
+        // Alte String-Variable lÃ¶schen falls vorhanden
         $oldVar = @$this->GetIDForIdent('ActiveProgramID');
         if ($oldVar > 0) {
             $this->UnregisterVariable('ActiveProgramID');
@@ -177,11 +178,11 @@ class PixelblazeController extends IPSModuleStrict
                 if ($Value > 0) {
                     $this->SetValue('Power', true);
                     $this->UpdateVisibility(true);
-                    $this->SLogInfo("Helligkeit auf " . $Value . "% gesetzt (Gerät AN).");
+                    $this->SLogInfo("Helligkeit auf " . $Value . "% gesetzt (GerÃ¤t AN).");
                 } else {
                     $this->SetValue('Power', false);
                     $this->UpdateVisibility(false);
-                    $this->SLogInfo("Helligkeit auf 0% gesetzt (Gerät AUS).");
+                    $this->SLogInfo("Helligkeit auf 0% gesetzt (GerÃ¤t AUS).");
                 }
                 break;
 
@@ -250,7 +251,7 @@ class PixelblazeController extends IPSModuleStrict
         // WebSocket Client Data ID
         if ($data['DataID'] == '{018EF6B5-AB94-40C6-AA53-46943E824ACF}') {
             $bufferRaw = trim($data['Buffer']);
-            // Ab IP-Symcon 6 wird der Buffer oft als HEX-String übergeben
+            // Ab IP-Symcon 6 wird der Buffer oft als HEX-String Ã¼bergeben
             $buffer = (ctype_xdigit($bufferRaw)) ? hex2bin($bufferRaw) : $bufferRaw;
 
             // Prfe auf JSON Text-Frame (Status Updates etc.)
@@ -401,7 +402,7 @@ class PixelblazeController extends IPSModuleStrict
         if ($data) {
             $this->SendWebSocketCommand($data);
         } else {
-            $this->SLogInfo("SendJsonCommand: Ungültiges JSON Format.");
+            $this->SLogInfo("SendJsonCommand: UngÃ¼ltiges JSON Format.");
         }
     }
 
@@ -438,7 +439,7 @@ class PixelblazeController extends IPSModuleStrict
     "elements": [
         {
             "type": "Label",
-            "label": "Hier stellst du ein, wie oft das Modul im Hintergrund arbeiten soll. Du kannst das Auto-Reconnect Intervall für Verbindungsabbrüche und das Intervall für die Status-Abfrage anpassen."
+            "label": "Hier stellst du ein, wie oft das Modul im Hintergrund arbeiten soll. Du kannst das Auto-Reconnect Intervall fÃ¼r VerbindungsabbrÃ¼che und das Intervall fÃ¼r die Status-Abfrage anpassen."
         },
         {
             "type": "RowLayout",
@@ -459,11 +460,11 @@ class PixelblazeController extends IPSModuleStrict
     "actions": [
         {
             "type": "Label",
-            "label": "Hier kannst du die auf dem Pixelblaze gespeicherten Programme abrufen, damit du sie in der Oberfläche bequem auswählen kannst."
+            "label": "Hier kannst du die auf dem Pixelblaze gespeicherten Programme abrufen, damit du sie in der OberflÃ¤che bequem auswÃ¤hlen kannst."
         },
         {
             "type": "Button",
-            "label": "Programme vom Gerät laden",
+            "label": "Programme vom GerÃ¤t laden",
             "onClick": "PB_FetchPrograms($id);"
         }
     ],

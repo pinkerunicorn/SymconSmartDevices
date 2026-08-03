@@ -45,14 +45,14 @@ class MailcowMonitor extends IPSModuleStrict
                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00FF00
             ],
             [
-                'Value' => true, 'Caption' => 'Update verfügbar', 'IconValue' => 'Warning', 'IconActive' => true,
+                'Value' => true, 'Caption' => 'Update verfÃƒÂ¼gbar', 'IconValue' => 'Warning', 'IconActive' => true,
                 'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false,
                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000
             ]
         ]);
 
-        $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfügbar', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+        $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfÃƒÂ¼gbar', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Information',
             'COLOR'        => -1,
             'CONTENT_COLOR' => -1,
@@ -62,7 +62,7 @@ class MailcowMonitor extends IPSModuleStrict
             'OPTIONS'      => $updateOptions
         ], 2);
 
-        $this->RegisterVariableInteger('QuarantineCount', 'Quarantäne Einträge', [
+        $this->RegisterVariableInteger('QuarantineCount', 'QuarantÃƒÂ¤ne EintrÃƒÂ¤ge', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Warning'
         ], 3);
@@ -76,6 +76,7 @@ class MailcowMonitor extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        $this->DA_ApplyPresentation();
 
 
 
@@ -93,7 +94,7 @@ class MailcowMonitor extends IPSModuleStrict
                 ]
             ]);
             $this->RegisterVariableBoolean('ContainersRunning', 'Container Status', [
-                'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
                 'ICON'         => 'Network',
                 'COLOR'        => -1,
                 'CONTENT_COLOR' => -1,
@@ -108,7 +109,7 @@ class MailcowMonitor extends IPSModuleStrict
 
         if ($this->ReadPropertyBoolean('MonitorStorage')) {
             $this->RegisterVariableInteger('StorageUsage', 'vMail Auslastung', [
-                'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
                 'ICON'         => 'Database',
                 'SUFFIX'       => '%'
             ], 6);
@@ -118,7 +119,7 @@ class MailcowMonitor extends IPSModuleStrict
 
         if ($this->ReadPropertyBoolean('MonitorMailQueue')) {
             $this->RegisterVariableInteger('MailQueue', 'Mail Warteschlange', [
-                'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
                 'ICON'         => 'Mail'
             ], 7);
         } else {
@@ -166,7 +167,7 @@ class MailcowMonitor extends IPSModuleStrict
             $localVersion = $data['version'];
             $this->SetValue('Version', $localVersion);
         } else {
-            $this->DA_SetAvailable(false, 'Ungültige API Antwort (Version)');
+            $this->DA_SetAvailable(false, 'UngÃƒÂ¼ltige API Antwort (Version)');
             return;
         }
 
@@ -177,7 +178,7 @@ class MailcowMonitor extends IPSModuleStrict
                 $qCount = count($data);
                 $this->SetValue('QuarantineCount', $qCount);
                 if ($qCount > 0 && $this->ReadPropertyBoolean('AlarmOnQuarantine')) {
-                    $errors[] = 'Mails in Quarantäne (' . $qCount . ')';
+                    $errors[] = 'Mails in QuarantÃƒÂ¤ne (' . $qCount . ')';
                 }
             }
         }
@@ -238,7 +239,7 @@ class MailcowMonitor extends IPSModuleStrict
                 if (strcmp($latestVersion, $localVersion) > 0) {
                     $this->SetValue('UpdateAvailable', true);
                     if ($this->ReadPropertyBoolean('AlarmOnUpdate')) {
-                        $errors[] = 'Update verfügbar (' . $latestVersion . ')';
+                        $errors[] = 'Update verfÃƒÂ¼gbar (' . $latestVersion . ')';
                     }
                 } else {
                     $this->SetValue('UpdateAvailable', false);

@@ -34,51 +34,51 @@ class MikroTikRouter extends IPSModuleStrict
 
         // Monitoring Variables (Read-Only)
         $this->RegisterVariableFloat('CPU', 'CPU', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Gauge',
             'SUFFIX' => ' %',
             'SHOW_PREVIEW' => true
         ], 1);
         $this->RegisterVariableFloat('RAM', 'RAM', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Gauge',
             'SUFFIX' => ' %',
             'SHOW_PREVIEW' => true
         ], 2);
         $this->RegisterVariableFloat('Temperature', 'Temperatur', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Temperature',
-            'SUFFIX' => ' °C',
+            'SUFFIX' => ' Ã‚Â°C',
             'SHOW_PREVIEW' => true
         ], 3);
         $this->RegisterVariableString('BoardName', 'Modell', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Information',
             'SHOW_PREVIEW' => true
         ], 4);
         $this->RegisterVariableString('FirmwareVersion', 'Firmware', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Information',
             'SHOW_PREVIEW' => true
         ], 5);
         $this->RegisterVariableString('Uptime', 'Uptime', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Clock',
             'SHOW_PREVIEW' => true
         ], 6);
 
         $updateOptions = json_encode([
             ['Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'Ok', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC44, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC44],
-            ['Value' => true, 'Caption' => 'Verfügbar', 'IconValue' => 'Repeat', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF8800, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF8800]
+            ['Value' => true, 'Caption' => 'VerfÃƒÂ¼gbar', 'IconValue' => 'Repeat', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF8800, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF8800]
         ]);
-        $this->RegisterVariableBoolean('UpdateAvailable', 'OS-Update verfügbar', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+        $this->RegisterVariableBoolean('UpdateAvailable', 'OS-Update verfÃƒÂ¼gbar', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Repeat',
             'SHOW_PREVIEW' => true,
             'OPTIONS' => $updateOptions
         ], 10);
         $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Clock'
         ], 999);
 
@@ -87,12 +87,12 @@ class MikroTikRouter extends IPSModuleStrict
             'ICON'         => 'Execute',
             'OPTIONS'      => json_encode([
                 ['Value' => 0, 'Caption' => 'Bereit', 'IconActive' => true, 'IconValue' => 'Ok', 'Color' => 0x00CC44],
-                ['Value' => 1, 'Caption' => 'Ausführen!', 'IconActive' => true, 'IconValue' => 'Warning', 'Color' => 0xFF4444]
+                ['Value' => 1, 'Caption' => 'AusfÃƒÂ¼hren!', 'IconActive' => true, 'IconValue' => 'Warning', 'Color' => 0xFF4444]
             ])
         ];
 
         // Action Variables
-        $this->RegisterVariableInteger('ActionCheckUpdate', 'Auf Updates prüfen', $actionPres, 100);
+        $this->RegisterVariableInteger('ActionCheckUpdate', 'Auf Updates prÃƒÂ¼fen', $actionPres, 100);
         $this->EnableAction('ActionCheckUpdate');
 
         $this->RegisterVariableInteger('ActionInstallOS', 'OS-Update installieren', $actionPres, 101);
@@ -108,6 +108,7 @@ class MikroTikRouter extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        $this->DA_ApplyPresentation();
 
 
 

@@ -52,14 +52,14 @@ class AirthingsWavePlus extends IPSModuleStrict
             'SHOW_PREVIEW' => true,
             'OPTIONS' => $alarmOptions
         ]);
-        $this->RegisterVariableFloat('AirTemp', 'Temperatur', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' °C', 'ICON' => 'Temperature']);
+        $this->RegisterVariableFloat('AirTemp', 'Temperatur', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Â°C', 'ICON' => 'Temperature']);
         $this->RegisterVariableFloat('AirHum', 'Luftfeuchtigkeit', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' %', 'ICON' => 'Drops']);
         $this->RegisterVariableFloat('AirPress', 'Luftdruck', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' hPa', 'ICON' => 'Gauge']);
         $this->RegisterVariableFloat('AirBatt', 'Batterie', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' %', 'ICON' => 'Battery']);
         $this->RegisterVariableInteger('AirCO2', 'CO2', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' ppm', 'ICON' => 'Wind']);
         $this->RegisterVariableInteger('AirVOC', 'VOC', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' ppb', 'ICON' => 'Wind']);
-        $this->RegisterVariableInteger('AirRadonST', 'Radon (Short Term)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Bq/m³', 'ICON' => 'Radiation']);
-        $this->RegisterVariableInteger('AirRadonLT', 'Radon (Long Term)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Bq/m³', 'ICON' => 'Radiation']);
+        $this->RegisterVariableInteger('AirRadonST', 'Radon (Short Term)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Bq/mÂ³', 'ICON' => 'Radiation']);
+        $this->RegisterVariableInteger('AirRadonLT', 'Radon (Long Term)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Bq/mÂ³', 'ICON' => 'Radiation']);
         
         // Timer
         $this->RegisterTimer('WatchdogTimer', 0, 'AIRTHINGS_WatchdogTriggered($_IPS[\'TARGET\']);');
@@ -69,6 +69,7 @@ class AirthingsWavePlus extends IPSModuleStrict
     {
         // Never delete this line!
         parent::ApplyChanges();
+        $this->DA_ApplyPresentation();
 
         // Register MQTT Filter
         $topic = $this->ReadPropertyString('MQTTBaseTopic');
@@ -88,7 +89,7 @@ class AirthingsWavePlus extends IPSModuleStrict
         $this->SetTimerInterval('WatchdogTimer', 0); // Stop timer until new data arrives
         $this->SetValue('Online', false);
         $this->SetValue('Alarm', true);
-        $this->SLogInfo('AirthingsWavePlus: Watchdog ausgelöst: Keine Daten seit ' . $this->ReadPropertyInteger('Timeout') . ' Minuten empfangen!');
+        $this->SLogInfo('AirthingsWavePlus: Watchdog ausgelÃ¶st: Keine Daten seit ' . $this->ReadPropertyInteger('Timeout') . ' Minuten empfangen!');
     }
     
     private function ResetWatchdog(): void
@@ -106,7 +107,7 @@ class AirthingsWavePlus extends IPSModuleStrict
         try {
             $data = json_decode($JSONString);
             if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-                $this->SLog('ERROR', 'Ungültige JSON-Daten empfangen', json_last_error_msg());
+                $this->SLog('ERROR', 'UngÃ¼ltige JSON-Daten empfangen', json_last_error_msg());
                 return 'NOK';
             }
             

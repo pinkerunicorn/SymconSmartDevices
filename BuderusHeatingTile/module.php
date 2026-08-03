@@ -26,13 +26,13 @@ class BuderusHeatingTile extends IPSModuleStrict
 
     // Wie wir jeden Ident im Frontend darstellen
     private const IDENT_META = [
-        'curflowtemp'    => ['label' => 'Vorlauf',    'unit' => '°C', 'decimals' => 1],
-        'rettemp'        => ['label' => 'Rücklauf',   'unit' => '°C', 'decimals' => 1],
-        'outdoortemp'    => ['label' => 'Außen',      'unit' => '°C', 'decimals' => 1],
-        'seltemp'        => ['label' => 'Soll',       'unit' => '°C', 'decimals' => 1],
-        'daytemp'        => ['label' => 'Tag-Soll',   'unit' => '°C', 'decimals' => 1],
-        'nighttemp'      => ['label' => 'Nacht-Soll', 'unit' => '°C', 'decimals' => 1],
-        'manualtemp'     => ['label' => 'Manuell',    'unit' => '°C', 'decimals' => 1],
+        'curflowtemp'    => ['label' => 'Vorlauf',    'unit' => 'Â°C', 'decimals' => 1],
+        'rettemp'        => ['label' => 'RÃ¼cklauf',   'unit' => 'Â°C', 'decimals' => 1],
+        'outdoortemp'    => ['label' => 'AuÃŸen',      'unit' => 'Â°C', 'decimals' => 1],
+        'seltemp'        => ['label' => 'Soll',       'unit' => 'Â°C', 'decimals' => 1],
+        'daytemp'        => ['label' => 'Tag-Soll',   'unit' => 'Â°C', 'decimals' => 1],
+        'nighttemp'      => ['label' => 'Nacht-Soll', 'unit' => 'Â°C', 'decimals' => 1],
+        'manualtemp'     => ['label' => 'Manuell',    'unit' => 'Â°C', 'decimals' => 1],
         'heatingactive'  => ['label' => 'Heizung',    'unit' => '',   'decimals' => 0],
         'heatingpumpmod' => ['label' => 'Pumpe',      'unit' => '%',  'decimals' => 0],
         'mode'           => ['label' => 'Modus',      'unit' => '',   'decimals' => 0],
@@ -40,7 +40,7 @@ class BuderusHeatingTile extends IPSModuleStrict
         'wwcharge'       => ['label' => 'WW-Ladung',  'unit' => '',   'decimals' => 0],
     ];
 
-    // EMSESP Mode-Mapping (Integer → String)
+    // EMSESP Mode-Mapping (Integer â†’ String)
     private const MODE_MAP_REVERSE = [
         0 => 'auto',
         1 => 'manual',
@@ -65,6 +65,7 @@ class BuderusHeatingTile extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        $this->DA_ApplyPresentation();
 
         // Alle alten Message-Registrierungen entfernen
         foreach ($this->GetMessageList() as $senderID => $messages) {
@@ -79,7 +80,7 @@ class BuderusHeatingTile extends IPSModuleStrict
             return;
         }
 
-        // Auf alle Variablen der EMSESP-Instanz hören
+        // Auf alle Variablen der EMSESP-Instanz hÃ¶ren
         $this->RegisterVariableMessages($sourceID);
 
         $this->SetStatus(102); // Aktiv
@@ -101,7 +102,7 @@ class BuderusHeatingTile extends IPSModuleStrict
     public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void
     {
         if ($Message === VM_UPDATE) {
-            // Variable wurde aktualisiert → Kachel updaten
+            // Variable wurde aktualisiert â†’ Kachel updaten
             $this->PushTileUpdate();
             $this->DA_SetAvailable(true);
         }
@@ -111,7 +112,7 @@ class BuderusHeatingTile extends IPSModuleStrict
     {
         $html = file_get_contents(__DIR__ . '/module.html');
 
-        // Initiale Daten direkt ins HTML einbetten damit Kachel sofort befüllt ist
+        // Initiale Daten direkt ins HTML einbetten damit Kachel sofort befÃ¼llt ist
         $initialData = json_encode($this->CollectCurrentData(), JSON_UNESCAPED_UNICODE);
         $html = str_replace('__INITIAL_DATA__', htmlspecialchars($initialData, ENT_QUOTES, 'UTF-8'), $html);
         $html = str_replace('__DEVICE_NAME__', htmlspecialchars($this->ReadPropertyString('DeviceName'), ENT_QUOTES, 'UTF-8'), $html);
@@ -129,7 +130,7 @@ class BuderusHeatingTile extends IPSModuleStrict
 
     /**
      * Liest alle relevanten Variablen aus der EMSESP-Instanz aus
-     * und gibt ein Array für das Frontend zurück.
+     * und gibt ein Array fÃ¼r das Frontend zurÃ¼ck.
      */
     private function CollectCurrentData(): array
     {
@@ -184,9 +185,9 @@ class BuderusHeatingTile extends IPSModuleStrict
 
         switch ($Ident) {
             case 'SetMode':
-                // Modus-Wechsel: Integer-Wert → an EMSESP-Instanz weiterleiten
+                // Modus-Wechsel: Integer-Wert â†’ an EMSESP-Instanz weiterleiten
                 $modeInt = (int) $Value;
-                // EMSESP-Instanz hat eine eigene RequestAction für mode-Variablen
+                // EMSESP-Instanz hat eine eigene RequestAction fÃ¼r mode-Variablen
                 // Wir suchen die mode-Variable in der Quell-Instanz
                 $this->ForwardActionToEMSESP($sourceID, 'mode', $modeInt);
                 // Kachel sofort aktualisieren
@@ -245,7 +246,7 @@ class BuderusHeatingTile extends IPSModuleStrict
     }
 
     /**
-     * Manuelles Aktualisieren der Kachel (für Debugging)
+     * Manuelles Aktualisieren der Kachel (fÃ¼r Debugging)
      */
     public function UpdateTile(): void
     {

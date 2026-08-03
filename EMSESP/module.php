@@ -9,13 +9,13 @@ class EMSESPDevice extends IPSModuleStrict
     use DeviceAvailability_Trait;
 
     private const KEY_MAP = [
-        'curflowtemp'     => ['name' => 'Vorlauftemperatur', 'icon' => 'temperature', 'suffix' => ' °C', 'decimals' => 1],
-        'outdoortemp'     => ['name' => 'Außentemperatur', 'icon' => 'temperature', 'suffix' => ' °C', 'decimals' => 1],
-        'rettemp'         => ['name' => 'Rücklauftemperatur', 'icon' => 'temperature', 'suffix' => ' °C', 'decimals' => 1],
-        'seltemp'         => ['name' => 'Soll-Temperatur', 'icon' => 'temperature', 'suffix' => ' °C', 'decimals' => 1],
-        'daytemp'         => ['name' => 'Tag-Temperatur', 'icon' => 'temperature', 'suffix' => ' °C', 'decimals' => 1],
-        'nighttemp'       => ['name' => 'Nacht-Temperatur', 'icon' => 'temperature', 'suffix' => ' °C', 'decimals' => 1],
-        'manualtemp'      => ['name' => 'Manuelle Temperatur', 'icon' => 'temperature', 'suffix' => ' °C', 'decimals' => 1],
+        'curflowtemp'     => ['name' => 'Vorlauftemperatur', 'icon' => 'temperature', 'suffix' => ' Ã‚Â°C', 'decimals' => 1],
+        'outdoortemp'     => ['name' => 'AuÃƒÅ¸entemperatur', 'icon' => 'temperature', 'suffix' => ' Ã‚Â°C', 'decimals' => 1],
+        'rettemp'         => ['name' => 'RÃƒÂ¼cklauftemperatur', 'icon' => 'temperature', 'suffix' => ' Ã‚Â°C', 'decimals' => 1],
+        'seltemp'         => ['name' => 'Soll-Temperatur', 'icon' => 'temperature', 'suffix' => ' Ã‚Â°C', 'decimals' => 1],
+        'daytemp'         => ['name' => 'Tag-Temperatur', 'icon' => 'temperature', 'suffix' => ' Ã‚Â°C', 'decimals' => 1],
+        'nighttemp'       => ['name' => 'Nacht-Temperatur', 'icon' => 'temperature', 'suffix' => ' Ã‚Â°C', 'decimals' => 1],
+        'manualtemp'      => ['name' => 'Manuelle Temperatur', 'icon' => 'temperature', 'suffix' => ' Ã‚Â°C', 'decimals' => 1],
         'heatingactive'   => ['name' => 'Heizung aktiv', 'icon' => 'power'],
         'heatingpumpmod'  => ['name' => 'Pumpenleistung', 'icon' => 'speedometer', 'suffix' => ' %', 'decimals' => 0],
         'mode'            => ['name' => 'Betriebsmodus', 'icon' => 'cog'],
@@ -46,6 +46,7 @@ class EMSESPDevice extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        $this->DA_ApplyPresentation();
 
         if (IPS_VariableProfileExists('EMSESP.Mode')) {
             IPS_DeleteVariableProfile('EMSESP.Mode');
@@ -185,7 +186,7 @@ class EMSESPDevice extends IPSModuleStrict
                      'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00FF00]
                 ]);
                 $presArray = [
-                    'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+                    'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
                     'ICON' => $icon ?: 'power',
                     'COLOR' => -1,
                     'CONTENT_COLOR' => -1,
@@ -196,7 +197,7 @@ class EMSESPDevice extends IPSModuleStrict
                 ];
             } else {
                 $presArray = [
-                    'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}'
+                    'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION
                 ];
                 if ($icon !== '') {
                     $presArray['ICON'] = $icon;

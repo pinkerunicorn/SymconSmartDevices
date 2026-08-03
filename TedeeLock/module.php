@@ -58,9 +58,19 @@ class TedeeLock extends IPSModuleStrict
             'SUFFIX' => ' %'
         ], 2);
         
+        $chargingOptions = json_encode([
+            ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'Plug', 'IconActive' => false, 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+            ['Value' => true, 'Caption' => 'LÃƒÂ¤dt', 'IconValue' => 'Plug', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
+        ]);
         $this->RegisterVariableBoolean('IsCharging', 'Wird geladen', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Plug'
+            'ICON' => 'Plug',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $chargingOptions
         ], 3);
         
         // Control variable
@@ -81,6 +91,7 @@ class TedeeLock extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        $this->DA_ApplyPresentation();
         $this->RegisterVariables();
         if (empty($this->ReadPropertyString('BridgeIP'))) {
             $this->SetTimerInterval('StatusUpdateTimer', 0);
@@ -107,25 +118,8 @@ class TedeeLock extends IPSModuleStrict
             IPS_DeleteVariableProfile('Tedee.Battery');
         }
 
-        // To make sure any previously incorrectly set custom presentation for battery is cleared:
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('BatteryLevel'), []);
-        IPS_SetVariableCustomProfile($this->GetIDForIdent('BatteryLevel'), '');
-
-        $chargingOptions = json_encode([
-            ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'Plug', 'IconActive' => false, 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
-            ['Value' => true, 'Caption' => 'Lädt', 'IconValue' => 'Plug', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
-        ]);
-        IPS_SetVariableCustomProfile($this->GetIDForIdent('IsCharging'), '');
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('IsCharging'), [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-            'ICON' => 'Plug',
-            'COLOR' => -1,
-            'CONTENT_COLOR' => -1,
-            'DISPLAY_TYPE' => 0,
-            'PREVIEW_STYLE' => 1,
-            'SHOW_PREVIEW' => true,
-            'OPTIONS' => $chargingOptions
-        ]);// Register Webhook Endpoint in Symcon
+        // Cleaned up custom profile usages
+        // Register Webhook Endpoint in Symcon
         $this->RegisterHook("Tedee_" . $this->InstanceID);
 
         // Fetch initial status once upon apply
@@ -229,7 +223,7 @@ class TedeeLock extends IPSModuleStrict
         $webhookUrl = $baseUrl . "/hook/Tedee_" . $this->InstanceID;
 
         if (empty($ip) || empty($token) || empty($baseUrl)) {
-            $this->SendDebug('Webhook', 'Fehlende Daten für Webhook-Registrierung', 0);
+            $this->SendDebug('Webhook', 'Fehlende Daten fÃƒÂ¼r Webhook-Registrierung', 0);
             return;
         }
 
@@ -484,7 +478,7 @@ class TedeeLock extends IPSModuleStrict
         },
         {
             "type": "Label",
-            "label": "Sicherheit und Schloss-Auswahl: Nutze am besten verschlüsselte Tokens. Wenn du mehrere Schlösser hast, kannst du hier die ID deines Schlosses eintragen. Trägst du eine 0 ein, so wird automatisch das erste gefundene Schloss verwendet."
+            "label": "Sicherheit und Schloss-Auswahl: Nutze am besten verschlÃƒÂ¼sselte Tokens. Wenn du mehrere SchlÃƒÂ¶sser hast, kannst du hier die ID deines Schlosses eintragen. TrÃƒÂ¤gst du eine 0 ein, so wird automatisch das erste gefundene Schloss verwendet."
         },
         {
             "type": "RowLayout",
@@ -492,7 +486,7 @@ class TedeeLock extends IPSModuleStrict
                 {
                     "type": "CheckBox",
                     "name": "UseEncryptedToken",
-                    "caption": "Verschlüsselter Token (Empfohlen, wie in der App eingestellt)"
+                    "caption": "VerschlÃƒÂ¼sselter Token (Empfohlen, wie in der App eingestellt)"
                 },
                 {
                     "type": "NumberSpinner",
@@ -504,7 +498,7 @@ class TedeeLock extends IPSModuleStrict
         },
         {
             "type": "Label",
-            "label": "Webhook-Basis-URL: Über diese URL kommuniziert die Bridge mit deinem IP-Symcon, um Status-Updates in Echtzeit zu senden."
+            "label": "Webhook-Basis-URL: ÃƒÅ“ber diese URL kommuniziert die Bridge mit deinem IP-Symcon, um Status-Updates in Echtzeit zu senden."
         },
         {
             "type": "RowLayout",
@@ -512,7 +506,7 @@ class TedeeLock extends IPSModuleStrict
                 {
                     "type": "ValidationTextBox",
                     "name": "SymconBaseURL",
-                    "caption": "Symcon Base URL für Webhooks (z.B. http://10.1.60.150:3777)",
+                    "caption": "Symcon Base URL fÃƒÂ¼r Webhooks (z.B. http://10.1.60.150:3777)",
                     "validate": "^https?://.+"
                 }
             ]

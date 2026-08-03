@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 /**
- * ImperialDishwasherAI — KI-gestützte Spülmaschinen-Überwachung.
- * Nutzt SmartGeminiIO für alle Gemini-API-Aufrufe.
+ * ImperialDishwasherAI â€” KI-gestÃ¼tzte SpÃ¼lmaschinen-Ãœberwachung.
+ * Nutzt SmartGeminiIO fÃ¼r alle Gemini-API-Aufrufe.
  */
 class ImperialDishwasherAI extends IPSModuleStrict {
     use SmartLog_Trait;
@@ -76,7 +76,7 @@ class ImperialDishwasherAI extends IPSModuleStrict {
         ]);
 
         $this->RegisterVariableInteger('Status', 'Status', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Information',
             'INTERVALS_ACTIVE' => true,
             'INTERVALS' => $statusIntervals
@@ -115,7 +115,7 @@ class ImperialDishwasherAI extends IPSModuleStrict {
         $this->RegisterVariableString('LastSessionData', 'Letzte Session Data (Intern)', '', 100);
         IPS_SetHidden($this->GetIDForIdent('LastSessionData'), true);
 
-        // Vestaboard: Kurzzusammenfassung für VestaboardGenerator
+        // Vestaboard: Kurzzusammenfassung fÃ¼r VestaboardGenerator
         $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Script'], 101);
     }
 
@@ -168,14 +168,14 @@ class ImperialDishwasherAI extends IPSModuleStrict {
 
                 if ($power > $threshold && ($status === 0 || $status === '' || $status === 3)) {
                     $this->SetValue('Status', 1);
-                    $this->SetValue('VestaboardMessage', 'Spülmaschine gestartet…');
+                    $this->SetValue('VestaboardMessage', 'SpÃ¼lmaschine gestartetâ€¦');
                     $this->SetValue('ActiveSince', time());
                     $this->SetValue('CurrentPhase', 'Gestartet');
                     $this->SetValue('RemainingTime', 0);
                     $this->SetValue('ExpectedEnd', 0);
                     $this->SetValue('Progress', 0);
                     $this->SetValue('SessionData', '[]');
-                    $this->SLog('INFO', 'Spülmaschine hat gestartet.');
+                    $this->SLog('INFO', 'SpÃ¼lmaschine hat gestartet.');
                     $this->MaintainTimer();
                 }
             }
@@ -229,10 +229,10 @@ class ImperialDishwasherAI extends IPSModuleStrict {
         $dataString = implode(', ', $sessionData);
         $threshold  = $this->ReadPropertyFloat('StartThreshold');
 
-        $systemInstruction = 'Du antwortest ausschließlich im JSON-Format.';
+        $systemInstruction = 'Du antwortest ausschlieÃŸlich im JSON-Format.';
 
-        $userPrompt = "Du bist eine KI zur Analyse des Stromverbrauchs von Haushaltsgeräten.\n";
-        $userPrompt .= "Dies ist der Stromverbrauch (in Watt) einer Imperial GSI 8265 BS Spülmaschine.\n";
+        $userPrompt = "Du bist eine KI zur Analyse des Stromverbrauchs von HaushaltsgerÃ¤ten.\n";
+        $userPrompt .= "Dies ist der Stromverbrauch (in Watt) einer Imperial GSI 8265 BS SpÃ¼lmaschine.\n";
 
         $lastSessionDataStr = $this->GetValue('LastSessionData');
         $lastSessionData    = json_decode($lastSessionDataStr, true);
@@ -241,22 +241,22 @@ class ImperialDishwasherAI extends IPSModuleStrict {
             $lastDataString = implode(', ', $lastSessionData);
             $userPrompt .= "Als Referenz: Hier ist der komplette Stromverlauf des zuletzt durchgelaufenen Waschvorgangs (Dauer: $lastDuration Minuten):\n";
             $userPrompt .= "[$lastDataString]\n\n";
-            $userPrompt .= "Nutze diese Referenzkurve, um besser abzuschätzen, in welcher Phase sich das aktuelle Programm befindet.\n\n";
+            $userPrompt .= "Nutze diese Referenzkurve, um besser abzuschÃ¤tzen, in welcher Phase sich das aktuelle Programm befindet.\n\n";
         }
 
         $userPrompt .= "Daten des AKTUELLEN Programms (Minutentakt seit Start):\n[$dataString]\n\n";
         $userPrompt .= "HINWEIS STANDBY: Werte unter {$threshold}W sind der Standby-Verbrauch (ausgeschaltete Maschine).\n";
         $userPrompt .= "Deine Aufgabe:\n";
-        $userPrompt .= "1. Bestimme die aktuelle Phase (z.B. 'Aufheizen', 'Hauptwäsche', 'Trocknen', 'Fertig').\n";
+        $userPrompt .= "1. Bestimme die aktuelle Phase (z.B. 'Aufheizen', 'HauptwÃ¤sche', 'Trocknen', 'Fertig').\n";
         $userPrompt .= "2. Entscheide ob das Programm fertig ist (isFinished: true).\n";
-        $userPrompt .= "3. Schätze die verbleibende Restlaufzeit in Minuten.\n";
+        $userPrompt .= "3. SchÃ¤tze die verbleibende Restlaufzeit in Minuten.\n";
 
         $responseSchema = json_encode([
             'type'       => 'OBJECT',
             'properties' => [
-                'phase'            => ['type' => 'STRING',  'description' => 'Aktuelle Phase des Spülvorgangs'],
+                'phase'            => ['type' => 'STRING',  'description' => 'Aktuelle Phase des SpÃ¼lvorgangs'],
                 'isFinished'       => ['type' => 'BOOLEAN', 'description' => 'true wenn komplett fertig'],
-                'remainingMinutes' => ['type' => 'INTEGER', 'description' => 'Geschätzte Restlaufzeit in Minuten (0 wenn fertig)']
+                'remainingMinutes' => ['type' => 'INTEGER', 'description' => 'GeschÃ¤tzte Restlaufzeit in Minuten (0 wenn fertig)']
             ],
             'required' => ['phase', 'isFinished', 'remainingMinutes']
         ]);
@@ -265,7 +265,7 @@ class ImperialDishwasherAI extends IPSModuleStrict {
 
         $instanceId = $this->InstanceID;
 
-        // Async via IPS_RunScriptText — GIO_Query blockiert, daher in Background
+        // Async via IPS_RunScriptText â€” GIO_Query blockiert, daher in Background
         $script = '<?php
             $result = GIO_Query(' . $geminiId . ',
                 ' . var_export($userPrompt, true) . ',
@@ -307,7 +307,7 @@ class ImperialDishwasherAI extends IPSModuleStrict {
 
             // Vestaboard: Kurz-Status mit Restzeit
             if ($remMin > 0) {
-                $this->SetValue('VestaboardMessage', 'Spülmaschine: ' . $parsed['phase'] . ' (~' . $remMin . ' min)');
+                $this->SetValue('VestaboardMessage', 'SpÃ¼lmaschine: ' . $parsed['phase'] . ' (~' . $remMin . ' min)');
             }
 
             if ($remSec > 0) {
@@ -329,12 +329,12 @@ class ImperialDishwasherAI extends IPSModuleStrict {
         if (isset($parsed['isFinished']) && $parsed['isFinished'] == true) {
             $this->SetValue('Status', 3);
             $this->SetValue('Progress', 0);
-            $this->SetValue('VestaboardMessage', 'Spülmaschine fertig! Bitte ausräumen.');
+            $this->SetValue('VestaboardMessage', 'SpÃ¼lmaschine fertig! Bitte ausrÃ¤umen.');
 
-            // Komplette Kurve für nächsten Durchlauf speichern
+            // Komplette Kurve fÃ¼r nÃ¤chsten Durchlauf speichern
             $this->SetValue('LastSessionData', $this->GetValue('SessionData'));
             $this->MaintainTimer();
-            $this->SLog('INFO', 'Gemini meldet: Spülmaschine ist fertig.');
+            $this->SLog('INFO', 'Gemini meldet: SpÃ¼lmaschine ist fertig.');
         } else {
             $this->SLog('INFO', 'Gemini Phase: ' . $parsed['phase']);
         }
