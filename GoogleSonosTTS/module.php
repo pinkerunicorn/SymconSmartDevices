@@ -84,7 +84,7 @@ class GoogleSonosTTS extends IPSModuleStrict
                     $count++;
                 }
             }
-            echo "Cache geleert. " . $count . " Dateien gelÃ¶scht.";
+            echo "Cache geleert. " . $count . " Dateien gelÃƒÂ¶scht.";
         } else {
             echo "Cache-Verzeichnis existiert nicht.";
         }
@@ -187,11 +187,11 @@ class GoogleSonosTTS extends IPSModuleStrict
     public function PlayMessage(string $Text, bool $isAlarm = false): string|bool
     {
         if (!$isAlarm && !$this->IsHome()) {
-            $this->SLog('INFO', 'TTS unterdrÃ¼ckt (Abwesenheit)', $Text);
+            $this->SLog('INFO', 'TTS unterdrÃƒÂ¼ckt (Abwesenheit)', $Text);
             return false;
         }
         if (!$isAlarm && $this->IsSleeping()) {
-            $this->SLog('INFO', 'TTS unterdrÃ¼ckt (Schlafmodus)', $Text);
+            $this->SLog('INFO', 'TTS unterdrÃƒÂ¼ckt (Schlafmodus)', $Text);
             return false;
         }
 
@@ -345,7 +345,7 @@ class GoogleSonosTTS extends IPSModuleStrict
             // Set permissions so the webserver can read it
             chmod($filePath, 0777);
         } else {
-            $this->SendDebug("GoogleTTS", "Audio existiert bereits im Cache. Ãœberspringe Google API Anfrage.", 0);
+            $this->SendDebug("GoogleTTS", "Audio existiert bereits im Cache. ÃƒÅ“berspringe Google API Anfrage.", 0);
         }
 
         // Set Timer to resume Roon if needed
@@ -361,7 +361,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         $baseURL = rtrim($baseURL, "/");
         $fileURL = $baseURL . "/hook/GoogleSonosTTS_" . $this->InstanceID . "/" . $fileName;
 
-        $this->SendDebug("GoogleTTS", "Generierte Webhook-URL fÃ¼r Sonos: " . $fileURL, 0);
+        $this->SendDebug("GoogleTTS", "Generierte Webhook-URL fÃƒÂ¼r Sonos: " . $fileURL, 0);
 
         // Play on Sonos
         $filesArray = json_encode([$fileURL]);
@@ -369,7 +369,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         if (function_exists('SNS_PlayFiles')) {
             foreach ($allSonosIDs as $sonosID => $Volume) {
                 if (IPS_InstanceExists($sonosID)) {
-                    $this->SendDebug("GoogleTTS", "Starte asynchrone Wiedergabe auf Instanz " . $sonosID . " mit LautstÃ¤rke " . $Volume . "...", 0);
+                    $this->SendDebug("GoogleTTS", "Starte asynchrone Wiedergabe auf Instanz " . $sonosID . " mit LautstÃƒÂ¤rke " . $Volume . "...", 0);
                     $scriptCode = "SNS_PlayFiles(" . $sonosID . ", '" . $filesArray . "', '" . $Volume . "');";
                     IPS_RunScriptText($scriptCode);
                 } else {
@@ -396,7 +396,7 @@ class GoogleSonosTTS extends IPSModuleStrict
     "elements": [
         {
             "type": "Label",
-            "caption": "Hier trÃ¤gst du deinen Google Cloud API Key ein. Diesen benÃ¶tigst du, um auf den Text-to-Speech Service von Google zuzugreifen."
+            "caption": "Hier trÃƒÂ¤gst du deinen Google Cloud API Key ein. Diesen benÃƒÂ¶tigst du, um auf den Text-to-Speech Service von Google zuzugreifen."
         },
         {
             "type": "PasswordTextBox",
@@ -405,7 +405,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         },
         {
             "type": "Label",
-            "caption": "WÃ¤hle hier die Sprache und Stimme aus, mit der deine Nachrichten vorgelesen werden sollen."
+            "caption": "WÃƒÂ¤hle hier die Sprache und Stimme aus, mit der deine Nachrichten vorgelesen werden sollen."
         },
         {
             "type": "Select",
@@ -417,7 +417,7 @@ class GoogleSonosTTS extends IPSModuleStrict
                     "value": "de-DE-Wavenet-A"
                 },
                 {
-                    "label": "Deutsch (Wavenet B, MÃ¤nnlich)",
+                    "label": "Deutsch (Wavenet B, MÃƒÂ¤nnlich)",
                     "value": "de-DE-Wavenet-B"
                 },
                 {
@@ -425,11 +425,11 @@ class GoogleSonosTTS extends IPSModuleStrict
                     "value": "de-DE-Wavenet-C"
                 },
                 {
-                    "label": "Deutsch (Wavenet D, MÃ¤nnlich)",
+                    "label": "Deutsch (Wavenet D, MÃƒÂ¤nnlich)",
                     "value": "de-DE-Wavenet-D"
                 },
                 {
-                    "label": "Deutsch (Wavenet E, MÃ¤nnlich)",
+                    "label": "Deutsch (Wavenet E, MÃƒÂ¤nnlich)",
                     "value": "de-DE-Wavenet-E"
                 },
                 {
@@ -441,7 +441,7 @@ class GoogleSonosTTS extends IPSModuleStrict
                     "value": "de-DE-Standard-A"
                 },
                 {
-                    "label": "Deutsch (Standard B, MÃ¤nnlich)",
+                    "label": "Deutsch (Standard B, MÃƒÂ¤nnlich)",
                     "value": "de-DE-Standard-B"
                 },
                 {
@@ -464,7 +464,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         },
         {
             "type": "Label",
-            "caption": "Hier trÃ¤gst du deine Sonos Systeme ein, auf denen die Sprachausgabe erfolgen soll. Du kannst auch die LautstÃ¤rke pro GerÃ¤t anpassen."
+            "caption": "Hier trÃƒÂ¤gst du deine Sonos Systeme ein, auf denen die Sprachausgabe erfolgen soll. Du kannst auch die LautstÃƒÂ¤rke pro GerÃƒÂ¤t anpassen."
         },
         {
             "type": "List",
@@ -493,7 +493,7 @@ class GoogleSonosTTS extends IPSModuleStrict
                     }
                 },
                 {
-                    "caption": "LautstÃ¤rke",
+                    "caption": "LautstÃƒÂ¤rke",
                     "name": "Volume",
                     "width": "150px",
                     "add": "+0",
@@ -505,7 +505,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         },
         {
             "type": "Label",
-            "caption": "Wenn du Roon Systeme nutzt, kannst du sie hier hinzufÃ¼gen. Sie werden dann wÃ¤hrend der Ansage automatisch pausiert."
+            "caption": "Wenn du Roon Systeme nutzt, kannst du sie hier hinzufÃƒÂ¼gen. Sie werden dann wÃƒÂ¤hrend der Ansage automatisch pausiert."
         },
         {
             "type": "List",
@@ -536,7 +536,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         },
         {
             "type": "Label",
-            "caption": "Damit die Sonos Boxen die erzeugte Audiodatei abrufen kÃ¶nnen, gib hier die Basis-URL deines IP-Symcon Servers an (z.B. http://192.168.1.100:3777)."
+            "caption": "Damit die Sonos Boxen die erzeugte Audiodatei abrufen kÃƒÂ¶nnen, gib hier die Basis-URL deines IP-Symcon Servers an (z.B. http://192.168.1.100:3777)."
         },
         {
             "type": "ValidationTextBox",
@@ -546,7 +546,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         },
         {
             "type": "Label",
-            "caption": "Hier stellst du die Sprechgeschwindigkeit und die TonhÃ¶he ein, falls du die Stimme anpassen mÃ¶chtest."
+            "caption": "Hier stellst du die Sprechgeschwindigkeit und die TonhÃƒÂ¶he ein, falls du die Stimme anpassen mÃƒÂ¶chtest."
         },
         {
             "type": "NumberSpinner",
@@ -559,7 +559,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         {
             "type": "NumberSpinner",
             "name": "Pitch",
-            "caption": "TonhÃ¶he (Stimme hoch/tief, -20.0 bis 20.0, Standard: 0.0)",
+            "caption": "TonhÃƒÂ¶he (Stimme hoch/tief, -20.0 bis 20.0, Standard: 0.0)",
             "digits": 1,
             "minimum": -20,
             "maximum": 20
