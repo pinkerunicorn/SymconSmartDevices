@@ -1,0 +1,12 @@
+services:
+  fountain-synth:
+    build: .
+    container_name: fountain-synth
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - synth-output:/app/output
+
+volumes:
+  synth-output:
