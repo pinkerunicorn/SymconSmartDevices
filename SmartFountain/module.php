@@ -18,6 +18,10 @@ class SmartFountain extends IPSModuleStrict
         $this->RegisterPropertyInteger('PowerMeterID', 0);
         $this->RegisterPropertyInteger('WledDeviceID', 0);
         $this->RegisterPropertyInteger('WledGardenID', 0);
+        $this->RegisterPropertyInteger('TwinklyDeviceID', 0);
+        $this->RegisterPropertyInteger('SonosDeviceID', 0);
+        $this->RegisterPropertyString('SynthBaseUrl', 'http://10.1.60.150:5000');
+        $this->RegisterPropertyInteger('ShowDurationSec', 20);
 
         
         $this->RegisterPropertyInteger('MinPumpPercent', 5);
@@ -65,6 +69,23 @@ class SmartFountain extends IPSModuleStrict
             'ICON' => 'Power'
         ], 10);
         $this->EnableAction('Active');
+
+        $showModeOptions = json_encode([
+            ['Value' => 0, 'Caption' => 'Manuell',     'Color' => 0x888888, 'Icon' => 'Gear'],
+            ['Value' => 1, 'Caption' => 'Dinner',      'Color' => 0xFF9900, 'Icon' => 'Light'],
+            ['Value' => 2, 'Caption' => 'Party',       'Color' => 0xFF0066, 'Icon' => 'Speaker'],
+            ['Value' => 3, 'Caption' => 'Zen',         'Color' => 0x00CCCC, 'Icon' => 'Drops'],
+            ['Value' => 4, 'Caption' => 'Romantik',    'Color' => 0xFF00FF, 'Icon' => 'Heart'],
+            ['Value' => 5, 'Caption' => 'Regenbogen',  'Color' => 0x00FF00, 'Icon' => 'Sun'],
+            ['Value' => 6, 'Caption' => 'Musik-Show',  'Color' => 0x0066FF, 'Icon' => 'Melody'],
+        ]);
+
+        $this->RegisterVariableInteger('ShowMode', 'Show-Modus', [
+            'PRESENTATION' => $enumPres,
+            'ICON' => 'Execute',
+            'OPTIONS' => $showModeOptions
+        ], 25);
+        $this->EnableAction('ShowMode');
 
         $percentPresentation = [
             'PRESENTATION' => $sliderPres,
@@ -152,6 +173,10 @@ class SmartFountain extends IPSModuleStrict
                     $this->StartChoreography($Value);
                 }
                 break;
+            case 'ShowMode':
+                $this->SetValue('ShowMode', (int)$Value);
+                $this->ApplyShowMode((int)$Value);
+                break;
             case 'ChoreographySpeed':
             case 'ChoreographyIntensity':
                 $this->SetValue($Ident, $Value);
@@ -201,6 +226,12 @@ class SmartFountain extends IPSModuleStrict
         // Stop directly
         $this->SetSpeed(0);
         $this->UpdateWLEDState(0);
+        $this->SetValue('ShowMode', 0);
+        $this->UpdateTwinklyState('off', 0);
+        $sonosID = $this->ReadPropertyInteger('SonosDeviceID');
+        if ($sonosID > 1 && @IPS_InstanceExists($sonosID)) {
+            @SNS_Stop($sonosID);
+        }
     }
 
     public function StartChoreography(int $mode): void
@@ -470,6 +501,164 @@ class SmartFountain extends IPSModuleStrict
         }
     }
 
+    public function ApplyShowMode(int $mode): void
+    {
+        // Scene definitions: [choreography, speed, intensity, theme, twinklyMode, twinklyBrightness]
+        $scenes = [
+            // 0 = Manuell -> Do nothing, user controls manually
+            1 => ['choreo' => 3, 'speed' => 30,  'intensity' => 40,  'theme' => 'zen',       'twMode' => 'movie', 'twBright' => 30],  // Dinner
+            2 => ['choreo' => 7, 'speed' => 80,  'intensity' => 90,  'theme' => null,        'twMode' => 'movie', 'twBright' => 100], // Party (no synth, WLED sound reactive)
+            3 => ['choreo' => 1, 'speed' => 50,  'intensity' => 60,  'theme' => 'zen',       'twMode' => 'movie', 'twBright' => 20],  // Zen
+            4 => ['choreo' => 6, 'speed' => 40,  'intensity' => 50,  'theme' => 'mystisch',  'twMode' => 'movie', 'twBright' => 15],  // Romantik
+            5 => ['choreo' => 5, 'speed' => 60,  'intensity' => 70,  'theme' => 'karibik',   'twMode' => 'movie', 'twBright' => 70],  // Regenbogen
+            6 => ['choreo' => 1, 'speed' => 70,  'intensity' => 80,  'theme' => null,        'twMode' => 'movie', 'twBright' => 80],  // Musik-Show (no synth, WLED sound reactive)
+        ];
+
+        if ($mode === 0) {
+            $this->SLogInfo('ShowMode: Manuell');
+            return;
+        }
+
+        if (!isset($scenes[$mode])) {
+            return;
+        }
+
+        $scene = $scenes[$mode];
+        $this->SLogInfo("ShowMode: Applying scene $mode");
+
+        // 1. Set choreography parameters
+        $this->SetValue('ChoreographySpeed', $scene['speed']);
+        $this->SetValue('ChoreographyIntensity', $scene['intensity']);
+
+        // 2. Start choreography (this also activates pump + WLED)
+        $this->StartChoreography($scene['choreo']);
+
+        // 3. For Party/Musik-Show: Switch WLED to Sound Reactive mode
+        if ($mode === 2 || $mode === 6) {
+            $this->SetWLEDSoundReactive();
+        }
+
+        // 4. Twinkly
+        $this->UpdateTwinklyState($scene['twMode'], $scene['twBright']);
+
+        // 5. Synth + Sonos (only for scenes with a theme)
+        if ($scene['theme'] !== null) {
+            $this->PreRenderAndPlaySound($scene['choreo'], $scene['theme']);
+        }
+    }
+
+    private function UpdateTwinklyState(string $mode, int $brightness): void
+    {
+        $twinklyID = $this->ReadPropertyInteger('TwinklyDeviceID');
+        if ($twinklyID <= 1 || !@IPS_InstanceExists($twinklyID)) {
+            return;
+        }
+
+        @TWN_SetMode($twinklyID, $mode);
+        @TWN_SetBrightness($twinklyID, $brightness);
+    }
+
+    private function SetWLEDSoundReactive(): void
+    {
+        $wledID = $this->ReadPropertyInteger('WledDeviceID');
+        $gardenID = $this->ReadPropertyInteger('WledGardenID');
+
+        // Effect 74 = 'GEQ' (Graphic Equalizer) - a popular sound reactive effect
+        if ($wledID > 1 && @IPS_InstanceExists($wledID)) {
+            @WLED_SetEffect($wledID, 74);
+        }
+        if ($gardenID > 1 && @IPS_InstanceExists($gardenID)) {
+            @WLED_SetEffect($gardenID, 74);
+        }
+    }
+
+    private function PreRenderAndPlaySound(int $choreo, string $theme): void
+    {
+        $synthUrl = $this->ReadPropertyString('SynthBaseUrl');
+        $sonosID = $this->ReadPropertyInteger('SonosDeviceID');
+        $duration = $this->ReadPropertyInteger('ShowDurationSec');
+
+        if (empty($synthUrl) || $sonosID <= 1 || !@IPS_InstanceExists($sonosID)) {
+            return;
+        }
+
+        // 1. Pre-calculate h(t) for the entire show duration
+        $intervalSec = $this->ReadPropertyInteger('ChoreographyIntervalMs') / 1000.0;
+        $speed = $this->GetValue('ChoreographySpeed') / 100.0;
+        $numSamples = (int)ceil($duration / $intervalSec);
+        $heights = [];
+
+        for ($i = 0; $i < $numSamples; $i++) {
+            $t = $i * $intervalSec * $speed;
+            $heights[] = round($this->CalculatePatternStatic($choreo, $t), 4);
+        }
+
+        // 2. Send to Docker synth
+        $payload = json_encode([
+            'heights' => $heights,
+            'theme' => $theme,
+            'duration' => $duration,
+        ]);
+
+        $ch = curl_init($synthUrl . '/render');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || $response === false) {
+            $this->SLogError('FountainSynth: Render failed (HTTP ' . $httpCode . ')');
+            return;
+        }
+
+        $result = json_decode($response, true);
+        if (!isset($result['url'])) {
+            $this->SLogError('FountainSynth: Invalid response');
+            return;
+        }
+
+        // 3. Start Sonos playback
+        $audioUrl = $synthUrl . $result['url'];
+        @SNS_SetAVTransportURI($sonosID, $audioUrl);
+        @SNS_Play($sonosID);
+        $this->SLogInfo('FountainSynth: Playing ' . $theme . ' (' . $result['render_time_ms'] . 'ms render)');
+    }
+
+    private function CalculatePatternStatic(int $mode, float $t): float
+    {
+        switch ($mode) {
+            case 1: // Sinuswelle
+                return (sin(2 * M_PI * $t / 4.0) + 1.0) / 2.0;
+            case 2: // Puls
+                $cycle = fmod($t, 3.0);
+                if ($cycle < 0.2) return 0.0;
+                if ($cycle < 0.8) return 1.0;
+                if ($cycle < 1.0) return 1.0 - (($cycle - 0.8) / 0.2);
+                return 0.0;
+            case 3: // Atmen
+                $cycle = fmod($t, 8.0);
+                if ($cycle < 3.0) { $v = sin(M_PI * $cycle / 6.0); return $v * $v; }
+                if ($cycle < 4.0) return 1.0;
+                if ($cycle < 6.0) { $v = cos(M_PI * ($cycle - 4.0) / 4.0); return $v * $v; }
+                return 0.0;
+            case 5: // Treppe
+                $cycle = fmod($t, 15.0);
+                if ($cycle < 7.5) return floor($cycle / 1.5) / 4;
+                return 1.0 - (floor(($cycle - 7.5) / 1.5) / 4);
+            case 6: // Herzschlag
+                $cycle = fmod($t, 2.0);
+                $p1 = exp(-pow($cycle - 0.15, 2) / (2 * 0.04 * 0.04));
+                $p2 = exp(-pow($cycle - 0.45, 2) / (2 * 0.04 * 0.04)) * 0.7;
+                return max($p1, $p2);
+            default: // Fallback for random/mix: use sine
+                return (sin(2 * M_PI * $t / 4.0) + 1.0) / 2.0;
+        }
+    }
+
     private function UpdateTimerState(): void
     {
         if ($this->GetValue('Active') && $this->GetValue('Choreography') > 0) {
@@ -508,6 +697,28 @@ class SmartFountain extends IPSModuleStrict
             "type": "SelectInstance",
             "name": "WledGardenID",
             "caption": "WLED: Garten DMX-Spots (optional)"
+        },
+        {
+            "type": "SelectInstance",
+            "name": "TwinklyDeviceID",
+            "caption": "Twinkly Lichterkette (optional)"
+        },
+        {
+            "type": "SelectInstance",
+            "name": "SonosDeviceID",
+            "caption": "Sonos Player (optional)"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "SynthBaseUrl",
+            "caption": "FountainSynth Docker URL"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "ShowDurationSec",
+            "caption": "Show-Dauer (Sekunden)",
+            "minimum": 5,
+            "maximum": 300
         },
         {
             "type": "Label",
