@@ -2,7 +2,7 @@
     "id": "{C7A70438-2A27-4402-98F1-4FCE9177D9EF}",
     "name": "TedeeLock",
     "type": 3,
-    "vendor": "Tedee",
+    "vendor": "Florian Gra\u00dfinger",
     "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/TedeeLock",
     "aliases": [
         "Tedee Smart Lock (Local API)"
