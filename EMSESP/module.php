@@ -139,7 +139,6 @@ class EMSESPDevice extends IPSModuleStrict
             $type = 0; // Boolean
         } elseif ($lowerKey === 'mode') {
             $type = 1; // Integer
-            $profile = 'EMSESP.Mode';
         } elseif (is_int($value) || is_float($value)) {
             if (strpos($lowerKey, 'temp') !== false) {
                 $type = 2; // Float
@@ -162,7 +161,7 @@ class EMSESPDevice extends IPSModuleStrict
         $presArray = [];
         if ($isWritable) {
             $this->EnableAction($ident);
-            if ($profile === 'EMSESP.Mode') {
+            if ($lowerKey === 'mode') {
                 $modeOptions = json_encode([
                     ['Value' => 0, 'Caption' => 'Auto', 'IconActive' => true, 'IconValue' => 'calendar', 'Color' => -1],
                     ['Value' => 1, 'Caption' => 'Manuell', 'IconActive' => true, 'IconValue' => 'user', 'Color' => -1],
@@ -173,7 +172,6 @@ class EMSESPDevice extends IPSModuleStrict
                     'ICON' => 'cog',
                     'OPTIONS' => $modeOptions
                 ];
-                $profile = '';
             }
         } else {
             if (is_bool($value)) {
@@ -224,9 +222,6 @@ class EMSESPDevice extends IPSModuleStrict
             return;
         }
 
-        if ($isWritable && $profile !== '') {
-            IPS_SetVariableCustomProfile($varID, $profile);
-        }
 
         $this->SetValue($ident, $value);
     }
