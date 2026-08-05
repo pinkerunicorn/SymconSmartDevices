@@ -10,7 +10,7 @@ class WithingsDevice extends IPSModuleStrict {
     use DeviceAvailability_Trait;
     use SmartHttp_Trait;
 
-    /** @var array<string, bool> Cache fÃ¼r bereits angelegte Variablen-Idents (innerhalb eines Request-Zyklus) */
+    /** @var array<string, bool> Cache für bereits angelegte Variablen-Idents (innerhalb eines Request-Zyklus) */
     private array $createdIdents = [];
 
     // --- Withings Measurement Type Constants (Body Scan 2 / Waage) ---
@@ -59,15 +59,15 @@ class WithingsDevice extends IPSModuleStrict {
         $this->RegisterPropertyString("ClientSecret", "");
         $this->RegisterPropertyInteger("FetchInterval", 240);
 
-        // LastUpdate als Attribut â€” kein ApplyChanges bei Aktualisierung nÃ¶tig
+        // LastUpdate als Attribut â€” kein ApplyChanges bei Aktualisierung nötig
         $this->RegisterAttributeInteger("LastUpdate", 0);
 
-        // Gemini API-Key und Modell werden zentral Ã¼ber SmartGeminiIO konfiguriert.
+        // Gemini API-Key und Modell werden zentral über SmartGeminiIO konfiguriert.
         $this->RegisterPropertyInteger("ArchiveDays", 28);
         $this->RegisterPropertyInteger("SMTPInstanceID", 0);
         $this->RegisterPropertyBoolean("EnableAI", false);
 
-        // Versteckte Attribute fÃ¼r OAuth Tokens
+        // Versteckte Attribute für OAuth Tokens
         $this->RegisterAttributeString("AccessToken", "");
         $this->RegisterAttributeString("RefreshToken", "");
         $this->RegisterAttributeInteger("TokenExpires", 0);
@@ -76,7 +76,7 @@ class WithingsDevice extends IPSModuleStrict {
 
         $this->RegisterVariableString("ConnectionStatus", "Verbindungsstatus", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Network'], -1);
         $this->RegisterVariableString("LastMeasurement", "Letzte Messung", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 0);
-        $this->RegisterVariableString("DeviceBattery", "GerÃ¤te-Akku", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Battery'], 1);
+        $this->RegisterVariableString("DeviceBattery", "Geräte-Akku", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Battery'], 1);
         $this->RegisterVariableString("DailyReport", "Gemini Analyse", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Book'], 99);
         $this->RegisterVariableString("GeminiInsight1", "Insight 1", ['ICON' => 'Information'], 10);
         $this->RegisterVariableString("GeminiInsight2", "Insight 2", ['ICON' => 'Information'], 11);
@@ -98,7 +98,7 @@ class WithingsDevice extends IPSModuleStrict {
         }
         // ---------------------------------
 
-        // Migration: Falls LastUpdate noch als alte Property existiert, Wert Ã¼bernehmen
+        // Migration: Falls LastUpdate noch als alte Property existiert, Wert übernehmen
         $oldPropValue = @json_decode(@IPS_GetConfiguration($this->InstanceID), true);
         if (is_array($oldPropValue) && isset($oldPropValue['LastUpdate']) && $oldPropValue['LastUpdate'] > 0) {
             if ($this->ReadAttributeInteger("LastUpdate") == 0) {
@@ -133,12 +133,12 @@ class WithingsDevice extends IPSModuleStrict {
         } elseif ($accessToken == "") {
             $this->SetValue("ConnectionStatus", "Nicht autorisiert");
         } elseif (time() > $tokenExpires) {
-            $this->SetValue("ConnectionStatus", "Token abgelaufen (Refresh bei nÃ¤chstem Abruf)");
+            $this->SetValue("ConnectionStatus", "Token abgelaufen (Refresh bei nächstem Abruf)");
         } else {
             $remaining = $tokenExpires - time();
             $hours = intdiv($remaining, 3600);
             $minutes = intdiv($remaining % 3600, 60);
-            $this->SetValue("ConnectionStatus", "Verbunden (Token gÃ¼ltig noch {$hours}h {$minutes}m)");
+            $this->SetValue("ConnectionStatus", "Verbunden (Token gültig noch {$hours}h {$minutes}m)");
         }
     }
 
@@ -194,7 +194,7 @@ class WithingsDevice extends IPSModuleStrict {
 
         $url = "https://account.withings.com/oauth2_user/authorize2?response_type=code&client_id={$clientId}&redirect_uri={$redirectUri}&scope={$scope}&state={$state}";
         
-        echo "Bitte Ã¶ffne diesen Link im Browser, um Symcon mit Withings zu verbinden:\n\n". $url;
+        echo "Bitte öffne diesen Link im Browser, um Symcon mit Withings zu verbinden:\n\n". $url;
     }
 
     protected function ProcessHookData(): void {
@@ -224,7 +224,7 @@ class WithingsDevice extends IPSModuleStrict {
             ];
 
             $this->RequestTokens($postData);
-            echo "Erfolgreich autorisiert! Du kannst dieses Fenster nun schlieÃŸen und in Symcon auf 'Daten jetzt manuell abrufen' klicken.";
+            echo "Erfolgreich autorisiert! Du kannst dieses Fenster nun schließen und in Symcon auf 'Daten jetzt manuell abrufen' klicken.";
             return;
         } 
         
@@ -235,7 +235,7 @@ class WithingsDevice extends IPSModuleStrict {
             return;
         }
         
-        echo "Kein gÃ¼ltiger Code oder Webhook empfangen."; 
+        echo "Kein gültiger Code oder Webhook empfangen."; 
         return;
     }
 
@@ -265,7 +265,7 @@ class WithingsDevice extends IPSModuleStrict {
 
             $this->SendDebug("WebhookSubscribe", "Appli $appli Response: " . $response, 0);
         }
-        echo "Webhooks (Gewicht, AktivitÃ¤t, Herz) wurden abonniert.";
+        echo "Webhooks (Gewicht, Aktivität, Herz) wurden abonniert.";
     }
 
     public function UnsubscribeWebhooks(): void {
@@ -438,7 +438,7 @@ class WithingsDevice extends IPSModuleStrict {
             }
         }
 
-        // BMI automatisch berechnen wenn Gewicht und GrÃ¶ÃŸe vorhanden
+        // BMI automatisch berechnen wenn Gewicht und Größe vorhanden
         $this->CalculateBMI();
 
         if ($newMeasurements > 0) {
@@ -447,7 +447,7 @@ class WithingsDevice extends IPSModuleStrict {
             }
         }
 
-        // GerÃ¤testatus im Hintergrund aktualisieren
+        // Gerätestatus im Hintergrund aktualisieren
         $this->FetchDeviceInfo();
 
         $this->UpdateConnectionStatus();
@@ -456,8 +456,8 @@ class WithingsDevice extends IPSModuleStrict {
     }
 
     /**
-     * Berechnet den BMI aus den vorhandenen Gewichts- und GrÃ¶ÃŸen-Variablen.
-     * BMI = Gewicht (kg) / GrÃ¶ÃŸe (m)Â²
+     * Berechnet den BMI aus den vorhandenen Gewichts- und Größen-Variablen.
+     * BMI = Gewicht (kg) / Größe (m)Â²
      */
     private function CalculateBMI(): void {
         $weightID = @IPS_GetObjectIDByIdent("Measure_" . self::MEASURE_WEIGHT, $this->InstanceID);
@@ -499,7 +499,7 @@ class WithingsDevice extends IPSModuleStrict {
     }
 
     /**
-     * Ruft GerÃ¤teinformationen (Batterie, Modell, letzter Sync) von der Withings API ab.
+     * Ruft Geräteinformationen (Batterie, Modell, letzter Sync) von der Withings API ab.
      * Endpoint: POST /v2/user action=getdevice
      */
     public function FetchDeviceInfo(): void {
@@ -525,7 +525,7 @@ class WithingsDevice extends IPSModuleStrict {
             return;
         }
         if (!isset($data['status']) || $data['status'] != 0 || !isset($data['body']['devices'])) {
-            $this->SendDebug("DeviceInfo", "UngÃ¼ltige Antwort: " . json_encode($data), 0);
+            $this->SendDebug("DeviceInfo", "Ungültige Antwort: " . json_encode($data), 0);
             return;
         }
 
@@ -552,7 +552,7 @@ class WithingsDevice extends IPSModuleStrict {
             $this->SetValue("DeviceBattery", implode(" | ", $batteryParts));
         }
 
-        $this->SendDebug("DeviceInfo", count($data['body']['devices']) . " GerÃ¤t(e) gefunden.", 0);
+        $this->SendDebug("DeviceInfo", count($data['body']['devices']) . " Gerät(e) gefunden.", 0);
     }
 
     private function GetMeasurementConfig(int $type): array {
@@ -562,16 +562,16 @@ class WithingsDevice extends IPSModuleStrict {
 
         switch ($type) {
             case self::MEASURE_WEIGHT:               $name = "Gewicht"; $suffix = "kg"; $icon = "Scale"; break;
-            case self::MEASURE_HEIGHT:               $name = "GrÃ¶ÃŸe"; $suffix = "m"; $icon = "Distance"; break;
+            case self::MEASURE_HEIGHT:               $name = "Größe"; $suffix = "m"; $icon = "Distance"; break;
             case self::MEASURE_FAT_FREE_MASS:        $name = "Fettfreie Masse"; $suffix = "kg"; $icon = "Scale"; break;
-            case self::MEASURE_FAT_RATIO:            $name = "KÃ¶rperfett"; $suffix = "%"; $icon = "Drop"; break;
+            case self::MEASURE_FAT_RATIO:            $name = "Körperfett"; $suffix = "%"; $icon = "Drop"; break;
             case self::MEASURE_FAT_MASS_WEIGHT:      $name = "Fettmasse"; $suffix = "kg"; $icon = "Scale"; break;
             case self::MEASURE_DIASTOLIC_BP:          $name = "Blutdruck (Diastolisch)"; $suffix = "mmHg"; $icon = "Heart"; break;
             case self::MEASURE_SYSTOLIC_BP:           $name = "Blutdruck (Systolisch)"; $suffix = "mmHg"; $icon = "Heart"; break;
             case self::MEASURE_HEART_PULSE:           $name = "Herzfrequenz"; $suffix = "bpm"; $icon = "Heart"; break;
             case self::MEASURE_TEMPERATURE:           $name = "Temperatur"; $suffix = "Â°C"; $icon = "Temperature"; break;
-            case self::MEASURE_SP02:                  $name = "SPO2 (SauerstoffsÃ¤ttigung)"; $suffix = "%"; $icon = "Heart"; break;
-            case self::MEASURE_BODY_TEMPERATURE:      $name = "KÃ¶rpertemperatur"; $suffix = "Â°C"; $icon = "Temperature"; break;
+            case self::MEASURE_SP02:                  $name = "SPO2 (Sauerstoffsättigung)"; $suffix = "%"; $icon = "Heart"; break;
+            case self::MEASURE_BODY_TEMPERATURE:      $name = "Körpertemperatur"; $suffix = "Â°C"; $icon = "Temperature"; break;
             case self::MEASURE_SKIN_TEMPERATURE:      $name = "Hauttemperatur"; $suffix = "Â°C"; $icon = "Temperature"; break;
             case self::MEASURE_MUSCLE_MASS:           $name = "Muskelmasse"; $suffix = "kg"; $icon = "Scale"; break;
             case self::MEASURE_HYDRATION:             $name = "Wasseranteil"; $suffix = "kg"; $icon = "Drop"; break;
@@ -580,23 +580,23 @@ class WithingsDevice extends IPSModuleStrict {
             case self::MEASURE_VO2_MAX:               $name = "VO2 Max"; $suffix = "ml/min/kg"; $icon = "Heart"; break;
             case self::MEASURE_VISCERAL_FAT:          $name = "Viszeralfett"; $suffix = "%"; $icon = "Drop"; break;
             case self::MEASURE_VASCULAR_AGE:
-            case self::MEASURE_VASCULAR_AGE_2:        $name = "GefÃ¤ÃŸalter"; $suffix = "Jahre"; $icon = "Clock"; break;
-            case self::MEASURE_NERVE_HEALTH:          $name = "NervenaktivitÃ¤t"; $suffix = "Punkte"; $icon = "Intensity"; break;
+            case self::MEASURE_VASCULAR_AGE_2:        $name = "Gefäßalter"; $suffix = "Jahre"; $icon = "Clock"; break;
+            case self::MEASURE_NERVE_HEALTH:          $name = "Nervenaktivität"; $suffix = "Punkte"; $icon = "Intensity"; break;
             case self::MEASURE_QT_INTERVAL:           $name = "QT-Intervall"; $suffix = "ms"; $icon = "Heart"; break;
             case self::MEASURE_AFIB:                  $name = "Vorhofflimmern"; $suffix = ""; $icon = "Heart"; break;
-            case self::MEASURE_EXTRACELLULAR_WATER:   $name = "ExtrazellulÃ¤res Wasser"; $suffix = "kg"; $icon = "Drop"; break;
-            case self::MEASURE_INTRACELLULAR_WATER:   $name = "IntrazellulÃ¤res Wasser"; $suffix = "kg"; $icon = "Drop"; break;
+            case self::MEASURE_EXTRACELLULAR_WATER:   $name = "Extrazelluläres Wasser"; $suffix = "kg"; $icon = "Drop"; break;
+            case self::MEASURE_INTRACELLULAR_WATER:   $name = "Intrazelluläres Wasser"; $suffix = "kg"; $icon = "Drop"; break;
             // Body Scan segmented data
-            case self::MEASURE_FAT_TORSO:             $name = "KÃ¶rperfett Rumpf"; $suffix = "%"; $icon = "Drop"; break;
-            case self::MEASURE_FAT_ARMS:              $name = "KÃ¶rperfett Arme"; $suffix = "%"; $icon = "Drop"; break;
-            case self::MEASURE_FAT_LEGS:              $name = "KÃ¶rperfett Beine"; $suffix = "%"; $icon = "Drop"; break;
+            case self::MEASURE_FAT_TORSO:             $name = "Körperfett Rumpf"; $suffix = "%"; $icon = "Drop"; break;
+            case self::MEASURE_FAT_ARMS:              $name = "Körperfett Arme"; $suffix = "%"; $icon = "Drop"; break;
+            case self::MEASURE_FAT_LEGS:              $name = "Körperfett Beine"; $suffix = "%"; $icon = "Drop"; break;
             case self::MEASURE_FAT_FREE_SEGMENT:      $name = "Fettfreie Masse (Segment)"; $suffix = "kg"; $icon = "Scale"; break;
             case self::MEASURE_FAT_SEGMENT:           $name = "Fettmasse (Segment)"; $suffix = "kg"; $icon = "Scale"; break;
             case self::MEASURE_MUSCLE_SEGMENT:        $name = "Muskelmasse (Segment)"; $suffix = "kg"; $icon = "Scale"; break;
             // Nerve Health (EDA)
-            case self::MEASURE_NERVE_SCORE:           $name = "NervenaktivitÃ¤t Score"; $suffix = "Punkte"; $icon = "Intensity"; break;
-            case self::MEASURE_NERVE_LEFT_FOOT:       $name = "NervenaktivitÃ¤t (FuÃŸ links)"; $suffix = "Punkte"; $icon = "Intensity"; break;
-            case self::MEASURE_NERVE_RIGHT_FOOT:      $name = "NervenaktivitÃ¤t (FuÃŸ rechts)"; $suffix = "Punkte"; $icon = "Intensity"; break;
+            case self::MEASURE_NERVE_SCORE:           $name = "Nervenaktivität Score"; $suffix = "Punkte"; $icon = "Intensity"; break;
+            case self::MEASURE_NERVE_LEFT_FOOT:       $name = "Nervenaktivität (Fuß links)"; $suffix = "Punkte"; $icon = "Intensity"; break;
+            case self::MEASURE_NERVE_RIGHT_FOOT:      $name = "Nervenaktivität (Fuß rechts)"; $suffix = "Punkte"; $icon = "Intensity"; break;
             // Metabolic
             case self::MEASURE_BMR:                   $name = "Grundumsatz (BMR)"; $suffix = "kcal"; $icon = "Flame"; break;
             case self::MEASURE_METABOLIC_AGE:         $name = "Metabolisches Alter"; $suffix = "Jahre"; $icon = "Clock"; break;
@@ -695,10 +695,10 @@ class WithingsDevice extends IPSModuleStrict {
         
         $metrics = [
             self::MEASURE_WEIGHT           => "Gewicht (kg)",
-            self::MEASURE_FAT_RATIO        => "KÃ¶rperfett (%)",
-            self::MEASURE_FAT_TORSO        => "KÃ¶rperfett Rumpf (%)",
-            self::MEASURE_FAT_ARMS         => "KÃ¶rperfett Arme (%)",
-            self::MEASURE_FAT_LEGS         => "KÃ¶rperfett Beine (%)",
+            self::MEASURE_FAT_RATIO        => "Körperfett (%)",
+            self::MEASURE_FAT_TORSO        => "Körperfett Rumpf (%)",
+            self::MEASURE_FAT_ARMS         => "Körperfett Arme (%)",
+            self::MEASURE_FAT_LEGS         => "Körperfett Beine (%)",
             self::MEASURE_MUSCLE_MASS      => "Muskelmasse (kg)",
             self::MEASURE_MUSCLE_SEGMENT   => "Muskelmasse (Segment) (kg)",
             self::MEASURE_BONE_MASS        => "Knochenmasse (kg)",
@@ -711,26 +711,26 @@ class WithingsDevice extends IPSModuleStrict {
             self::MEASURE_HEART_PULSE      => "Herzfrequenz (bpm)",
             self::MEASURE_DIASTOLIC_BP     => "Blutdruck diastolisch (mmHg)",
             self::MEASURE_SYSTOLIC_BP      => "Blutdruck systolisch (mmHg)",
-            self::MEASURE_SP02             => "SPO2 (SauerstoffsÃ¤ttigung) (%)",
+            self::MEASURE_SP02             => "SPO2 (Sauerstoffsättigung) (%)",
             self::MEASURE_PWV              => "Pulswellengeschwindigkeit (m/s)",
-            self::MEASURE_VASCULAR_AGE     => "GefÃ¤ÃŸalter (Jahre)",
+            self::MEASURE_VASCULAR_AGE     => "Gefäßalter (Jahre)",
             self::MEASURE_NERVE_SCORE      => "Nervengesundheit Score (Punkte)",
-            self::MEASURE_NERVE_LEFT_FOOT  => "NervenaktivitÃ¤t (FuÃŸ links) (Punkte)",
-            self::MEASURE_NERVE_RIGHT_FOOT => "NervenaktivitÃ¤t (FuÃŸ rechts) (Punkte)",
+            self::MEASURE_NERVE_LEFT_FOOT  => "Nervenaktivität (Fuß links) (Punkte)",
+            self::MEASURE_NERVE_RIGHT_FOOT => "Nervenaktivität (Fuß rechts) (Punkte)",
             self::MEASURE_BMR              => "Grundumsatz/BMR (kcal)",
             self::MEASURE_METABOLIC_AGE    => "Metabolisches Alter (Jahre)",
-            self::MEASURE_EXTRACELLULAR_WATER => "ExtrazellulÃ¤res Wasser (kg)",
-            self::MEASURE_INTRACELLULAR_WATER => "IntrazellulÃ¤res Wasser (kg)",
-            self::MEASURE_BODY_TEMPERATURE => "KÃ¶rpertemperatur (Â°C)",
+            self::MEASURE_EXTRACELLULAR_WATER => "Extrazelluläres Wasser (kg)",
+            self::MEASURE_INTRACELLULAR_WATER => "Intrazelluläres Wasser (kg)",
+            self::MEASURE_BODY_TEMPERATURE => "Körpertemperatur (Â°C)",
         ];
 
         $prompt = "Hier sind meine Gesundheitsdaten der letzten ". $days . " Tage (Withings Body Scan 2):\n";
-        $prompt .= "Bitte generiere genau 5 sehr kurze, prÃ¤gnante Bulletpoints (Insights) Ã¼ber die wichtigsten Entwicklungen meiner Gesundheit.\n";
-        $prompt .= "DÃ¤mpfe die Informationen auf das absolut Wesentliche ein (z.B. 'Gewicht leicht gesunken (-0.5kg)', 'Blutdruck im Normalbereich').\n";
-        $prompt .= "Antworte ausschlieÃŸlich in JSON. Das Format muss ein striktes JSON-Array von Strings sein, z.B.: [\"Insight 1\", \"Insight 2\", \"Insight 3\", \"Insight 4\", \"Insight 5\"].\n";
-        $prompt .= "Verwende keine ZeilenumbrÃ¼che innerhalb der Strings und keine Markdown-Formatierung im Output, nur reines JSON.\n\n";
+        $prompt .= "Bitte generiere genau 5 sehr kurze, prägnante Bulletpoints (Insights) über die wichtigsten Entwicklungen meiner Gesundheit.\n";
+        $prompt .= "Dämpfe die Informationen auf das absolut Wesentliche ein (z.B. 'Gewicht leicht gesunken (-0.5kg)', 'Blutdruck im Normalbereich').\n";
+        $prompt .= "Antworte ausschließlich in JSON. Das Format muss ein striktes JSON-Array von Strings sein, z.B.: [\"Insight 1\", \"Insight 2\", \"Insight 3\", \"Insight 4\", \"Insight 5\"].\n";
+        $prompt .= "Verwende keine Zeilenumbrüche innerhalb der Strings und keine Markdown-Formatierung im Output, nur reines JSON.\n\n";
 
-        // BMI-Wert hinzufÃ¼gen falls vorhanden
+        // BMI-Wert hinzufügen falls vorhanden
         $bmiID = @IPS_GetObjectIDByIdent("Calculated_BMI", $this->InstanceID);
         if ($bmiID !== false) {
             $bmiValue = GetValue($bmiID);
@@ -763,18 +763,18 @@ class WithingsDevice extends IPSModuleStrict {
         }
 
         if (!$hasData) {
-            $this->SLog('WARNING', 'Keine Archivdaten fÃ¼r Gemini Auswertung gefunden.');
+            $this->SLog('WARNING', 'Keine Archivdaten für Gemini Auswertung gefunden.');
             return;
         }
 
         $instanceId = $this->InstanceID;
 
-        // Async â€” nutze JSON Schema fÃ¼r GIO_Query
+        // Async â€” nutze JSON Schema für GIO_Query
         $schema = '{"type":"array","items":{"type":"string"}}';
         $script = '<?php
             $result = GIO_Query(' . $geminiId . ',
                 ' . var_export($prompt, true) . ',
-                \'Du bist ein KI-Assistent fÃ¼r ein Smart Home Dashboard. Fasse Gesundheitsdaten in 5 extrem kurzen, prÃ¤gnanten Punkten zusammen. Antworte als JSON Array von Strings.\',
+                \'Du bist ein KI-Assistent für ein Smart Home Dashboard. Fasse Gesundheitsdaten in 5 extrem kurzen, prägnanten Punkten zusammen. Antworte als JSON Array von Strings.\',
                 ' . var_export($schema, true) . ',
                 0.4
             );
@@ -791,18 +791,18 @@ class WithingsDevice extends IPSModuleStrict {
 
         $insights = @json_decode($report, true);
         if (!is_array($insights)) {
-            $this->SLog('ERROR', 'Gemini Antwort war kein gÃ¼ltiges JSON Array: ' . $report);
+            $this->SLog('ERROR', 'Gemini Antwort war kein gültiges JSON Array: ' . $report);
             return;
         }
 
-        // FÃ¼lle die Variablen 1 bis 5 (oder leere sie, falls weniger zurÃ¼ckkam)
+        // Fülle die Variablen 1 bis 5 (oder leere sie, falls weniger zurückkam)
         for ($i = 1; $i <= 5; $i++) {
             $ident = "GeminiInsight" . $i;
             $value = isset($insights[$i - 1]) ? $insights[$i - 1] : "";
             $this->SetValue($ident, $value);
         }
 
-        // DailyReport fÃ¼r E-Mails generieren (als Markdown zusammenbauen)
+        // DailyReport für E-Mails generieren (als Markdown zusammenbauen)
         $markdownReport = "";
         foreach ($insights as $insight) {
             $markdownReport .= "- " . $insight . "\n";
@@ -830,7 +830,7 @@ class WithingsDevice extends IPSModuleStrict {
         },
         {
             "type": "Label",
-            "caption": "Hier trÃ¤gst du die Client ID und das Client Secret aus deinem Withings Developer Account ein. Diese Daten brauchst du, damit sich Symcon mit deinem Withings Account verbinden kann."
+            "caption": "Hier trägst du die Client ID und das Client Secret aus deinem Withings Developer Account ein. Diese Daten brauchst du, damit sich Symcon mit deinem Withings Account verbinden kann."
         },
         {
             "type": "RowLayout",
@@ -861,12 +861,12 @@ class WithingsDevice extends IPSModuleStrict {
         },
         {
             "type": "Label",
-            "caption": "Gib hier an, wie oft deine Daten von Withings abgerufen werden sollen. Wenn du 0 eintrÃ¤gst, wird der automatische Abruf deaktiviert."
+            "caption": "Gib hier an, wie oft deine Daten von Withings abgerufen werden sollen. Wenn du 0 einträgst, wird der automatische Abruf deaktiviert."
         },
         {
             "type": "NumberSpinner",
             "name": "FetchInterval",
-            "caption": "Abruf-Intervall (in Min, 0 = deaktiviert, z.B. 240 fÃ¼r Fallback)",
+            "caption": "Abruf-Intervall (in Min, 0 = deaktiviert, z.B. 240 für Fallback)",
             "minimum": 0,
             "maximum": 1440
         },
@@ -876,7 +876,7 @@ class WithingsDevice extends IPSModuleStrict {
         },
         {
             "type": "Label",
-            "caption": "Hier kannst du deinen persÃ¶nlichen KI-Coach aktivieren. Du brauchst dafÃ¼r einen API Key von Google. Gib auÃŸerdem an, Ã¼ber welchen Zeitraum die Trends berechnet werden sollen und wohin dir der Bericht geschickt werden darf."
+            "caption": "Hier kannst du deinen persönlichen KI-Coach aktivieren. Du brauchst dafür einen API Key von Google. Gib außerdem an, über welchen Zeitraum die Trends berechnet werden sollen und wohin dir der Bericht geschickt werden darf."
         },
         {
             "type": "CheckBox",
@@ -885,7 +885,7 @@ class WithingsDevice extends IPSModuleStrict {
         },
         {
             "type": "Label",
-            "caption": "API-Key und Modell werden zentral Ã¼ber die 'Smart Gemini IO' Instanz konfiguriert.\nBitte dort einmalig deinen Google Gemini API-Key hinterlegen."
+            "caption": "API-Key und Modell werden zentral über die 'Smart Gemini IO' Instanz konfiguriert.\nBitte dort einmalig deinen Google Gemini API-Key hinterlegen."
         },
         {
             "type": "NumberSpinner",
@@ -897,7 +897,7 @@ class WithingsDevice extends IPSModuleStrict {
         {
             "type": "SelectInstance",
             "name": "SMTPInstanceID",
-            "caption": "SMTP Instanz fÃ¼r tÃ¤glichen Bericht per Mail"
+            "caption": "SMTP Instanz für täglichen Bericht per Mail"
         }
     ],
     "actions": [
@@ -913,7 +913,7 @@ class WithingsDevice extends IPSModuleStrict {
         },
         {
             "type": "Button",
-            "label": "GerÃ¤testatus abrufen",
+            "label": "Gerätestatus abrufen",
             "onClick": "WITHINGS_FetchDeviceInfo($id);"
         },
         {

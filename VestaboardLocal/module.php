@@ -15,7 +15,7 @@ class VestaboardLocal extends IPSModuleStrict {
         parent::Create();
         $this->DA_RegisterAvailability(900); // Alarm priority: 0 (Low)
         
-        // Standard-Eigenschaften fÃ¼r das Konfigurationsformular anlegen
+        // Standard-Eigenschaften für das Konfigurationsformular anlegen
         $this->RegisterPropertyString("ApiUrl", "http://<IP-ADRESSE>:7000/local-api/message");
         $this->RegisterPropertyString("ApiKey", "");
         $this->RegisterPropertyString("AlignHorizontal", "center");
@@ -54,7 +54,7 @@ class VestaboardLocal extends IPSModuleStrict {
         }
 
         // ====================================================================
-        // SCHRITT 1: Payload fÃ¼r die Cloud-Ãœbersetzung (Compiler) bauen
+        // SCHRITT 1: Payload für die Cloud-Ãœbersetzung (Compiler) bauen
         // ====================================================================
         $cloudUrl = "https://vbml.vestaboard.com/compose";
         $inputArray = [
@@ -132,7 +132,7 @@ class VestaboardLocal extends IPSModuleStrict {
         },
         {
             "type": "Label",
-            "label": "Lege hier fest, wie dein Text standardmÃ¤ÃŸig auf dem Board ausgerichtet werden soll, falls du nichts anderes angibst."
+            "label": "Lege hier fest, wie dein Text standardmäßig auf dem Board ausgerichtet werden soll, falls du nichts anderes angibst."
         },
         {
             "type": "Select",
@@ -206,11 +206,11 @@ class VestaboardLocal extends IPSModuleStrict {
         },
         {
             "type": "Label",
-            "label": "{66} GrÃ¼n   | {67} Blau   | {68} Violett"
+            "label": "{66} Grün   | {67} Blau   | {68} Violett"
         },
         {
             "type": "Label",
-            "label": "{69} WeiÃŸ   | {70} Schwarz| {0}  Leer"
+            "label": "{69} Weiß   | {70} Schwarz| {0}  Leer"
         },
         {
             "type": "Label",

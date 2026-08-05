@@ -22,9 +22,9 @@ class PixelblazeController extends IPSModuleStrict
         $this->RegisterPropertyInteger('AutoReconnectInterval', 30);
         $this->RegisterPropertyInteger('FetchStateInterval', 10);
 
-        // Internes Attribut fÃ¼r die letzte Helligkeit vor dem Ausschalten
+        // Internes Attribut für die letzte Helligkeit vor dem Ausschalten
         $this->RegisterAttributeInteger('LastBrightness', 50);
-        // Internes Attribut fÃ¼r die Programmliste (Map von Index -> String ID)
+        // Internes Attribut für die Programmliste (Map von Index -> String ID)
         $this->RegisterAttributeString('ProgramMap', '[]');
 
         // Variablen
@@ -49,7 +49,7 @@ class PixelblazeController extends IPSModuleStrict
 
         $this->RegisterVariableString('ActiveProgramName', 'Aktuelles Programm (Name)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 35);
 
-        // Timer fÃ¼r Auto-Reconnect
+        // Timer für Auto-Reconnect
         $this->RegisterTimer('ReconnectTimer', 0, 'PB_Reconnect($_IPS[\'TARGET\']);');
         $this->RegisterTimer('FetchStateTimer', 0, 'PB_FetchState($_IPS[\'TARGET\']);');
     }
@@ -71,7 +71,7 @@ class PixelblazeController extends IPSModuleStrict
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
 
-        // Alte String-Variable lÃ¶schen falls vorhanden
+        // Alte String-Variable löschen falls vorhanden
         $oldVar = @$this->GetIDForIdent('ActiveProgramID');
         if ($oldVar > 0) {
             $this->UnregisterVariable('ActiveProgramID');
@@ -178,11 +178,11 @@ class PixelblazeController extends IPSModuleStrict
                 if ($Value > 0) {
                     $this->SetValue('Power', true);
                     $this->UpdateVisibility(true);
-                    $this->SLogInfo("Helligkeit auf " . $Value . "% gesetzt (GerÃ¤t AN).");
+                    $this->SLogInfo("Helligkeit auf " . $Value . "% gesetzt (Gerät AN).");
                 } else {
                     $this->SetValue('Power', false);
                     $this->UpdateVisibility(false);
-                    $this->SLogInfo("Helligkeit auf 0% gesetzt (GerÃ¤t AUS).");
+                    $this->SLogInfo("Helligkeit auf 0% gesetzt (Gerät AUS).");
                 }
                 break;
 
@@ -251,7 +251,7 @@ class PixelblazeController extends IPSModuleStrict
         // WebSocket Client Data ID
         if ($data['DataID'] == '{018EF6B5-AB94-40C6-AA53-46943E824ACF}') {
             $bufferRaw = trim($data['Buffer']);
-            // Ab IP-Symcon 6 wird der Buffer oft als HEX-String Ã¼bergeben
+            // Ab IP-Symcon 6 wird der Buffer oft als HEX-String übergeben
             $buffer = (ctype_xdigit($bufferRaw)) ? hex2bin($bufferRaw) : $bufferRaw;
 
             // Prfe auf JSON Text-Frame (Status Updates etc.)
@@ -402,7 +402,7 @@ class PixelblazeController extends IPSModuleStrict
         if ($data) {
             $this->SendWebSocketCommand($data);
         } else {
-            $this->SLogInfo("SendJsonCommand: UngÃ¼ltiges JSON Format.");
+            $this->SLogInfo("SendJsonCommand: Ungültiges JSON Format.");
         }
     }
 
@@ -439,7 +439,7 @@ class PixelblazeController extends IPSModuleStrict
     "elements": [
         {
             "type": "Label",
-            "label": "Hier stellst du ein, wie oft das Modul im Hintergrund arbeiten soll. Du kannst das Auto-Reconnect Intervall fÃ¼r VerbindungsabbrÃ¼che und das Intervall fÃ¼r die Status-Abfrage anpassen."
+            "label": "Hier stellst du ein, wie oft das Modul im Hintergrund arbeiten soll. Du kannst das Auto-Reconnect Intervall für Verbindungsabbrüche und das Intervall für die Status-Abfrage anpassen."
         },
         {
             "type": "RowLayout",
@@ -460,11 +460,11 @@ class PixelblazeController extends IPSModuleStrict
     "actions": [
         {
             "type": "Label",
-            "label": "Hier kannst du die auf dem Pixelblaze gespeicherten Programme abrufen, damit du sie in der OberflÃ¤che bequem auswÃ¤hlen kannst."
+            "label": "Hier kannst du die auf dem Pixelblaze gespeicherten Programme abrufen, damit du sie in der Oberfläche bequem auswählen kannst."
         },
         {
             "type": "Button",
-            "label": "Programme vom GerÃ¤t laden",
+            "label": "Programme vom Gerät laden",
             "onClick": "PB_FetchPrograms($id);"
         }
     ],

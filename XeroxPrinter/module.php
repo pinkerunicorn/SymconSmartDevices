@@ -24,7 +24,7 @@ class XeroxPrinter extends IPSModuleStrict
         // Standard-OIDs als JSON Liste registrieren
         $defaultOIDs = json_encode([
             ['Name'=> 'Seiten insgesamt', 'OID'=> '1.3.6.1.4.1.253.8.53.13.2.1.6.1.20.200'],
-            ['Name'=> 'SchwarzweiÃŸseiten', 'OID'=> '1.3.6.1.4.1.253.8.53.13.2.1.6.1.20.201'],
+            ['Name'=> 'Schwarzweißseiten', 'OID'=> '1.3.6.1.4.1.253.8.53.13.2.1.6.1.20.201'],
             ['Name'=> 'Farbseiten', 'OID'=> '1.3.6.1.4.1.253.8.53.13.2.1.6.1.20.202'],
             ['Name'=> 'Restseiten Cyan', 'OID'=> '1.3.6.1.2.1.43.11.1.1.9.1.4'],
             ['Name'=> 'Restseiten Magenta', 'OID'=> '1.3.6.1.2.1.43.11.1.1.9.1.3'],
@@ -127,12 +127,12 @@ class XeroxPrinter extends IPSModuleStrict
             $result = @$snmp->get($host, $oid, ['community'=> $community]);
             
             if ($result !== false && $result !== null && is_array($result)) {
-                // Das phpSNMP-Skript gibt ein Array zurÃ¼ck: [oid => wert]
+                // Das phpSNMP-Skript gibt ein Array zurück: [oid => wert]
                 $raw_value = (string)current($result);
-                // Begrenze LÃ¤nge und entferne Null-Bytes, um PCRE/Speicher-Bugs in PHP zu vermeiden
+                // Begrenze Länge und entferne Null-Bytes, um PCRE/Speicher-Bugs in PHP zu vermeiden
                 $raw_value = substr(str_replace("\0", "", $raw_value), 0, 255);
                 
-                // Bereinigen, falls Text wie "Gauge32:"oder Ã¤hnliches drin steht (ohne preg_replace)
+                // Bereinigen, falls Text wie "Gauge32:"oder ähnliches drin steht (ohne preg_replace)
                 $value = '';
                 $len = strlen($raw_value);
                 for ($i = 0; $i < $len; $i++) {
@@ -147,7 +147,7 @@ class XeroxPrinter extends IPSModuleStrict
                     $this->SetValue($ident, (float)$value);
                     $success = true;
                 } else {
-                    $this->SendDebug("SNMP", "$name ($oid) = ungÃ¼ltiger Wert ($raw_value)", 0);
+                    $this->SendDebug("SNMP", "$name ($oid) = ungültiger Wert ($raw_value)", 0);
                 }
             } else {
                 $this->SendDebug("SNMP-Error", "Fehler beim Abrufen von $name ($oid)", 0);
@@ -211,7 +211,7 @@ class XeroxPrinter extends IPSModuleStrict
         },
         {
             "type": "Label",
-            "caption": "Was soll ich auslesen? Trage hier die SNMP OIDs ein, die du Ã¼berwachen mÃ¶chtest. Den Namen kannst du frei wÃ¤hlen."
+            "caption": "Was soll ich auslesen? Trage hier die SNMP OIDs ein, die du überwachen möchtest. Den Namen kannst du frei wählen."
         },
         {
             "type": "List",
