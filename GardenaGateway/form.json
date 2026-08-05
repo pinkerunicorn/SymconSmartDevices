@@ -1,0 +1,57 @@
+{
+    "elements": [
+        {
+            "type": "ValidationTextBox",
+            "name": "AppKey",
+            "caption": "Application Key"
+        },
+        {
+            "type": "PasswordTextBox",
+            "name": "AppSecret",
+            "caption": "Application Secret"
+        },
+        {
+            "type": "Label",
+            "caption": "Get credentials at: https://developer.husqvarnagroup.cloud/"
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Verbindung testen",
+            "onClick": "echo FGG_TestConnection($id);"
+        },
+        {
+            "type": "Button",
+            "caption": "Token erneuern",
+            "onClick": "echo FGG_RefreshToken($id);"
+        }
+    ],
+    "status": [
+        {
+            "code": 102,
+            "icon": "active",
+            "caption": "Verbunden"
+        },
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Inaktiv"
+        },
+        {
+            "code": 200,
+            "icon": "error",
+            "caption": "Authentifizierung fehlgeschlagen"
+        },
+        {
+            "code": 201,
+            "icon": "error",
+            "caption": "WebSocket getrennt"
+        },
+        {
+            "code": 202,
+            "icon": "error",
+            "caption": "Rate Limit (429) - Gesperrt"
+        }
+    ]
+}

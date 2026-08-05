@@ -1,0 +1,17 @@
+{
+    "id": "{7B3F1D5E-A9C2-4E8F-B6D4-2A7C3E5F1B9D}",
+    "name": "GardenaValve",
+    "type": 3,
+    "vendor": "Florian Gra\u00dfinger",
+    "aliases": [
+        "GardenaValve"
+    ],
+    "parentRequirements": [
+        "{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}"
+    ],
+    "implemented": [
+        "{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}"
+    ],
+    "prefix": "FGG",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/GardenaValve"
+}

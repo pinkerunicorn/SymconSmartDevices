@@ -1,0 +1,20 @@
+{
+    "id": "{8C2E5D3F-A1B4-4C6E-9F8D-2E7A3B5C1D9F}",
+    "name": "GardenaGateway",
+    "type": 2,
+    "vendor": "Florian Gra\u00dfinger",
+    "aliases": [
+        "Gardena Gateway"
+    ],
+    "parentRequirements": [
+        "{D68FD31F-0E90-7019-F16C-1949BD3079EF}"
+    ],
+    "childRequirements": [
+        "{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}"
+    ],
+    "implemented": [
+        "{018EF6B5-AB94-40C6-AA53-46943E824ACF}"
+    ],
+    "prefix": "FGG",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/GardenaGateway"
+}

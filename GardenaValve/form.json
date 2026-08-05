@@ -1,0 +1,55 @@
+{
+    "elements": [
+        {
+            "type": "ValidationTextBox",
+            "name": "DeviceID",
+            "caption": "Gardena Ger\u00e4te-ID"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "ValveID",
+            "caption": "Ventil-Kanal ID",
+            "hint": "nur f\u00fcr Irrigation Control"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "DefaultDuration",
+            "caption": "Standard-Bew\u00e4sserungsdauer (Minuten)",
+            "minimum": 1,
+            "maximum": 240
+        },
+        {
+            "type": "Label",
+            "caption": "Wird automatisch vom Konfigurator gesetzt"
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Bew\u00e4sserung starten",
+            "onClick": "FGG_StartWatering($id, 0);"
+        },
+        {
+            "type": "Button",
+            "caption": "Bew\u00e4sserung stoppen",
+            "onClick": "FGG_StopWatering($id);"
+        }
+    ],
+    "status": [
+        {
+            "code": 102,
+            "icon": "active",
+            "caption": "Aktiv"
+        },
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Inaktiv"
+        },
+        {
+            "code": 200,
+            "icon": "error",
+            "caption": "Ger\u00e4te-ID fehlt"
+        }
+    ]
+}

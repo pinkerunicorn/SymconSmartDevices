@@ -1,0 +1,18 @@
+{
+    "id": "{5E9C1A3B-D2F4-4B6E-8A7C-3F1D5E9B2C4A}",
+    "name": "GardenaSensor",
+    "type": 3,
+    "vendor": "Florian Gra\u00dfinger",
+    "aliases": [
+        "Gardena Sensor"
+    ],
+    "parentRequirements": [
+        "{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}"
+    ],
+    "childRequirements": [],
+    "implemented": [
+        "{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}"
+    ],
+    "prefix": "FGG",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/GardenaSensor"
+}
