@@ -75,8 +75,16 @@ class GardenaGateway extends IPSModuleStrict
         $this->RegisterTimer('TokenRefresh', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "TokenRefresh", "");');
         $this->RegisterTimer('MidnightReset', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "MidnightReset", "");');
         $this->RegisterTimer('Reconnect', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "Reconnect", "");');
+    }
 
-        $this->RequireParent('{D68FD31F-0E90-7019-F16C-1949BD3079EF}');
+    public function GetCompatibleParents(): string
+    {
+        return json_encode([
+            'type'    => 'require',
+            'modules' => [
+                ['moduleID' => '{D68FD31F-0E90-7019-F16C-1949BD3079EF}'] // WebSocket Client
+            ]
+        ]);
     }
 
     public function ApplyChanges(): void
