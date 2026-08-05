@@ -8,6 +8,9 @@
         "Gardena Valve",
         "Gardena Water Control"
     ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
     "prefix": "FGG",
     "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/GardenaValve"
 }

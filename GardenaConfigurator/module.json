@@ -7,6 +7,9 @@
     "aliases": [
         "Gardena Configurator"
     ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
     "prefix": "FGG",
     "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/GardenaConfigurator"
 }
