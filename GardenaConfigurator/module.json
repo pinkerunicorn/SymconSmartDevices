@@ -1,12 +1,18 @@
 {
-  "id": "{3F7A2B8E-C4D1-4E5F-A6B9-1C3D5E7F8A2B}",
-  "name": "GardenaConfigurator",
-  "type": 4,
-  "vendor": "Florian Gra\u00dfinger",
-  "aliases": ["Gardena Configurator"],
-  "parentRequirements": ["{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}"],
-  "childRequirements": [],
-  "implemented": ["{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}"],
-  "prefix": "FGG",
-  "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/GardenaConfigurator"
+    "id": "{3F7A2B8E-C4D1-4E5F-A6B9-1C3D5E7F8A2B}",
+    "name": "GardenaConfigurator",
+    "type": 4,
+    "vendor": "Florian Gra\u00dfinger",
+    "author": "Florian Gra\u00dfinger",
+    "aliases": [
+        "Gardena Configurator"
+    ],
+    "parentRequirements": [
+        "{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}"
+    ],
+    "implemented": [
+        "{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}"
+    ],
+    "prefix": "FGG",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/GardenaConfigurator"
 }
