@@ -56,69 +56,115 @@ class GardenaConfigurator extends IPSModuleStrict
         $included = $apiData['included'] ?? [];
         
         $devicesMap = [];
+        $servicesMap = [];
+
+        // First pass: Find all devices
         foreach ($included as $item) {
             if (($item['type'] ?? '') === 'DEVICE') {
                 $id = $item['id'] ?? '';
-                // Gardena API JSONAPI returns attributes nested in a 'value' object
-                $name = $item['attributes']['name']['value'] ?? 'Unknown Device';
-                $serial = $item['attributes']['serial']['value'] ?? '-';
                 if (!empty($id)) {
                     $devicesMap[$id] = [
                         'id' => $id,
-                        'name' => $name,
-                        'serial' => $serial,
                         'services' => []
                     ];
                 }
             }
         }
         
+        // Second pass: Associate services
         foreach ($included as $item) {
             $type = $item['type'] ?? '';
+            $id = $item['id'] ?? '';
             if ($type === 'DEVICE' || $type === 'LOCATION') {
                 continue;
             }
             $deviceId = $item['relationships']['device']['data']['id'] ?? '';
             if ($deviceId && isset($devicesMap[$deviceId])) {
-                $devicesMap[$deviceId]['services'][$type] = $item;
+                // We keep a list of services for the device
+                $devicesMap[$deviceId]['services'][] = $item;
+                $servicesMap[$id] = $item;
             }
         }
 
         $values = [];
+        // Add root location if needed, but flat is also fine. We will use tree structure.
         foreach ($devicesMap as $deviceId => $dev) {
-            $name = $dev['name'];
-            $serial = $dev['serial'];
             $services = $dev['services'];
+            
+            // Find COMMON service for device name and serial
+            $common = null;
+            $valveSet = null;
+            $valves = [];
+            $sensor = null;
 
-            if (isset($services['VALVE_SET'])) {
+            foreach ($services as $svc) {
+                if ($svc['type'] === 'COMMON') $common = $svc;
+                if ($svc['type'] === 'VALVE_SET') $valveSet = $svc;
+                if ($svc['type'] === 'VALVE') $valves[] = $svc;
+                if ($svc['type'] === 'SENSOR') $sensor = $svc;
+            }
+
+            if (!$common) {
+                continue; // Cannot identify device without COMMON
+            }
+
+            $deviceName = $common['attributes']['name']['value'] ?? 'Unknown Device';
+            $serial = $common['attributes']['serial']['value'] ?? '-';
+            $modelType = $common['attributes']['modelType']['value'] ?? 'GARDENA Device';
+            $rfLinkState = $common['attributes']['rfLinkState']['value'] ?? 'UNKNOWN';
+            
+            // Add Parent Node
+            $values[] = [
+                'id'         => $deviceId,
+                'name'       => $deviceName,
+                'serial'     => $serial,
+                'status'     => $rfLinkState,
+                'type'       => $modelType,
+                'instanceID' => 0
+            ];
+
+            if ($valveSet && count($valves) > 1) {
+                // Irrigation Control (multi-valve)
                 $moduleID = '{7B3F1D5E-A9C2-4E8F-B6D4-2A7C3E5F1B9D}';
-                for ($i = 1; $i <= 6; $i++) {
-                    $valveId = (string)$i;
-                    $instanceID = $this->GetExistingInstanceID($moduleID, $deviceId, $valveId);
+                foreach ($valves as $v) {
+                    $vId = $v['id'];
+                    $vName = $v['attributes']['name']['value'] ?? 'Valve';
+                    // Extract ValveID from id (e.g. "deviceid:1")
+                    $parts = explode(':', $vId);
+                    $valveIdStr = isset($parts[1]) ? $parts[1] : '1';
+                    
+                    $instanceID = $this->GetExistingInstanceID($moduleID, $deviceId, $valveIdStr);
                     $values[] = [
-                        'name'       => $name . " (Ventil $i)",
-                        'serial'     => $serial . "-$i",
+                        'id'         => $vId,
+                        'parent'     => $deviceId,
+                        'name'       => $vName,
+                        'serial'     => '',
                         'status'     => 'OK',
-                        'type'       => 'Irrigation Control',
+                        'type'       => 'Ventil',
                         'instanceID' => $instanceID,
                         'create'     => [
                             'moduleID'      => $moduleID,
                             'configuration' => [
                                 'DeviceID' => $deviceId,
-                                'ValveID'  => $valveId
+                                'ValveID'  => $valveIdStr
                             ],
-                            'name'          => $name . " (Ventil $i)"
+                            'name'          => $vName
                         ]
                     ];
                 }
-            } elseif (isset($services['VALVE'])) {
+            } elseif (count($valves) === 1) {
+                // Water Control (single valve)
                 $moduleID = '{7B3F1D5E-A9C2-4E8F-B6D4-2A7C3E5F1B9D}';
+                $v = $valves[0];
+                $vName = $v['attributes']['name']['value'] ?? $deviceName;
                 $instanceID = $this->GetExistingInstanceID($moduleID, $deviceId, '1');
                 $values[] = [
-                    'name'       => $name,
-                    'serial'     => $serial,
+                    'id'         => $v['id'],
+                    'parent'     => $deviceId,
+                    'name'       => $vName,
+                    'serial'     => '',
                     'status'     => 'OK',
-                    'type'       => 'Water Control',
+                    'type'       => 'Ventil',
                     'instanceID' => $instanceID,
                     'create'     => [
                         'moduleID'      => $moduleID,
@@ -126,15 +172,18 @@ class GardenaConfigurator extends IPSModuleStrict
                             'DeviceID' => $deviceId,
                             'ValveID'  => '1'
                         ],
-                        'name'          => $name
+                        'name'          => $vName
                     ]
                 ];
-            } elseif (isset($services['SENSOR'])) {
+            } elseif ($sensor) {
+                // Sensor
                 $moduleID = '{5E9C1A3B-D2F4-4B6E-8A7C-3F1D5E9B2C4A}';
                 $instanceID = $this->GetExistingInstanceID($moduleID, $deviceId);
                 $values[] = [
-                    'name'       => $name,
-                    'serial'     => $serial,
+                    'id'         => $sensor['id'],
+                    'parent'     => $deviceId,
+                    'name'       => $deviceName . ' (Sensor)',
+                    'serial'     => '',
                     'status'     => 'OK',
                     'type'       => 'Sensor',
                     'instanceID' => $instanceID,
@@ -143,15 +192,18 @@ class GardenaConfigurator extends IPSModuleStrict
                         'configuration' => [
                             'DeviceID' => $deviceId
                         ],
-                        'name'          => $name
+                        'name'          => $deviceName . ' (Sensor)'
                     ]
                 ];
             } else {
+                // Unknown/Unsupported Device
                 $values[] = [
-                    'name'       => $name,
-                    'serial'     => $serial,
+                    'id'         => $deviceId . '_unk',
+                    'parent'     => $deviceId,
+                    'name'       => 'Unsupported Device',
+                    'serial'     => '',
                     'status'     => 'OK',
-                    'type'       => 'Unknown (' . implode(', ', array_keys($services)) . ')',
+                    'type'       => 'Unknown',
                     'instanceID' => 0
                 ];
             }
