@@ -302,8 +302,22 @@ class GardenaGateway extends IPSModuleStrict
             return '';
         }
 
-        // Gardena JSONAPI: einzelnes Event oder Array von Events
-        $events = isset($payload['type']) ? [$payload] : ($payload['data'] ?? [$payload]);
+        // Gardena JSONAPI: einzelnes Event oder Array von Events, inklusive initialem State
+        $events = [];
+        if (isset($payload['type'])) {
+            $events[] = $payload;
+        } else {
+            if (isset($payload['data'])) {
+                if (isset($payload['data'][0])) {
+                    $events = array_merge($events, $payload['data']);
+                } else {
+                    $events[] = $payload['data'];
+                }
+            }
+            if (isset($payload['included']) && is_array($payload['included'])) {
+                $events = array_merge($events, $payload['included']);
+            }
+        }
 
         foreach ($events as $event) {
             if (!is_array($event)) {
