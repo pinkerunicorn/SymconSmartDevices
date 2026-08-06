@@ -11,10 +11,10 @@
         "{D68FD31F-0E90-7019-F16C-1949BD3079EF}"
     ],
     "childRequirements": [
-        "{A4B6C8D2-E1F3-4A5C-9B7D-3E5F7A9C1B2D}"
+        "{FE3A29C6-B712-4D85-9C3E-71A5F82DB430}"
     ],
     "implemented": [
-        "{FE3A29C6-B712-4D85-9C3E-71A5F82DB430}"
+        "{A4B6C8D2-E1F3-4A5C-9B7D-3E5F7A9C1B2D}"
     ],
     "prefix": "FGG",
     "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/GardenaGateway"
