@@ -123,7 +123,7 @@ class GardenaConfigurator extends IPSModuleStrict
         }
 
         return json_encode([
-            'actions' => [
+            'elements' => [
                 [
                     'type'     => 'Configurator',
                     'name'     => 'Devices',
@@ -136,15 +136,16 @@ class GardenaConfigurator extends IPSModuleStrict
                         'direction' => 'ascending'
                     ],
                     'columns'  => [
-                        ['caption' => 'Name', 'name' => 'name', 'width' => 'auto'],
+                        ['caption' => 'Name',         'name' => 'name',   'width' => 'auto'],
                         ['caption' => 'Seriennummer', 'name' => 'serial', 'width' => '150px'],
-                        ['caption' => 'Status', 'name' => 'status', 'width' => '100px'],
-                        ['caption' => 'Typ', 'name' => 'type', 'width' => '250px']
+                        ['caption' => 'Status',       'name' => 'status', 'width' => '100px'],
+                        ['caption' => 'Typ',          'name' => 'type',   'width' => '250px']
                     ],
                     'values'   => $values
                 ]
             ]
         ]);
+
     }
 
     private function GetExistingInstanceID(string $moduleID, string $deviceID, string $valveID = ''): int
