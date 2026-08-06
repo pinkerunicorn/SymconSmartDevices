@@ -59,8 +59,9 @@ class GardenaConfigurator extends IPSModuleStrict
         foreach ($included as $item) {
             if (($item['type'] ?? '') === 'DEVICE') {
                 $id = $item['id'] ?? '';
-                $name = $item['attributes']['name'] ?? 'Unknown Device';
-                $serial = $item['attributes']['serial'] ?? '-';
+                // Gardena API JSONAPI returns attributes nested in a 'value' object
+                $name = $item['attributes']['name']['value'] ?? 'Unknown Device';
+                $serial = $item['attributes']['serial']['value'] ?? '-';
                 if (!empty($id)) {
                     $devicesMap[$id] = [
                         'id' => $id,
