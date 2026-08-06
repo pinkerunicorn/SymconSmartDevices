@@ -77,12 +77,11 @@ class GardenaGateway extends IPSModuleStrict
         $this->RegisterTimer('Reconnect', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "Reconnect", "");');
     }
 
-    protected function GetCompatibleParents(): array
+    public function GetCompatibleParents(): array
     {
-        // R\u00fcckgabe: Modul-GUIDs kompatibler \u00fcbergeordneter Instanzen
-        // {D68FD31F} = WebSocket Client
         return ['{D68FD31F-0E90-7019-F16C-1949BD3079EF}'];
     }
+
 
 
     public function ApplyChanges(): void
