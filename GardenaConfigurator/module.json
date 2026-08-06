@@ -7,9 +7,13 @@
     "aliases": [
         "Gardena Configurator"
     ],
-    "parentRequirements": [],
+    "parentRequirements": [
+        "{FE3A29C6-B712-4D85-9C3E-71A5F82DB430}"
+    ],
     "childRequirements": [],
-    "implemented": [],
+    "implemented": [
+        "{FE3A29C6-B712-4D85-9C3E-71A5F82DB430}"
+    ],
     "prefix": "FGG",
     "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/GardenaConfigurator"
 }
