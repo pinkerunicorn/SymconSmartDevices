@@ -135,19 +135,9 @@ class VestaboardGenerator extends IPSModuleStrict {
         
         if ($isImmediate) {
             $this->DoUpdateBoard();
-            return;
         }
+        // Keine automatischen Updates mehr für Infos (High/Low)
 
-        // Wird aufgerufen, wenn sich eine der überwachten Variablen ändert
-        $delayMin = $this->ReadPropertyInteger("UpdateDelayMinutes");
-        $delaySec = $delayMin * 60;
-        if ($delaySec > 0) {
-            if ($this->GetTimerInterval('VestaboardUpdateTimer') == 0) {
-                $this->SetTimerInterval('VestaboardUpdateTimer', $delaySec * 1000);
-            }
-        } else {
-            $this->DoUpdateBoard();
-        }
     }
 
     public function UpdateBoard(bool $force = false): void {
@@ -171,6 +161,11 @@ class VestaboardGenerator extends IPSModuleStrict {
      * @param bool   $resume  Nach Alarm-Anzeige das normale Board wieder herstellen (Standard: false)
      */
     public function PushAlert(string $text, bool $resume = false): void {
+        if ($this->IsSleeping()) {
+            $this->SLogInfo("PushAlert: Schlafmodus aktiv. Nachricht wird nicht gesendet.");
+            return;
+        }
+
         $instId = $this->ReadPropertyInteger("InstIdVestaboardLocal");
         if ($instId <= 0 || !IPS_InstanceExists($instId)) {
             $this->SLogInfo("PushAlert: Keine gueltige Vestaboard Local Instanz.");
@@ -192,6 +187,11 @@ class VestaboardGenerator extends IPSModuleStrict {
 
     private function DoUpdateBoard(bool $force = false, bool $isHeimkinoTurningOff = false): void {
         $this->SetTimerInterval('VestaboardUpdateTimer', 0);
+        
+        if ($this->IsSleeping()) {
+            $this->SLogInfo("DoUpdateBoard: Schlafmodus aktiv. Kein Update.");
+            return;
+        }
         
         if ($this->IsCinema()) {
             $this->UpdateBoardForHeimkino($force);
