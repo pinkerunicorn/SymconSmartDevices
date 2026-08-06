@@ -310,7 +310,7 @@ class GardenaGateway extends IPSModuleStrict
                 continue;
             }
             $forward = [
-                'DataID' => '{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}',
+                'DataID' => '{FE3A29C6-B712-4D85-9C3E-71A5F82DB430}',
                 'DeviceID' => $event['id'] ?? '',
                 'ServiceType' => $event['type'] ?? '',
                 'Attributes' => $event['attributes'] ?? []
@@ -323,7 +323,7 @@ class GardenaGateway extends IPSModuleStrict
     public function ForwardData(string $JSONString): string
     {
         $data = json_decode($JSONString, true);
-        if (!is_array($data) || ($data['DataID'] ?? '') !== '{2C4A6B8D-F1E3-4A5C-9B7D-3E5F1A7C9B2D}') {
+        if (!is_array($data) || ($data['DataID'] ?? '') !== '{A4B6C8D2-E1F3-4A5C-9B7D-3E5F7A9C1B2D}') {
             return '';
         }
 

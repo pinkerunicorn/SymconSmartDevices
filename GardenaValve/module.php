@@ -262,7 +262,7 @@ class GardenaValve extends IPSModuleStrict
             return '';
         }
 
-        if (($data['DataID'] ?? '') !== '{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}') {
+        if (($data['DataID'] ?? '') !== '{FE3A29C6-B712-4D85-9C3E-71A5F82DB430}') {
             return '';
         }
 
@@ -359,7 +359,7 @@ class GardenaValve extends IPSModuleStrict
         ]);
 
         $this->SendDataToParent(json_encode([
-            'DataID' => '{2C4A6B8D-F1E3-4A5C-9B7D-3E5F1A7C9B2D}',
+            'DataID' => '{A4B6C8D2-E1F3-4A5C-9B7D-3E5F7A9C1B2D}',
             'Command' => 'SendCommand',
             'ServiceID' => $serviceID,
             'Body' => $body
@@ -385,7 +385,7 @@ class GardenaValve extends IPSModuleStrict
         ]);
 
         $this->SendDataToParent(json_encode([
-            'DataID' => '{2C4A6B8D-F1E3-4A5C-9B7D-3E5F1A7C9B2D}',
+            'DataID' => '{A4B6C8D2-E1F3-4A5C-9B7D-3E5F7A9C1B2D}',
             'Command' => 'SendCommand',
             'ServiceID' => $serviceID,
             'Body' => $body

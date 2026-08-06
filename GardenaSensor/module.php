@@ -100,7 +100,7 @@ class GardenaSensor extends IPSModuleStrict
             return '';
         }
 
-        if (($data['DataID'] ?? '') !== '{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}') {
+        if (($data['DataID'] ?? '') !== '{FE3A29C6-B712-4D85-9C3E-71A5F82DB430}') {
             return '';
         }
 

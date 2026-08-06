@@ -32,9 +32,10 @@ class GardenaConfigurator extends IPSModuleStrict
         }
 
         $response = $this->SendDataToParent(json_encode([
-            'DataID' => '{2C4A6B8D-F1E3-4A5C-9B7D-3E5F1A7C9B2D}',
-            'Action' => 'GetDevices'
+            'DataID' => '{A4B6C8D2-E1F3-4A5C-9B7D-3E5F7A9C1B2D}',
+            'Command' => 'GetDevices'
         ]));
+
 
         $devices = [];
         if ($response !== false) {
