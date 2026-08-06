@@ -431,6 +431,16 @@ class SmartFountain extends IPSModuleStrict
         }
     }
 
+    private function WLED_Set(int $instanceID, string $ident, mixed $value): void
+    {
+        if ($instanceID > 1 && @IPS_InstanceExists($instanceID)) {
+            $varID = @IPS_GetObjectIDByIdent($ident, $instanceID);
+            if ($varID > 1 && @IPS_VariableExists($varID)) {
+                @RequestAction($varID, $value);
+            }
+        }
+    }
+
     private function UpdateWLEDState(int $choreography): void
     {
         $wledID = $this->ReadPropertyInteger('WledDeviceID');
@@ -444,21 +454,21 @@ class SmartFountain extends IPSModuleStrict
         }
 
         if (!$this->GetValue('Active')) {
-            if ($hasWled) @WLED_SetState($wledID, false);
-            if ($hasGarden) @WLED_SetState($gardenID, false);
+            $this->WLED_Set($wledID, 'State', false);
+            $this->WLED_Set($gardenID, 'State', false);
             return;
         }
 
-        if ($hasWled) @WLED_SetState($wledID, true);
-        if ($hasGarden) @WLED_SetState($gardenID, true);
+        $this->WLED_Set($wledID, 'State', true);
+        $this->WLED_Set($gardenID, 'State', true);
 
         // Map Symcon intensity (0-100) to WLED brightness/intensity (0-255)
         $intensity = $this->GetValue('ChoreographyIntensity');
         $wledBrightness = (int)round(($intensity / 100) * 255);
         $gardenBrightness = (int)round(($wledBrightness * 0.7)); // Garten etwas dunkler (70%)
 
-        if ($hasWled) @WLED_SetBrightness($wledID, $wledBrightness);
-        if ($hasGarden) @WLED_SetBrightness($gardenID, $gardenBrightness);
+        $this->WLED_Set($wledID, 'Brightness', $wledBrightness);
+        $this->WLED_Set($gardenID, 'Brightness', $gardenBrightness);
 
         // Speed (0-100) to WLED speed (0-255)
         $speed = $this->GetValue('ChoreographySpeed');
@@ -467,36 +477,36 @@ class SmartFountain extends IPSModuleStrict
 
         switch ($choreography) {
             case 0: // Manuell - Statisch Warmweiß / Gold
-                if ($hasWled) { @WLED_SetEffect($wledID, 0); @WLED_SetColor($wledID, 0xFF9900); }
-                if ($hasGarden) { @WLED_SetEffect($gardenID, 0); @WLED_SetColor($gardenID, 0xFF7700); }
+                $this->WLED_Set($wledID, 'Effect', 0); $this->WLED_Set($wledID, 'Color', 0xFF9900);
+                $this->WLED_Set($gardenID, 'Effect', 0); $this->WLED_Set($gardenID, 'Color', 0xFF7700);
                 break;
             case 1: // Sinuswelle - Breathe, Blue
-                if ($hasWled) { @WLED_SetEffect($wledID, 2); @WLED_SetColor($wledID, 0x0044FF); @WLED_SetSpeed($wledID, $wledSpeed); }
-                if ($hasGarden) { @WLED_SetEffect($gardenID, 2); @WLED_SetColor($gardenID, 0x001155); @WLED_SetSpeed($gardenID, $gardenSpeed); } // Dunkelblaues, langsames Atmen
+                $this->WLED_Set($wledID, 'Effect', 2); $this->WLED_Set($wledID, 'Color', 0x0044FF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
+                $this->WLED_Set($gardenID, 'Effect', 2); $this->WLED_Set($gardenID, 'Color', 0x001155); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
                 break;
             case 2: // Puls - Heartbeat, Red
-                if ($hasWled) { @WLED_SetEffect($wledID, 65); @WLED_SetColor($wledID, 0xFF0000); @WLED_SetSpeed($wledID, $wledSpeed); }
-                if ($hasGarden) { @WLED_SetEffect($gardenID, 0); @WLED_SetColor($gardenID, 0x440000); } // Statisch, dunkles Rot als Kontrast
+                $this->WLED_Set($wledID, 'Effect', 65); $this->WLED_Set($wledID, 'Color', 0xFF0000); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
+                $this->WLED_Set($gardenID, 'Effect', 0); $this->WLED_Set($gardenID, 'Color', 0x440000);
                 break;
             case 3: // Atmen - Fade, Cyan
-                if ($hasWled) { @WLED_SetEffect($wledID, 12); @WLED_SetColor($wledID, 0x00FFFF); @WLED_SetSpeed($wledID, $wledSpeed); }
-                if ($hasGarden) { @WLED_SetEffect($gardenID, 12); @WLED_SetColor($gardenID, 0x004488); @WLED_SetSpeed($gardenID, $gardenSpeed); } // Sehr langsames dunkles Türkis
+                $this->WLED_Set($wledID, 'Effect', 12); $this->WLED_Set($wledID, 'Color', 0x00FFFF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
+                $this->WLED_Set($gardenID, 'Effect', 12); $this->WLED_Set($gardenID, 'Color', 0x004488); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
                 break;
             case 4: // Zufall - Chase Random
-                if ($hasWled) { @WLED_SetEffect($wledID, 74); @WLED_SetSpeed($wledID, $wledSpeed); }
-                if ($hasGarden) { @WLED_SetEffect($gardenID, 9); @WLED_SetSpeed($gardenID, 20); } // Colorloop (sehr langsam, beruhigend)
+                $this->WLED_Set($wledID, 'Effect', 74); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
+                $this->WLED_Set($gardenID, 'Effect', 9); $this->WLED_Set($gardenID, 'Speed', 20);
                 break;
             case 5: // Treppe - Rainbow
-                if ($hasWled) { @WLED_SetEffect($wledID, 11); @WLED_SetSpeed($wledID, $wledSpeed); }
-                if ($hasGarden) { @WLED_SetEffect($gardenID, 11); @WLED_SetSpeed($gardenID, 15); } // Regenbogen extrem langsam im Garten
+                $this->WLED_Set($wledID, 'Effect', 11); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
+                $this->WLED_Set($gardenID, 'Effect', 11); $this->WLED_Set($gardenID, 'Speed', 15);
                 break;
             case 6: // Herzschlag - Heartbeat, Magenta
-                if ($hasWled) { @WLED_SetEffect($wledID, 65); @WLED_SetColor($wledID, 0xFF00FF); @WLED_SetSpeed($wledID, $wledSpeed); }
-                if ($hasGarden) { @WLED_SetEffect($gardenID, 2); @WLED_SetColor($gardenID, 0x440044); @WLED_SetSpeed($gardenID, $gardenSpeed); } // Langsames Atmen in tiefem Lila
+                $this->WLED_Set($wledID, 'Effect', 65); $this->WLED_Set($wledID, 'Color', 0xFF00FF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
+                $this->WLED_Set($gardenID, 'Effect', 2); $this->WLED_Set($gardenID, 'Color', 0x440044); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
                 break;
             case 7: // Zufalls-Mix
-                if ($hasWled) { @WLED_SetEffect($wledID, 9); @WLED_SetSpeed($wledID, $wledSpeed); }
-                if ($hasGarden) { @WLED_SetEffect($gardenID, 9); @WLED_SetSpeed($gardenID, 20); } // Colorloop langsam
+                $this->WLED_Set($wledID, 'Effect', 9); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
+                $this->WLED_Set($gardenID, 'Effect', 9); $this->WLED_Set($gardenID, 'Speed', 20);
                 break;
         }
     }
