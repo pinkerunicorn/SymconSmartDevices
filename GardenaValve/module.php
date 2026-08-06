@@ -200,36 +200,6 @@ class GardenaValve extends IPSModuleStrict
         ], 200);
         $this->EnableAction('WateringDuration');
 
-        // --- Batterie & Funk ---
-        $this->RegisterVariableInteger('BatteryLevel', 'Batteriestand', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Battery',
-            'SUFFIX' => ' %'
-        ], 11);
-
-        $batteryIntervals = json_encode([
-            ['IntervalMinValue' => 0, 'IntervalMaxValue' => 1, 'ConstantActive' => true, 'ConstantValue' => 'OK', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Battery', 'ColorActive' => true, 'ColorValue' => 0x00CC00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF],
-            ['IntervalMinValue' => 1, 'IntervalMaxValue' => 2, 'ConstantActive' => true, 'ConstantValue' => 'Niedrig', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Battery', 'ColorActive' => true, 'ColorValue' => 0xFFAA00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF],
-            ['IntervalMinValue' => 2, 'IntervalMaxValue' => 3, 'ConstantActive' => true, 'ConstantValue' => 'Sofort tauschen', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Warning', 'ColorActive' => true, 'ColorValue' => 0xFF4444, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF],
-            ['IntervalMinValue' => 3, 'IntervalMaxValue' => 4, 'ConstantActive' => true, 'ConstantValue' => 'Ausser Betrieb', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Cross', 'ColorActive' => true, 'ColorValue' => 0xFF4444, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF],
-            ['IntervalMinValue' => 4, 'IntervalMaxValue' => 5, 'ConstantActive' => true, 'ConstantValue' => 'Wird geladen', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Lightning', 'ColorActive' => true, 'ColorValue' => 0x2196F3, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF],
-            ['IntervalMinValue' => 5, 'IntervalMaxValue' => 6, 'ConstantActive' => true, 'ConstantValue' => 'Keine Batterie', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Plug', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF],
-            ['IntervalMinValue' => 6, 'IntervalMaxValue' => 7, 'ConstantActive' => true, 'ConstantValue' => 'Unbekannt', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Help', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF]
-        ]);
-
-        $this->RegisterVariableInteger('BatteryStatus', 'Batteriestatus', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Battery',
-            'INTERVALS_ACTIVE' => true,
-            'INTERVALS' => $batteryIntervals
-        ], 12);
-
-        $this->RegisterVariableInteger('RFLinkLevel', 'Funkverbindung', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Wireless',
-            'SUFFIX' => ' %'
-        ], 13);
-
         $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Clock'
@@ -282,35 +252,25 @@ class GardenaValve extends IPSModuleStrict
         // Gateway sendet: {DataID, DeviceID, ServiceType, Attributes}
         $attributes = $data['Attributes'] ?? [];
 
-        if (isset($attributes['activity'])) {
-            $activity = $this->MapValveActivity((string)$attributes['activity']);
+        if (isset($attributes['activity']['value'])) {
+            $activity = $this->MapValveActivity((string)$attributes['activity']['value']);
             $this->SetValue('ValveActivity', $activity);
             $this->SetValue('Watering', ($activity === 1 || $activity === 2));
         }
 
-        if (isset($attributes['duration'])) {
-            $this->SetValue('RemainingTime', (int)round((int)$attributes['duration'] / 60));
+        if (isset($attributes['duration']['value'])) {
+            $this->SetValue('RemainingTime', (int)round((int)$attributes['duration']['value'] / 60));
         }
 
-        if (isset($attributes['error'])) {
-            $errorStr = (string)$attributes['error'];
+        if (isset($attributes['error']['value'])) {
+            $errorStr = (string)$attributes['error']['value'];
             $error = $this->MapValveError($errorStr);
             $this->SetValue('ValveError', $error);
 
             // Kritische Fehler loggen
             if (in_array($errorStr, ['VALVE_BROKEN', 'FROST_PREVENTS_STARTING', 'LOW_BATTERY_PREVENTS_STARTING', 'VALVE_POWER_SUPPLY_FAILED'])) {
-                $this->SLogError('Kritischer Ventilfehler: ' . $errorStr);
+                $this->SendDebug('ValveError', "Kritischer Ventil-Fehler: " . $errorStr, 0);
             }
-        }
-
-        if (isset($attributes['batteryLevel'])) {
-            $this->SetValue('BatteryLevel', (int)$attributes['batteryLevel']);
-        }
-        if (isset($attributes['batteryState'])) {
-            $this->SetValue('BatteryStatus', $this->MapBatteryStatus((string)$attributes['batteryState']));
-        }
-        if (isset($attributes['rfLinkLevel'])) {
-            $this->SetValue('RFLinkLevel', (int)$attributes['rfLinkLevel']);
         }
 
         $this->SetValue('LastUpdate', date('d.m.Y H:i:s'));

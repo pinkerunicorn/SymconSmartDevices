@@ -116,26 +116,26 @@ class GardenaSensor extends IPSModuleStrict
         // Gateway sendet: {DataID, DeviceID, ServiceType, Attributes}
         $attributes = $data['Attributes'] ?? [];
 
-        if (isset($attributes['soilHumidity'])) {
-            $this->SetValue('SoilMoisture', (float)$attributes['soilHumidity']);
+        if (isset($attributes['soilHumidity']['value'])) {
+            $this->SetValue('SoilMoisture', (float)$attributes['soilHumidity']['value']);
         }
-        if (isset($attributes['soilTemperature'])) {
-            $this->SetValue('SoilTemperature', (float)$attributes['soilTemperature']);
+        if (isset($attributes['soilTemperature']['value'])) {
+            $this->SetValue('SoilTemperature', (float)$attributes['soilTemperature']['value']);
         }
-        if (isset($attributes['ambientTemperature'])) {
-            $this->SetValue('AmbientTemperature', (float)$attributes['ambientTemperature']);
+        if (isset($attributes['ambientTemperature']['value'])) {
+            $this->SetValue('AmbientTemperature', (float)$attributes['ambientTemperature']['value']);
         }
-        if (isset($attributes['lightIntensity'])) {
-            $this->SetValue('LightIntensity', (int)$attributes['lightIntensity']);
+        if (isset($attributes['lightIntensity']['value'])) {
+            $this->SetValue('LightIntensity', (int)$attributes['lightIntensity']['value']);
         }
-        if (isset($attributes['batteryLevel'])) {
-            $this->SetValue('BatteryLevel', (int)$attributes['batteryLevel']);
+        if (isset($attributes['batteryLevel']['value'])) {
+            $this->SetValue('BatteryLevel', (int)$attributes['batteryLevel']['value']);
         }
-        if (isset($attributes['batteryState'])) {
-            $this->SetValue('BatteryStatus', $this->MapBatteryStatus((string)$attributes['batteryState']));
+        if (isset($attributes['batteryState']['value'])) {
+            $this->SetValue('BatteryStatus', $this->MapBatteryStatus((string)$attributes['batteryState']['value']));
         }
-        if (isset($attributes['rfLinkLevel'])) {
-            $this->SetValue('RFLinkLevel', (int)$attributes['rfLinkLevel']);
+        if (isset($attributes['rfLinkLevel']['value'])) {
+            $this->SetValue('RFLinkLevel', (int)$attributes['rfLinkLevel']['value']);
         }
 
         $this->SetValue('LastUpdate', date('d.m.Y H:i:s'));

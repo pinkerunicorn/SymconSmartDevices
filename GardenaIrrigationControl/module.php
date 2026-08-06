@@ -119,21 +119,21 @@ class GardenaIrrigationControl extends IPSModuleStrict
         $attributes = $data['Attributes'] ?? [];
 
         if ($serviceType === 'COMMON') {
-            if (isset($attributes['batteryLevel'])) {
-                $this->SetValue('BatteryLevel', (int)$attributes['batteryLevel']);
+            if (isset($attributes['batteryLevel']['value'])) {
+                $this->SetValue('BatteryLevel', (int)$attributes['batteryLevel']['value']);
             }
-            if (isset($attributes['batteryState'])) {
-                $this->SetValue('BatteryStatus', $this->MapBatteryStatus((string)$attributes['batteryState']));
+            if (isset($attributes['batteryState']['value'])) {
+                $this->SetValue('BatteryStatus', $this->MapBatteryStatus((string)$attributes['batteryState']['value']));
             }
-            if (isset($attributes['rfLinkLevel'])) {
-                $this->SetValue('RFLinkLevel', (int)$attributes['rfLinkLevel']);
+            if (isset($attributes['rfLinkLevel']['value'])) {
+                $this->SetValue('RFLinkLevel', (int)$attributes['rfLinkLevel']['value']);
             }
         } elseif ($serviceType === 'VALVE_SET') {
-            if (isset($attributes['state'])) {
-                $this->SetValue('MasterValveState', $this->MapMasterValveState((string)$attributes['state']));
+            if (isset($attributes['state']['value'])) {
+                $this->SetValue('MasterValveState', $this->MapMasterValveState((string)$attributes['state']['value']));
             }
-            if (isset($attributes['lastErrorCode'])) {
-                $this->SetValue('LastErrorCode', $this->MapLastErrorCode((string)$attributes['lastErrorCode']));
+            if (isset($attributes['lastErrorCode']['value'])) {
+                $this->SetValue('LastErrorCode', $this->MapLastErrorCode((string)$attributes['lastErrorCode']['value']));
             }
         }
 
