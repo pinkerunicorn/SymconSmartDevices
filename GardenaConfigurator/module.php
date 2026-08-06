@@ -37,44 +37,68 @@ class GardenaConfigurator extends IPSModuleStrict
         ]));
 
 
-        $devices = [];
+        $apiData = [];
         if ($response !== false) {
-            $devices = json_decode($response, true) ?? [];
+            $apiData = json_decode($response, true) ?? [];
         }
 
-        if (empty($devices) || !is_array($devices)) {
+        if (empty($apiData) || isset($apiData['error'])) {
             return json_encode([
                 'elements' => [
                     [
                         'type'  => 'Label',
-                        'label' => 'Es konnten keine Ger\u00e4te vom Gateway abgerufen werden oder es sind keine Ger\u00e4te vorhanden.'
+                        'label' => 'Es konnten keine Geräte vom Gateway abgerufen werden oder es sind keine Geräte vorhanden.'
                     ]
                 ]
             ]);
         }
 
-        $values = [];
-        foreach ($devices as $device) {
-            $type = $device['type'] ?? 'Unknown';
-            $deviceId = $device['id'] ?? '';
-            $deviceName = $device['name'] ?? 'Unknown Device';
-            $serial = $device['serial'] ?? '-';
-            $status = $device['status'] ?? 'UNKNOWN';
-
-            if (empty($deviceId)) {
+        $included = $apiData['included'] ?? [];
+        
+        $devicesMap = [];
+        foreach ($included as $item) {
+            if (($item['type'] ?? '') === 'DEVICE') {
+                $id = $item['id'] ?? '';
+                $name = $item['attributes']['name'] ?? 'Unknown Device';
+                $serial = $item['attributes']['serial'] ?? '-';
+                if (!empty($id)) {
+                    $devicesMap[$id] = [
+                        'id' => $id,
+                        'name' => $name,
+                        'serial' => $serial,
+                        'services' => []
+                    ];
+                }
+            }
+        }
+        
+        foreach ($included as $item) {
+            $type = $item['type'] ?? '';
+            if ($type === 'DEVICE' || $type === 'LOCATION') {
                 continue;
             }
+            $deviceId = $item['relationships']['device']['data']['id'] ?? '';
+            if ($deviceId && isset($devicesMap[$deviceId])) {
+                $devicesMap[$deviceId]['services'][$type] = $item;
+            }
+        }
 
-            if ($type === 'GARDENA smart Irrigation Control') {
+        $values = [];
+        foreach ($devicesMap as $deviceId => $dev) {
+            $name = $dev['name'];
+            $serial = $dev['serial'];
+            $services = $dev['services'];
+
+            if (isset($services['VALVE_SET'])) {
                 $moduleID = '{7B3F1D5E-A9C2-4E8F-B6D4-2A7C3E5F1B9D}';
                 for ($i = 1; $i <= 6; $i++) {
                     $valveId = (string)$i;
                     $instanceID = $this->GetExistingInstanceID($moduleID, $deviceId, $valveId);
                     $values[] = [
-                        'name'       => $deviceName . " (Ventil $i)",
+                        'name'       => $name . " (Ventil $i)",
                         'serial'     => $serial . "-$i",
-                        'status'     => $status,
-                        'type'       => 'Irrigation Valve',
+                        'status'     => 'OK',
+                        'type'       => 'Irrigation Control',
                         'instanceID' => $instanceID,
                         'create'     => [
                             'moduleID'      => $moduleID,
@@ -82,43 +106,52 @@ class GardenaConfigurator extends IPSModuleStrict
                                 'DeviceID' => $deviceId,
                                 'ValveID'  => $valveId
                             ],
-                            'name'          => $deviceName . " (Ventil $i)"
+                            'name'          => $name . " (Ventil $i)"
                         ]
                     ];
                 }
-            } elseif ($type === 'GARDENA smart Water Control') {
+            } elseif (isset($services['VALVE'])) {
                 $moduleID = '{7B3F1D5E-A9C2-4E8F-B6D4-2A7C3E5F1B9D}';
-                $instanceID = $this->GetExistingInstanceID($moduleID, $deviceId);
+                $instanceID = $this->GetExistingInstanceID($moduleID, $deviceId, '1');
                 $values[] = [
-                    'name'       => $deviceName,
+                    'name'       => $name,
                     'serial'     => $serial,
-                    'status'     => $status,
-                    'type'       => $type,
+                    'status'     => 'OK',
+                    'type'       => 'Water Control',
                     'instanceID' => $instanceID,
                     'create'     => [
                         'moduleID'      => $moduleID,
                         'configuration' => [
-                            'DeviceID' => $deviceId
+                            'DeviceID' => $deviceId,
+                            'ValveID'  => '1'
                         ],
-                        'name'          => $deviceName
+                        'name'          => $name
                     ]
                 ];
-            } elseif ($type === 'GARDENA smart Sensor') {
+            } elseif (isset($services['SENSOR'])) {
                 $moduleID = '{5E9C1A3B-D2F4-4B6E-8A7C-3F1D5E9B2C4A}';
                 $instanceID = $this->GetExistingInstanceID($moduleID, $deviceId);
                 $values[] = [
-                    'name'       => $deviceName,
+                    'name'       => $name,
                     'serial'     => $serial,
-                    'status'     => $status,
-                    'type'       => $type,
+                    'status'     => 'OK',
+                    'type'       => 'Sensor',
                     'instanceID' => $instanceID,
                     'create'     => [
                         'moduleID'      => $moduleID,
                         'configuration' => [
                             'DeviceID' => $deviceId
                         ],
-                        'name'          => $deviceName
+                        'name'          => $name
                     ]
+                ];
+            } else {
+                $values[] = [
+                    'name'       => $name,
+                    'serial'     => $serial,
+                    'status'     => 'OK',
+                    'type'       => 'Unknown (' . implode(', ', array_keys($services)) . ')',
+                    'instanceID' => 0
                 ];
             }
         }
@@ -128,7 +161,7 @@ class GardenaConfigurator extends IPSModuleStrict
                 [
                     'type'     => 'Configurator',
                     'name'     => 'Devices',
-                    'caption'  => 'Gardena Ger\u00e4te',
+                    'caption'  => 'Gardena Geräte',
                     'rowCount' => 10,
                     'add'      => false,
                     'delete'   => false,
