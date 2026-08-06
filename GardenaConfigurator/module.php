@@ -108,24 +108,51 @@ class GardenaConfigurator extends IPSModuleStrict
                 continue; // Cannot identify device without COMMON
             }
 
-            $deviceName = $common['attributes']['name']['value'] ?? 'Unknown Device';
-            $serial = $common['attributes']['serial']['value'] ?? '-';
-            $modelType = $common['attributes']['modelType']['value'] ?? 'GARDENA Device';
-            $rfLinkState = $common['attributes']['rfLinkState']['value'] ?? 'UNKNOWN';
-            
-            // Add Parent Node
-            $values[] = [
-                'id'         => $deviceId,
-                'name'       => $deviceName,
-                'serial'     => $serial,
-                'status'     => $rfLinkState,
-                'type'       => $modelType,
-                'instanceID' => 0
-            ];
+            $isSensor = ($sensor !== null);
+            $hasValves = (count($valves) > 0);
 
-            if ($valveSet && count($valves) > 1) {
-                // Irrigation Control (multi-valve)
-                $moduleID = '{7B3F1D5E-A9C2-4E8F-B6D4-2A7C3E5F1B9D}';
+            if ($isSensor && !$hasValves) {
+                // SENSOR ONLY (No Tree, just a single node)
+                $moduleID = '{5E9C1A3B-D2F4-4B6E-8A7C-3F1D5E9B2C4A}';
+                $instanceID = $this->GetExistingInstanceID($moduleID, $deviceId);
+                $values[] = [
+                    'id'         => $deviceId,
+                    'name'       => $deviceName,
+                    'serial'     => $serial,
+                    'status'     => $rfLinkState,
+                    'type'       => $modelType,
+                    'instanceID' => $instanceID,
+                    'create'     => [
+                        'moduleID'      => $moduleID,
+                        'configuration' => [
+                            'DeviceID' => $deviceId
+                        ],
+                        'name'          => $deviceName
+                    ]
+                ];
+            } elseif ($hasValves) {
+                // IRRIGATION / WATER CONTROL (Tree structure)
+                $masterModuleID = '{B8C3D2E1-F4A5-4B6C-7D8E-9F0A1B2C3D4E}';
+                $instanceID = $this->GetExistingInstanceID($masterModuleID, $deviceId);
+                // Add Parent Node (Master Device)
+                $values[] = [
+                    'id'         => $deviceId,
+                    'name'       => $deviceName,
+                    'serial'     => $serial,
+                    'status'     => $rfLinkState,
+                    'type'       => $modelType,
+                    'instanceID' => $instanceID,
+                    'create'     => [
+                        'moduleID'      => $masterModuleID,
+                        'configuration' => [
+                            'DeviceID' => $deviceId
+                        ],
+                        'name'          => $deviceName
+                    ]
+                ];
+
+                // Add Child Nodes (Valves)
+                $valveModuleID = '{7B3F1D5E-A9C2-4E8F-B6D4-2A7C3E5F1B9D}';
                 foreach ($valves as $v) {
                     $vId = $v['id'];
                     $vName = $v['attributes']['name']['value'] ?? 'Valve';
@@ -133,7 +160,7 @@ class GardenaConfigurator extends IPSModuleStrict
                     $parts = explode(':', $vId);
                     $valveIdStr = isset($parts[1]) ? $parts[1] : '1';
                     
-                    $instanceID = $this->GetExistingInstanceID($moduleID, $deviceId, $valveIdStr);
+                    $vInstanceID = $this->GetExistingInstanceID($valveModuleID, $deviceId, $valveIdStr);
                     $values[] = [
                         'id'         => $vId,
                         'parent'     => $deviceId,
@@ -141,9 +168,9 @@ class GardenaConfigurator extends IPSModuleStrict
                         'serial'     => '',
                         'status'     => 'OK',
                         'type'       => 'Ventil',
-                        'instanceID' => $instanceID,
+                        'instanceID' => $vInstanceID,
                         'create'     => [
-                            'moduleID'      => $moduleID,
+                            'moduleID'      => $valveModuleID,
                             'configuration' => [
                                 'DeviceID' => $deviceId,
                                 'ValveID'  => $valveIdStr
@@ -152,58 +179,14 @@ class GardenaConfigurator extends IPSModuleStrict
                         ]
                     ];
                 }
-            } elseif (count($valves) === 1) {
-                // Water Control (single valve)
-                $moduleID = '{7B3F1D5E-A9C2-4E8F-B6D4-2A7C3E5F1B9D}';
-                $v = $valves[0];
-                $vName = $v['attributes']['name']['value'] ?? $deviceName;
-                $instanceID = $this->GetExistingInstanceID($moduleID, $deviceId, '1');
-                $values[] = [
-                    'id'         => $v['id'],
-                    'parent'     => $deviceId,
-                    'name'       => $vName,
-                    'serial'     => '',
-                    'status'     => 'OK',
-                    'type'       => 'Ventil',
-                    'instanceID' => $instanceID,
-                    'create'     => [
-                        'moduleID'      => $moduleID,
-                        'configuration' => [
-                            'DeviceID' => $deviceId,
-                            'ValveID'  => '1'
-                        ],
-                        'name'          => $vName
-                    ]
-                ];
-            } elseif ($sensor) {
-                // Sensor
-                $moduleID = '{5E9C1A3B-D2F4-4B6E-8A7C-3F1D5E9B2C4A}';
-                $instanceID = $this->GetExistingInstanceID($moduleID, $deviceId);
-                $values[] = [
-                    'id'         => $sensor['id'],
-                    'parent'     => $deviceId,
-                    'name'       => $deviceName . ' (Sensor)',
-                    'serial'     => '',
-                    'status'     => 'OK',
-                    'type'       => 'Sensor',
-                    'instanceID' => $instanceID,
-                    'create'     => [
-                        'moduleID'      => $moduleID,
-                        'configuration' => [
-                            'DeviceID' => $deviceId
-                        ],
-                        'name'          => $deviceName . ' (Sensor)'
-                    ]
-                ];
             } else {
                 // Unknown/Unsupported Device
                 $values[] = [
-                    'id'         => $deviceId . '_unk',
-                    'parent'     => $deviceId,
-                    'name'       => 'Unsupported Device',
-                    'serial'     => '',
-                    'status'     => 'OK',
-                    'type'       => 'Unknown',
+                    'id'         => $deviceId,
+                    'name'       => $deviceName,
+                    'serial'     => $serial,
+                    'status'     => $rfLinkState,
+                    'type'       => 'Unsupported (' . $modelType . ')',
                     'instanceID' => 0
                 ];
             }

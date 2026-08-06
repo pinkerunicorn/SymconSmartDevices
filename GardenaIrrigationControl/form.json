@@ -1,0 +1,31 @@
+{
+    "elements": [
+        {
+            "type": "ValidationTextBox",
+            "name": "DeviceID",
+            "caption": "Gardena Ger\u00e4te-ID"
+        },
+        {
+            "type": "Label",
+            "caption": "Wird automatisch vom Konfigurator gesetzt"
+        }
+    ],
+    "actions": [],
+    "status": [
+        {
+            "code": 102,
+            "icon": "active",
+            "caption": "Aktiv"
+        },
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Inaktiv"
+        },
+        {
+            "code": 200,
+            "icon": "error",
+            "caption": "Ger\u00e4te-ID fehlt"
+        }
+    ]
+}

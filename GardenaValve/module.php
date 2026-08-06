@@ -271,6 +271,11 @@ class GardenaValve extends IPSModuleStrict
             return '';
         }
 
+        $myValveID = $this->ReadPropertyString('ValveID');
+        if ($myValveID !== '' && ($data['ServiceID'] ?? '') !== $myValveID) {
+            return '';
+        }
+
         $this->DA_ResetWatchdog(3600);
         $this->DA_SetAvailable(true);
 

@@ -1,0 +1,19 @@
+{
+    "id": "{B8C3D2E1-F4A5-4B6C-7D8E-9F0A1B2C3D4E}",
+    "name": "GardenaIrrigationControl",
+    "type": 3,
+    "vendor": "Florian Gra\u00dfinger",
+    "author": "Florian Gra\u00dfinger",
+    "aliases": [
+        "Gardena Irrigation Control"
+    ],
+    "parentRequirements": [
+        "{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}"
+    ],
+    "childRequirements": [],
+    "implemented": [
+        "{9A1B3C5D-E7F2-4D6B-8A4C-1F3E5D7B9A2C}"
+    ],
+    "prefix": "FGG",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/GardenaIrrigationControl"
+}

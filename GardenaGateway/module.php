@@ -309,11 +309,18 @@ class GardenaGateway extends IPSModuleStrict
             if (!is_array($event)) {
                 continue;
             }
+            
+            $rawId = $event['id'] ?? '';
+            $parts = explode(':', $rawId);
+            $deviceId = $parts[0];
+            $serviceId = isset($parts[1]) ? $parts[1] : '';
+
             $forward = [
-                'DataID' => '{FE3A29C6-B712-4D85-9C3E-71A5F82DB430}',
-                'DeviceID' => $event['id'] ?? '',
+                'DataID'      => '{FE3A29C6-B712-4D85-9C3E-71A5F82DB430}',
+                'DeviceID'    => $deviceId,
+                'ServiceID'   => $serviceId,
                 'ServiceType' => $event['type'] ?? '',
-                'Attributes' => $event['attributes'] ?? []
+                'Attributes'  => $event['attributes'] ?? []
             ];
             $this->SendDataToChildren(json_encode($forward));
         }
