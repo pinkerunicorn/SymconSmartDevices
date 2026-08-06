@@ -31,23 +31,7 @@ class GardenaSensor extends IPSModuleStrict
             'ICON' => 'Temperature'
         ], 2);
 
-        $this->RegisterVariableFloat('AmbientTemperature', 'Umgebungstemperatur', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'SUFFIX' => ' °C',
-            'ICON' => 'Temperature'
-        ], 3);
 
-        $this->RegisterVariableInteger('LightIntensity', 'Lichtintensität', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'SUFFIX' => ' lux',
-            'ICON' => 'Sun'
-        ], 4);
-
-        $this->RegisterVariableInteger('BatteryLevel', 'Batteriestand', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'SUFFIX' => ' %',
-            'ICON' => 'Battery'
-        ], 10);
 
         $batteryIntervals = json_encode([
             [ 'IntervalMinValue' => 0, 'IntervalMaxValue' => 0, 'ConstantActive' => true, 'ConstantValue' => 'OK', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Battery', 'ColorActive' => true, 'ColorValue' => 0x00FF00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
@@ -122,15 +106,7 @@ class GardenaSensor extends IPSModuleStrict
         if (isset($attributes['soilTemperature']['value'])) {
             $this->SetValue('SoilTemperature', (float)$attributes['soilTemperature']['value']);
         }
-        if (isset($attributes['ambientTemperature']['value'])) {
-            $this->SetValue('AmbientTemperature', (float)$attributes['ambientTemperature']['value']);
-        }
-        if (isset($attributes['lightIntensity']['value'])) {
-            $this->SetValue('LightIntensity', (int)$attributes['lightIntensity']['value']);
-        }
-        if (isset($attributes['batteryLevel']['value'])) {
-            $this->SetValue('BatteryLevel', (int)$attributes['batteryLevel']['value']);
-        }
+
         if (isset($attributes['batteryState']['value'])) {
             $this->SetValue('BatteryStatus', $this->MapBatteryStatus((string)$attributes['batteryState']['value']));
         }
