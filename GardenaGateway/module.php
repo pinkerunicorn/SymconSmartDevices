@@ -79,11 +79,10 @@ class GardenaGateway extends IPSModuleStrict
 
     public function GetCompatibleParents(): string
     {
-        // Gibt die DataFlow-GUIDs zur\u00fcck, die ein Parent implementieren muss
-        // {018EF6B5} = Standard I/O RX Interface, den WebSocket Client implementiert
-        return json_encode(['{018EF6B5-AB94-40C6-AA53-46943E824ACF}']);
+        // Rückgabe: Modul-GUIDs kompatibler übergeordneter Instanzen
+        // {D68FD31F} = WebSocket Client (wie früher RequireParent)
+        return json_encode(['{D68FD31F-0E90-7019-F16C-1949BD3079EF}']);
     }
-
 
     public function ApplyChanges(): void
     {
