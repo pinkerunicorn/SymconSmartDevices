@@ -235,7 +235,11 @@ class SmartFountain extends IPSModuleStrict
                     // Stop audio immediately
                     $sonosID = $this->ReadPropertyInteger('SonosDeviceID');
                     if ($sonosID > 1 && @IPS_InstanceExists($sonosID)) {
-                        @SNS_Stop($sonosID);
+                        try {
+                            @SNS_Stop($sonosID);
+                        } catch (Exception $e) {
+                            $this->SLogError('Sonos Stop Error: ' . $e->getMessage());
+                        }
                     }
                 }
                 break;
@@ -291,7 +295,11 @@ class SmartFountain extends IPSModuleStrict
         $this->UpdateTwinklyState('off', 0);
         $sonosID = $this->ReadPropertyInteger('SonosDeviceID');
         if ($sonosID > 1 && @IPS_InstanceExists($sonosID)) {
-            @SNS_Stop($sonosID);
+            try {
+                @SNS_Stop($sonosID);
+            } catch (Exception $e) {
+                $this->SLogError('Sonos Stop Error: ' . $e->getMessage());
+            }
         }
     }
 
@@ -731,9 +739,13 @@ class SmartFountain extends IPSModuleStrict
 
         // 3. Start Sonos playback
         $audioUrl = $synthUrl . $result['url'];
-        @SNS_SetAVTransportURI($sonosID, $audioUrl);
-        @SNS_Play($sonosID);
-        $this->SLogInfo('FountainSynth: Playing ' . $theme . ' (' . $result['render_time_ms'] . 'ms render)');
+        try {
+            @SNS_SetAVTransportURI($sonosID, $audioUrl);
+            @SNS_Play($sonosID);
+            $this->SLogInfo('FountainSynth: Playing ' . $theme . ' (' . $result['render_time_ms'] . 'ms render)');
+        } catch (Exception $e) {
+            $this->SLogError('Sonos Play Error: ' . $e->getMessage());
+        }
     }
 
     private function CalculatePatternStatic(int $mode, float $t): float
