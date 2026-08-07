@@ -131,6 +131,12 @@ class SmartFountain extends IPSModuleStrict
         ], 45);
         $this->EnableAction('EnableAudio');
 
+        $this->RegisterVariableBoolean('EnableDamping', 'Dämpfung (Soft-Start/Stop)', [
+            'PRESENTATION' => $switchPres,
+            'ICON' => 'Speedo'
+        ], 48);
+        $this->EnableAction('EnableDamping');
+
         // Alte Variable entfernen, falls sie existiert
         $this->UnregisterVariable('ChoreographyActive');
 
@@ -232,6 +238,9 @@ class SmartFountain extends IPSModuleStrict
                         @SNS_Stop($sonosID);
                     }
                 }
+                break;
+            case 'EnableDamping':
+                $this->SetValue($Ident, $Value);
                 break;
         }
     }
@@ -349,7 +358,7 @@ class SmartFountain extends IPSModuleStrict
         $intervalMs = $this->ReadPropertyInteger('ChoreographyIntervalMs');
         
         $delta = $targetSpeed - $currentSpeed;
-        if ($mode !== 8) {
+        if ($this->GetValue('EnableDamping')) {
             if ($delta > 0) {
                 $softStartMs = $this->ReadPropertyInteger('SoftStartMs');
                 if ($softStartMs > 0) {
