@@ -221,7 +221,7 @@ class GardenaValve extends IPSModuleStrict
             $this->SetStatus(200);
         } else {
             $this->SetStatus(102);
-            $this->SetReceiveDataFilter('.*"DeviceID":"' . preg_quote($deviceID) . '".*');
+            $this->SetReceiveDataFilter('');
         }
     }
 
@@ -330,6 +330,10 @@ class GardenaValve extends IPSModuleStrict
             'Body' => $body
         ]));
 
+        $this->SetValue('Watering', true);
+        $this->SetValue('ValveActivity', 1); // MANUAL_WATERING
+        $this->SetValue('RemainingTime', $durationMinutes);
+
         $this->SLogInfo("Bewaesserung gestartet fuer {$durationMinutes} Minuten (Service: {$serviceID})");
     }
 
@@ -345,7 +349,7 @@ class GardenaValve extends IPSModuleStrict
                 'attributes' => [
                     'command' => 'STOP_UNTIL_NEXT_TASK'
                 ],
-                'id' => 'request-1'
+                'id' => 'request-2'
             ]
         ]);
 
@@ -355,6 +359,10 @@ class GardenaValve extends IPSModuleStrict
             'ServiceID' => $serviceID,
             'Body' => $body
         ]));
+
+        $this->SetValue('Watering', false);
+        $this->SetValue('ValveActivity', 0); // CLOSED
+        $this->SetValue('RemainingTime', 0);
 
         $this->SLogInfo("Bewaesserung gestoppt (Service: {$serviceID})");
     }
