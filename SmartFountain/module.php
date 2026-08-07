@@ -15,7 +15,7 @@ class SmartFountain extends IPSModuleStrict
 
         // --- Properties ---
         $this->RegisterPropertyInteger('PumpTargetID', 0);
-        $this->RegisterPropertyInteger('PowerMeterID', 0);
+        $this->RegisterPropertyInteger('ShellyStateID', 0);
         $this->RegisterPropertyInteger('WledDeviceID', 0);
         $this->RegisterPropertyInteger('WledGardenID', 0);
         $this->RegisterPropertyInteger('TwinklyDeviceID', 0);
@@ -50,12 +50,6 @@ class SmartFountain extends IPSModuleStrict
         $pumpTargetID = $this->ReadPropertyInteger('PumpTargetID');
         if ($pumpTargetID > 1 && @IPS_ObjectExists($pumpTargetID)) {
             $this->RegisterReference($pumpTargetID);
-        }
-
-        $powerMeterID = $this->ReadPropertyInteger('PowerMeterID');
-        if ($powerMeterID > 1 && @IPS_ObjectExists($powerMeterID)) {
-            $this->RegisterReference($powerMeterID);
-            $this->RegisterMessage($powerMeterID, VM_UPDATE);
         }
 
         $switchPres = defined('VARIABLE_PRESENTATION_SWITCH') ? VARIABLE_PRESENTATION_SWITCH : 3;
@@ -109,6 +103,7 @@ class SmartFountain extends IPSModuleStrict
             ['Value' => 6, 'Caption' => 'Herzschlag', 'Color' => 0xFF00FF, 'IconActive' => true, 'IconValue' => 'Heart'],
             ['Value' => 7, 'Caption' => 'Zufalls-Mix', 'Color' => 0xFF9900, 'IconActive' => true, 'IconValue' => 'Shuffle'],
             ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0xFFFFFF, 'IconActive' => true, 'IconValue' => 'Execute'],
+            ['Value' => 9, 'Caption' => 'Relais Klackern', 'Color' => 0xFF0000, 'IconActive' => true, 'IconValue' => 'Plug'],
         ]);
 
 
@@ -144,24 +139,8 @@ class SmartFountain extends IPSModuleStrict
         $this->EnableAction('ChoreographySpeed');
 
         $this->RegisterVariableInteger('ChoreographyIntensity', 'Intensität', $percentPresentation, 60);
-        $this->EnableAction('ChoreographyIntensity');
+        $this->UnregisterVariable('CurrentPower');
 
-        if ($powerMeterID > 0) {
-            $this->RegisterVariableFloat('CurrentPower', 'Aktuelle Leistung', [
-                'PRESENTATION' => $valPres,
-                'ICON' => 'Electricity',
-                'SUFFIX' => ' W'
-            ], 70);
-        } else {
-            $this->UnregisterVariable('CurrentPower');
-        }
-
-        // Migration: Delete legacy profile
-        if (IPS_VariableProfileExists('SFTN.Choreography')) {
-            IPS_DeleteVariableProfile('SFTN.Choreography');
-        }
-
-        // Set Default Values if unset
         if ($this->GetValue('ChoreographySpeed') == 0) {
             $this->SetValue('ChoreographySpeed', 100);
         }
@@ -251,10 +230,6 @@ class SmartFountain extends IPSModuleStrict
 
     public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void
     {
-        if ($Message === VM_UPDATE && $SenderID === $this->ReadPropertyInteger('PowerMeterID')) {
-            $this->SetValue('CurrentPower', $Data[0]);
-            // Todo: Power Monitoring Logic for Dry-Run/Blockage
-        }
     }
 
     public function SetSpeed(int $percent): void
@@ -278,6 +253,12 @@ class SmartFountain extends IPSModuleStrict
     {
         $this->SetValue('Active', true);
         $this->SLogInfo('Fountain Activated');
+        
+        $shellyID = $this->ReadPropertyInteger('ShellyStateID');
+        if ($shellyID > 1 && @IPS_ObjectExists($shellyID)) {
+            @RequestAction($shellyID, true);
+        }
+
         // Preload directly
         $this->SetSpeed($this->ReadPropertyInteger('MinPumpPercent'));
     }
@@ -288,17 +269,26 @@ class SmartFountain extends IPSModuleStrict
         $this->SetValue('Choreography', 0);
         $this->UpdateTimerState();
         $this->SLogInfo('Fountain Deactivated');
+        
+        $shellyID = $this->ReadPropertyInteger('ShellyStateID');
+        if ($shellyID > 1 && @IPS_ObjectExists($shellyID)) {
+            @RequestAction($shellyID, false);
+        }
+        
         // Stop directly
         $this->SetSpeed(0);
         $this->UpdateWLEDState(0);
         $this->SetValue('ShowMode', 0);
         $this->UpdateTwinklyState('off', 0);
-        $sonosID = $this->ReadPropertyInteger('SonosDeviceID');
-        if ($sonosID > 1 && @IPS_InstanceExists($sonosID)) {
-            try {
-                @SNS_Stop($sonosID);
-            } catch (Exception $e) {
-                $this->SLogError('Sonos Stop Error: ' . $e->getMessage());
+        
+        if ($this->GetValue('EnableAudio')) {
+            $sonosID = $this->ReadPropertyInteger('SonosDeviceID');
+            if ($sonosID > 1 && @IPS_InstanceExists($sonosID)) {
+                try {
+                    @SNS_Stop($sonosID);
+                } catch (Exception $e) {
+                    $this->SLogError('Sonos Stop Error: ' . $e->getMessage());
+                }
             }
         }
     }
@@ -330,6 +320,15 @@ class SmartFountain extends IPSModuleStrict
         $this->SetValue('Choreography', 0);
         $this->UpdateTimerState();
         $this->SLogInfo('Choreography stopped');
+        
+        // Restore relay if it was switched off by Mode 9
+        if ($this->GetValue('Active')) {
+            $shellyID = $this->ReadPropertyInteger('ShellyStateID');
+            if ($shellyID > 1 && @IPS_ObjectExists($shellyID) && !GetValue($shellyID)) {
+                @RequestAction($shellyID, true);
+            }
+        }
+        
         $this->UpdateWLEDState(0);
     }
 
@@ -359,14 +358,27 @@ class SmartFountain extends IPSModuleStrict
         $min = $this->ReadPropertyInteger('MinPumpPercent');
         $intensity = $this->GetValue('ChoreographyIntensity');
 
-        $targetSpeed = (int)round($min + ($rawValue * ($intensity - $min)));
+        // Handle Mode 9 (Relais Klackern)
+        if ($mode === 9) {
+            $relayState = ($rawValue > 0.5);
+            $targetSpeed = (int)round($min + ($intensity - $min)); // Full intensity 0-10V
+            
+            $shellyID = $this->ReadPropertyInteger('ShellyStateID');
+            if ($shellyID > 1 && @IPS_ObjectExists($shellyID)) {
+                if (GetValue($shellyID) != $relayState) {
+                    @RequestAction($shellyID, $relayState);
+                }
+            }
+        } else {
+            $targetSpeed = (int)round($min + ($rawValue * ($intensity - $min)));
+        }
         
         // Ramp-Limiter
         $currentSpeed = $this->GetValue('PumpSpeed');
         $intervalMs = $this->ReadPropertyInteger('ChoreographyIntervalMs');
         
         $delta = $targetSpeed - $currentSpeed;
-        if ($this->GetValue('EnableDamping')) {
+        if ($this->GetValue('EnableDamping') && $mode !== 9) {
             if ($delta > 0) {
                 $softStartMs = $this->ReadPropertyInteger('SoftStartMs');
                 if ($softStartMs > 0) {
@@ -775,8 +787,9 @@ class SmartFountain extends IPSModuleStrict
                 $p2 = exp(-pow($cycle - 0.45, 2) / (2 * 0.04 * 0.04)) * 0.7;
                 return max($p1, $p2);
             case 8: // Ein/Aus Intervall
-                $cycle = fmod($t, 4.0);
-                return ($cycle < 2.0) ? 1.0 : 0.0;
+                return (fmod($t, 4.0) < 2.0) ? 1.0 : 0.0;
+            case 9: // Ein/Aus Intervall
+                return (fmod($t, 4.0) < 2.0) ? 1.0 : 0.0;
             default: // Fallback for random/mix: use sine
                 return (sin(2 * M_PI * $t / 4.0) + 1.0) / 2.0;
         }
@@ -808,8 +821,8 @@ class SmartFountain extends IPSModuleStrict
         },
         {
             "type": "SelectVariable",
-            "name": "PowerMeterID",
-            "caption": "Leistungsmessung (optional, Shelly Power)"
+            "name": "ShellyStateID",
+            "caption": "Pumpe Ein/Aus Schalter (Shelly State)"
         },
         {
             "type": "SelectInstance",
