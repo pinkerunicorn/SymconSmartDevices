@@ -240,14 +240,13 @@ class GardenaGateway extends IPSModuleStrict
         $headers = [
             'Authorization: Bearer ' . $token,
             'X-Api-Key: ' . $appKey,
-            'Authorization-Provider: husqvarna'
+            'Authorization-Provider: husqvarna',
+            'Accept: application/vnd.api+json'
         ];
 
         if (!empty($body)) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
             $headers[] = 'Content-Type: application/vnd.api+json';
-        } else {
-            $headers[] = 'Accept: application/vnd.api+json';
         }
 
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
