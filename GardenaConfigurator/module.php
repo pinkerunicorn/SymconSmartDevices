@@ -108,6 +108,11 @@ class GardenaConfigurator extends IPSModuleStrict
                 continue; // Cannot identify device without COMMON
             }
 
+            $deviceName = $common['attributes']['name']['value'] ?? 'Unbekannt';
+            $serial = $common['attributes']['serial']['value'] ?? '';
+            $rfLinkState = $common['attributes']['rfLinkState']['value'] ?? 'UNKNOWN';
+            $modelType = $common['attributes']['modelType']['value'] ?? 'Unbekannt';
+
             $isSensor = ($sensor !== null);
             $hasValves = (count($valves) > 0);
 
