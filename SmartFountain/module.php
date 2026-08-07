@@ -100,15 +100,15 @@ class SmartFountain extends IPSModuleStrict
         $this->EnableAction('PumpSpeed');
 
         $choreoOptions = json_encode([
-            ['Value' => 0, 'Caption' => 'Manuell', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
-            ['Value' => 1, 'Caption' => 'Sinuswelle', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
-            ['Value' => 2, 'Caption' => 'Puls', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
-            ['Value' => 3, 'Caption' => 'Atmen', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
-            ['Value' => 4, 'Caption' => 'Zufall', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
-            ['Value' => 5, 'Caption' => 'Treppe', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
-            ['Value' => 6, 'Caption' => 'Herzschlag', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
-            ['Value' => 7, 'Caption' => 'Zufalls-Mix', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
-            ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
+            ['Value' => 0, 'Caption' => 'Manuell', 'Color' => 0x000000, 'IconActive' => true, 'IconValue' => 'Gear'],
+            ['Value' => 1, 'Caption' => 'Sinuswelle', 'Color' => 0x0044FF, 'IconActive' => true, 'IconValue' => 'Drops'],
+            ['Value' => 2, 'Caption' => 'Puls', 'Color' => 0xFF0000, 'IconActive' => true, 'IconValue' => 'Activity'],
+            ['Value' => 3, 'Caption' => 'Atmen', 'Color' => 0x00FFFF, 'IconActive' => true, 'IconValue' => 'Wind'],
+            ['Value' => 4, 'Caption' => 'Zufall', 'Color' => 0x888888, 'IconActive' => true, 'IconValue' => 'Shuffle'],
+            ['Value' => 5, 'Caption' => 'Treppe', 'Color' => 0x00FF00, 'IconActive' => true, 'IconValue' => 'Graph'],
+            ['Value' => 6, 'Caption' => 'Herzschlag', 'Color' => 0xFF00FF, 'IconActive' => true, 'IconValue' => 'Heart'],
+            ['Value' => 7, 'Caption' => 'Zufalls-Mix', 'Color' => 0xFF9900, 'IconActive' => true, 'IconValue' => 'Shuffle'],
+            ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0xFFFFFF, 'IconActive' => true, 'IconValue' => 'Execute'],
         ]);
         
         $this->RegisterVariableInteger('Choreography', 'Muster', [
