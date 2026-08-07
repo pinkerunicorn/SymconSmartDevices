@@ -72,8 +72,7 @@ class GardenaSensor extends IPSModuleStrict
             $this->SetStatus(200);
         } else {
             $this->SetStatus(102);
-            // Filter: nur Events für unsere DeviceID durchlassen
-            $this->SetReceiveDataFilter('.*"DeviceID":"' . preg_quote($deviceID) . '".*');
+            $this->SetReceiveDataFilter('');
         }
     }
 

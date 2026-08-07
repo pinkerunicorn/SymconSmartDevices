@@ -92,7 +92,7 @@ class GardenaIrrigationControl extends IPSModuleStrict
             $this->SetStatus(200);
         } else {
             $this->SetStatus(102);
-            $this->SetReceiveDataFilter('.*"DeviceID":"' . preg_quote($deviceID) . '".*');
+            $this->SetReceiveDataFilter('');
         }
     }
 
