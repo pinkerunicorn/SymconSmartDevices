@@ -182,20 +182,25 @@ class GardenaGateway extends IPSModuleStrict
         ]);
 
         $response = $this->ApiRequest('POST', 'https://api.smart.gardena.dev/v1/websocket', $body);
-        
+        @file_put_contents(sys_get_temp_dir() . '/ws_dump.txt', json_encode($response));
+
         if ($response && isset($response['data']['attributes']['url'])) {
             $wssUrl = $response['data']['attributes']['url'];
             
             $parentId = $this->GetParent();
+            $this->SLogInfo('ConnectWebSocket: Got URL. Parent ID is ' . $parentId);
+            
             if ($parentId > 0) {
                 IPS_SetProperty($parentId, 'URL', $wssUrl);
                 IPS_SetProperty($parentId, 'Active', true);
                 IPS_ApplyChanges($parentId);
                 $this->SLogInfo('WebSocket URL updated and parent activated.');
                 $this->SetStatus(102);
+            } else {
+                $this->SLogError('ConnectWebSocket: Parent ID is 0, cannot set URL.');
             }
         } else {
-            $this->SLogError('Failed to get WebSocket URL');
+            $this->SLogError('Failed to get WebSocket URL. Response: ' . json_encode($response));
         }
     }
 
@@ -411,8 +416,12 @@ class GardenaGateway extends IPSModuleStrict
                 break;
 
             case 'TokenRefresh':
+                $this->SLogInfo('TokenRefresh action triggered.');
                 if ($this->Authenticate()) {
+                    $this->SLogInfo('TokenRefresh: Auth success, calling ConnectWebSocket.');
                     $this->ConnectWebSocket();
+                } else {
+                    $this->SLogError('TokenRefresh: Auth failed.');
                 }
                 break;
 
