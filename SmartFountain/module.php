@@ -100,7 +100,7 @@ class SmartFountain extends IPSModuleStrict
         $this->EnableAction('PumpSpeed');
 
         $choreoOptions = json_encode([
-            ['Value' => 0, 'Caption' => 'Manuell', 'Color' => 0x000000, 'IconActive' => true, 'IconValue' => 'Gear'],
+            ['Value' => 0, 'Caption' => 'Manuell', 'Color' => -1, 'IconActive' => true, 'IconValue' => 'Gear'],
             ['Value' => 1, 'Caption' => 'Sinuswelle', 'Color' => 0x0044FF, 'IconActive' => true, 'IconValue' => 'Drops'],
             ['Value' => 2, 'Caption' => 'Puls', 'Color' => 0xFF0000, 'IconActive' => true, 'IconValue' => 'Activity'],
             ['Value' => 3, 'Caption' => 'Atmen', 'Color' => 0x00FFFF, 'IconActive' => true, 'IconValue' => 'Wind'],
@@ -110,6 +110,15 @@ class SmartFountain extends IPSModuleStrict
             ['Value' => 7, 'Caption' => 'Zufalls-Mix', 'Color' => 0xFF9900, 'IconActive' => true, 'IconValue' => 'Shuffle'],
             ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0xFFFFFF, 'IconActive' => true, 'IconValue' => 'Execute'],
         ]);
+
+        // Force recreation of Choreography if the new option is missing
+        $vid = @$this->GetIDForIdent('Choreography');
+        if ($vid > 0) {
+            $pres = @IPS_GetVariableCustomPresentation($vid);
+            if (!is_array($pres) || !isset($pres['OPTIONS']) || strpos($pres['OPTIONS'], 'Ein/Aus') === false) {
+                $this->UnregisterVariable('Choreography');
+            }
+        }
         
         $this->RegisterVariableInteger('Choreography', 'Muster', [
             'PRESENTATION' => $enumPres,
