@@ -290,41 +290,53 @@ class GardenaGateway extends IPSModuleStrict
     public function ReceiveData(string $JSONString): string
     {
         $data = json_decode($JSONString, true);
-        if (!is_array($data) || !isset($data['Buffer'])) {
+        $payload = $data['Buffer'] ?? '';
+        if (empty($payload)) {
             return '';
         }
 
-        $bufferRaw = $data['Buffer'];
-        // WebSocket Client liefert Buffer als Hex-String
-        $buffer = (ctype_xdigit($bufferRaw) && strlen($bufferRaw) % 2 === 0)
-            ? hex2bin($bufferRaw)
-            : $bufferRaw;
+        // Bei WebSocket Client (Symcon) ist Buffer oft Hex-kodiert
+        if (preg_match('/^[a-fA-F0-9]+$/', $payload)) {
+            $payload = hex2bin($payload);
+        }
 
-        $this->DA_ResetWatchdog(300);
+        // DEBUG: Was kommt rein?
+        $this->SLogInfo('WS_RECV: ' . substr($payload, 0, 500));
+
+        $this->DA_ResetWatchdog(300); 
         $this->DA_SetAvailable(true);
         $this->WriteAttributeInteger('BackoffCount', 0);
 
-        $this->SendDebug('WebSocket RX', $buffer, 0);
-
-        $payload = json_decode($buffer, true);
-        if (!is_array($payload)) {
+        $payloadArray = json_decode($payload, true);
+        if (!is_array($payloadArray)) {
             return '';
         }
 
-        // Gardena JSONAPI: einzelnes Event oder Array von Events, inklusive initialem State
+        $type = $payloadArray['type'] ?? '';
+        if ($type !== 'VALVE_CONTROL' && $type !== 'COMMON') {
+            // Wir parsen vorerst nur das Notwendigste
+        }
+
+        // Gardena liefert entweder direkt ein Event-Objekt (z.B. {"type":"...", "id":"..."})
+        // oder bei Initialisierung ein JSONAPI-Objekt mit "data" und "included"
         $events = [];
-        if (isset($payload['type'])) {
-            $events[] = $payload;
+
+        if (isset($payloadArray['type'])) {
+            $events[] = $payloadArray;
         } else {
-            if (isset($payload['data'])) {
-                if (isset($payload['data'][0])) {
-                    $events = array_merge($events, $payload['data']);
+            if (isset($payloadArray['data'])) {
+                if (isset($payloadArray['data']['id'])) {
+                    $events[] = $payloadArray['data'];
                 } else {
-                    $events[] = $payload['data'];
+                    foreach ($payloadArray['data'] as $item) {
+                        $events[] = $item;
+                    }
                 }
             }
-            if (isset($payload['included']) && is_array($payload['included'])) {
-                $events = array_merge($events, $payload['included']);
+            if (isset($payloadArray['included']) && is_array($payloadArray['included'])) {
+                foreach ($payloadArray['included'] as $item) {
+                    $events[] = $item;
+                }
             }
         }
 

@@ -14,7 +14,8 @@
         "{FE3A29C6-B712-4D85-9C3E-71A5F82DB430}"
     ],
     "implemented": [
-        "{A4B6C8D2-E1F3-4A5C-9B7D-3E5F7A9C1B2D}"
+        "{A4B6C8D2-E1F3-4A5C-9B7D-3E5F7A9C1B2D}",
+        "{018EF6B5-AB94-40C6-AA53-46943E824ACF}"
     ],
     "prefix": "FGG",
     "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/GardenaGateway"
