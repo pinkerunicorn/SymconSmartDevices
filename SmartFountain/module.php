@@ -358,29 +358,25 @@ class SmartFountain extends IPSModuleStrict
         $min = $this->ReadPropertyInteger('MinPumpPercent');
         $intensity = $this->GetValue('ChoreographyIntensity');
 
-        // Handle Mode 8 and 9 (Ein/Aus Intervalle)
-        if ($mode === 8 || $mode === 9) {
-            // Immer hart von 0% bis zur gewünschten Intensität springen
-            $targetSpeed = (int)round($rawValue * $intensity);
-            
-            if ($mode === 9) {
-                $relayState = ($rawValue > 0.5);
-                $shellyID = $this->ReadPropertyInteger('ShellyStateID');
-                if ($shellyID > 1 && @IPS_ObjectExists($shellyID)) {
-                    if (GetValue($shellyID) != $relayState) {
-                        $this->SLogInfo("Modus 9: Schalte Relais " . ($relayState ? 'AN' : 'AUS'));
-                        try {
-                            RequestAction($shellyID, $relayState);
-                        } catch (Exception $e) {
-                            $this->SLogError("Modus 9: Fehler beim Schalten des Relais: " . $e->getMessage());
-                        }
+        // Immer hart von 0% bis zur gewünschten Intensität springen (für alle Effekte)
+        $targetSpeed = (int)round($rawValue * $intensity);
+        
+        // Handle Mode 9 (Relais Klackern)
+        if ($mode === 9) {
+            $relayState = ($rawValue > 0.5);
+            $shellyID = $this->ReadPropertyInteger('ShellyStateID');
+            if ($shellyID > 1 && @IPS_ObjectExists($shellyID)) {
+                if (GetValue($shellyID) != $relayState) {
+                    $this->SLogInfo("Modus 9: Schalte Relais " . ($relayState ? 'AN' : 'AUS'));
+                    try {
+                        RequestAction($shellyID, $relayState);
+                    } catch (Exception $e) {
+                        $this->SLogError("Modus 9: Fehler beim Schalten des Relais: " . $e->getMessage());
                     }
-                } else {
-                    $this->SLogInfo("Modus 9: Kein Shelly State ID konfiguriert oder Variable existiert nicht.");
                 }
+            } else {
+                $this->SLogInfo("Modus 9: Kein Shelly State ID konfiguriert oder Variable existiert nicht.");
             }
-        } else {
-            $targetSpeed = (int)round($min + ($rawValue * ($intensity - $min)));
         }
         
         // Ramp-Limiter
