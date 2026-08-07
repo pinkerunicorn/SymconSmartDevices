@@ -71,13 +71,13 @@ class SmartFountain extends IPSModuleStrict
         $this->EnableAction('Active');
 
         $showModeOptions = json_encode([
-            ['Value' => 0, 'Caption' => 'Manuell',     'Color' => 0x888888, 'Icon' => 'Gear'],
-            ['Value' => 1, 'Caption' => 'Dinner',      'Color' => 0xFF9900, 'Icon' => 'Light'],
-            ['Value' => 2, 'Caption' => 'Party',       'Color' => 0xFF0066, 'Icon' => 'Speaker'],
-            ['Value' => 3, 'Caption' => 'Zen',         'Color' => 0x00CCCC, 'Icon' => 'Drops'],
-            ['Value' => 4, 'Caption' => 'Romantik',    'Color' => 0xFF00FF, 'Icon' => 'Heart'],
-            ['Value' => 5, 'Caption' => 'Regenbogen',  'Color' => 0x00FF00, 'Icon' => 'Sun'],
-            ['Value' => 6, 'Caption' => 'Musik-Show',  'Color' => 0x0066FF, 'Icon' => 'Melody'],
+            ['Value' => 0, 'Caption' => 'Manuell',     'Color' => 0x888888, 'IconActive' => true, 'IconValue' => 'Gear'],
+            ['Value' => 1, 'Caption' => 'Dinner',      'Color' => 0xFF9900, 'IconActive' => true, 'IconValue' => 'Light'],
+            ['Value' => 2, 'Caption' => 'Party',       'Color' => 0xFF0066, 'IconActive' => true, 'IconValue' => 'Speaker'],
+            ['Value' => 3, 'Caption' => 'Zen',         'Color' => 0x00CCCC, 'IconActive' => true, 'IconValue' => 'Drops'],
+            ['Value' => 4, 'Caption' => 'Romantik',    'Color' => 0xFF00FF, 'IconActive' => true, 'IconValue' => 'Heart'],
+            ['Value' => 5, 'Caption' => 'Regenbogen',  'Color' => 0x00FF00, 'IconActive' => true, 'IconValue' => 'Sun'],
+            ['Value' => 6, 'Caption' => 'Musik-Show',  'Color' => 0x0066FF, 'IconActive' => true, 'IconValue' => 'Melody'],
         ]);
 
         $this->RegisterVariableInteger('ShowMode', 'Show-Modus', [
@@ -100,15 +100,15 @@ class SmartFountain extends IPSModuleStrict
         $this->EnableAction('PumpSpeed');
 
         $choreoOptions = json_encode([
-            ['Value' => 0, 'Caption' => 'Manuell', 'Color' => 0x000000],
-            ['Value' => 1, 'Caption' => 'Sinuswelle', 'Color' => 0x000000],
-            ['Value' => 2, 'Caption' => 'Puls', 'Color' => 0x000000],
-            ['Value' => 3, 'Caption' => 'Atmen', 'Color' => 0x000000],
-            ['Value' => 4, 'Caption' => 'Zufall', 'Color' => 0x000000],
-            ['Value' => 5, 'Caption' => 'Treppe', 'Color' => 0x000000],
-            ['Value' => 6, 'Caption' => 'Herzschlag', 'Color' => 0x000000],
-            ['Value' => 7, 'Caption' => 'Zufalls-Mix', 'Color' => 0x000000],
-            ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0x000000],
+            ['Value' => 0, 'Caption' => 'Manuell', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
+            ['Value' => 1, 'Caption' => 'Sinuswelle', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
+            ['Value' => 2, 'Caption' => 'Puls', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
+            ['Value' => 3, 'Caption' => 'Atmen', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
+            ['Value' => 4, 'Caption' => 'Zufall', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
+            ['Value' => 5, 'Caption' => 'Treppe', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
+            ['Value' => 6, 'Caption' => 'Herzschlag', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
+            ['Value' => 7, 'Caption' => 'Zufalls-Mix', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
+            ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0x000000, 'IconActive' => false, 'IconValue' => ''],
         ]);
         
         $this->RegisterVariableInteger('Choreography', 'Muster', [
