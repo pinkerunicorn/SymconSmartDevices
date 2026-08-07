@@ -108,6 +108,7 @@ class SmartFountain extends IPSModuleStrict
             ['Value' => 5, 'Caption' => 'Treppe', 'Color' => 0x000000],
             ['Value' => 6, 'Caption' => 'Herzschlag', 'Color' => 0x000000],
             ['Value' => 7, 'Caption' => 'Zufalls-Mix', 'Color' => 0x000000],
+            ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0x000000],
         ]);
         
         $this->RegisterVariableInteger('Choreography', 'Muster', [
@@ -418,6 +419,10 @@ class SmartFountain extends IPSModuleStrict
                 $childT = $t - $mixStartTime; 
                 return $this->CalculatePattern($currentMixMode, $childT);
 
+            case 8: // Ein/Aus Intervall (4s cycle)
+                $cycle = fmod($t, 4.0);
+                return ($cycle < 2.0) ? 1.0 : 0.0;
+
             default:
                 return 0.0;
         }
@@ -508,6 +513,10 @@ class SmartFountain extends IPSModuleStrict
                 $this->WLED_Set($wledID, 'Effect', 9); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
                 $this->WLED_Set($gardenID, 'Effect', 9); $this->WLED_Set($gardenID, 'Speed', 20);
                 break;
+            case 8: // Ein/Aus Intervall - Blink, White
+                $this->WLED_Set($wledID, 'Effect', 1); $this->WLED_Set($wledID, 'Color', 0xFFFFFF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
+                $this->WLED_Set($gardenID, 'Effect', 1); $this->WLED_Set($gardenID, 'Color', 0xFFFFFF); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
+                break;
         }
     }
 
@@ -557,6 +566,16 @@ class SmartFountain extends IPSModuleStrict
         }
     }
 
+    private function Twinkly_Set(int $instanceID, string $ident, mixed $value): void
+    {
+        if ($instanceID > 1 && @IPS_InstanceExists($instanceID)) {
+            $varID = @IPS_GetObjectIDByIdent($ident, $instanceID);
+            if ($varID > 1 && @IPS_VariableExists($varID)) {
+                @RequestAction($varID, $value);
+            }
+        }
+    }
+
     private function UpdateTwinklyState(string $mode, int $brightness): void
     {
         $twinklyID = $this->ReadPropertyInteger('TwinklyDeviceID');
@@ -564,8 +583,21 @@ class SmartFountain extends IPSModuleStrict
             return;
         }
 
-        @TWN_SetMode($twinklyID, $mode);
-        @TWN_SetBrightness($twinklyID, $brightness);
+        if ($mode === 'off') {
+            $this->Twinkly_Set($twinklyID, 'Switch', false);
+            return;
+        }
+
+        $this->Twinkly_Set($twinklyID, 'Switch', true);
+        
+        $modeInt = 2; // Default to Movie
+        if ($mode === 'color') $modeInt = 0;
+        elseif ($mode === 'effect') $modeInt = 1;
+        elseif ($mode === 'movie') $modeInt = 2;
+        elseif ($mode === 'demo') $modeInt = 3;
+        
+        $this->Twinkly_Set($twinklyID, 'Mode', $modeInt);
+        $this->Twinkly_Set($twinklyID, 'Brightness', $brightness);
     }
 
     private function SetWLEDSoundReactive(): void
@@ -664,6 +696,9 @@ class SmartFountain extends IPSModuleStrict
                 $p1 = exp(-pow($cycle - 0.15, 2) / (2 * 0.04 * 0.04));
                 $p2 = exp(-pow($cycle - 0.45, 2) / (2 * 0.04 * 0.04)) * 0.7;
                 return max($p1, $p2);
+            case 8: // Ein/Aus Intervall
+                $cycle = fmod($t, 4.0);
+                return ($cycle < 2.0) ? 1.0 : 0.0;
             default: // Fallback for random/mix: use sine
                 return (sin(2 * M_PI * $t / 4.0) + 1.0) / 2.0;
         }
