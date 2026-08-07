@@ -13,7 +13,6 @@ class GardenaGateway extends IPSModuleStrict
     public function Create(): void
     {
         parent::Create();
-        $this->RequireParent('{D68FD31F-0E90-7019-F16C-1949BD3079EF}');
 
         $this->RegisterPropertyString('AppKey', '');
         $this->RegisterPropertyString('AppSecret', '');
