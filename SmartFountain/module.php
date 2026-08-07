@@ -118,6 +118,18 @@ class SmartFountain extends IPSModuleStrict
         ], 30);
         $this->EnableAction('Choreography');
 
+        $this->RegisterVariableBoolean('EnableLight', 'Licht (WLED/Twinkly)', [
+            'PRESENTATION' => $switchPres,
+            'ICON' => 'Light'
+        ], 40);
+        $this->EnableAction('EnableLight');
+
+        $this->RegisterVariableBoolean('EnableAudio', 'Audio (Sonos)', [
+            'PRESENTATION' => $switchPres,
+            'ICON' => 'Speaker'
+        ], 45);
+        $this->EnableAction('EnableAudio');
+
         // Alte Variable entfernen, falls sie existiert
         $this->UnregisterVariable('ChoreographyActive');
 
@@ -149,6 +161,12 @@ class SmartFountain extends IPSModuleStrict
         if ($this->GetValue('ChoreographyIntensity') == 0) {
             $this->SetValue('ChoreographyIntensity', 80);
         }
+        
+        // Defaults for toggles if they were just created
+        if (!IPS_HasChanges($this->InstanceID)) {
+            // Dies läuft nach dem ersten Erstellen, wir lassen sie standardmäßig an.
+            // (symcon idents exist, but we can't reliably check creation time here easily)
+        }
 
         // Ensure timer matches state
         $this->UpdateTimerState();
@@ -158,6 +176,7 @@ class SmartFountain extends IPSModuleStrict
     {
         switch ($Ident) {
             case 'Active':
+                $this->SetValue($Ident, $Value);
                 if ($Value) {
                     $this->Activate();
                 } else {
@@ -168,6 +187,7 @@ class SmartFountain extends IPSModuleStrict
                 $this->SetSpeed((int)$Value);
                 break;
             case 'Choreography':
+                $this->SetValue($Ident, $Value);
                 if ($Value == 0) {
                     $this->StopChoreography();
                 } else {
@@ -181,6 +201,36 @@ class SmartFountain extends IPSModuleStrict
             case 'ChoreographySpeed':
             case 'ChoreographyIntensity':
                 $this->SetValue($Ident, $Value);
+                if ($this->GetValue('Active')) {
+                    $this->UpdateWLEDState($this->GetValue('Choreography'));
+                }
+                break;
+            case 'EnableLight':
+                $this->SetValue($Ident, $Value);
+                if ($this->GetValue('Active')) {
+                    if (!$Value) {
+                        $this->UpdateWLEDState(0);
+                        $this->UpdateTwinklyState('off', 0);
+                    } else {
+                        // Re-apply to restore lights
+                        $mode = $this->GetValue('ShowMode');
+                        if ($mode > 0) {
+                            $this->ApplyShowMode($mode);
+                        } else {
+                            $this->UpdateWLEDState($this->GetValue('Choreography'));
+                        }
+                    }
+                }
+                break;
+            case 'EnableAudio':
+                $this->SetValue($Ident, $Value);
+                if (!$Value) {
+                    // Stop audio immediately
+                    $sonosID = $this->ReadPropertyInteger('SonosDeviceID');
+                    if ($sonosID > 1 && @IPS_InstanceExists($sonosID)) {
+                        @SNS_Stop($sonosID);
+                    }
+                }
                 break;
         }
     }
@@ -458,7 +508,7 @@ class SmartFountain extends IPSModuleStrict
             return;
         }
 
-        if (!$this->GetValue('Active')) {
+        if (!$this->GetValue('Active') || !$this->GetValue('EnableLight')) {
             $this->WLED_Set($wledID, 'State', false);
             $this->WLED_Set($gardenID, 'State', false);
             return;
@@ -583,7 +633,7 @@ class SmartFountain extends IPSModuleStrict
             return;
         }
 
-        if ($mode === 'off') {
+        if ($mode === 'off' || !$this->GetValue('EnableLight')) {
             $this->Twinkly_Set($twinklyID, 'Switch', false);
             return;
         }
@@ -616,6 +666,10 @@ class SmartFountain extends IPSModuleStrict
 
     private function PreRenderAndPlaySound(int $choreo, string $theme): void
     {
+        if (!$this->GetValue('EnableAudio')) {
+            return; // Audio disabled
+        }
+
         $synthUrl = $this->ReadPropertyString('SynthBaseUrl');
         $sonosID = $this->ReadPropertyInteger('SonosDeviceID');
         $duration = $this->ReadPropertyInteger('ShowDurationSec');
