@@ -349,20 +349,22 @@ class SmartFountain extends IPSModuleStrict
         $intervalMs = $this->ReadPropertyInteger('ChoreographyIntervalMs');
         
         $delta = $targetSpeed - $currentSpeed;
-        if ($delta > 0) {
-            $softStartMs = $this->ReadPropertyInteger('SoftStartMs');
-            if ($softStartMs > 0) {
-                $maxDelta = (int)ceil((100.0 / $softStartMs) * $intervalMs);
-                if ($delta > $maxDelta) {
-                    $targetSpeed = $currentSpeed + $maxDelta;
+        if ($mode !== 8) {
+            if ($delta > 0) {
+                $softStartMs = $this->ReadPropertyInteger('SoftStartMs');
+                if ($softStartMs > 0) {
+                    $maxDelta = (int)ceil((100.0 / $softStartMs) * $intervalMs);
+                    if ($delta > $maxDelta) {
+                        $targetSpeed = $currentSpeed + $maxDelta;
+                    }
                 }
-            }
-        } elseif ($delta < 0) {
-            $softStopMs = $this->ReadPropertyInteger('SoftStopMs');
-            if ($softStopMs > 0) {
-                $maxDelta = (int)ceil((100.0 / $softStopMs) * $intervalMs);
-                if (-$delta > $maxDelta) {
-                    $targetSpeed = $currentSpeed - $maxDelta;
+            } elseif ($delta < 0) {
+                $softStopMs = $this->ReadPropertyInteger('SoftStopMs');
+                if ($softStopMs > 0) {
+                    $maxDelta = (int)ceil((100.0 / $softStopMs) * $intervalMs);
+                    if (-$delta > $maxDelta) {
+                        $targetSpeed = $currentSpeed - $maxDelta;
+                    }
                 }
             }
         }
