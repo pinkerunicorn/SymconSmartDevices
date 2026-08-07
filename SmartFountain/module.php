@@ -103,7 +103,7 @@ class SmartFountain extends IPSModuleStrict
             ['Value' => 6, 'Caption' => 'Herzschlag', 'Color' => 0xFF00FF, 'IconActive' => true, 'IconValue' => 'Heart'],
             ['Value' => 7, 'Caption' => 'Zufalls-Mix', 'Color' => 0xFF9900, 'IconActive' => true, 'IconValue' => 'Shuffle'],
             ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0xFFFFFF, 'IconActive' => true, 'IconValue' => 'Execute'],
-            ['Value' => 9, 'Caption' => 'Relais Klackern', 'Color' => 0xFF0000, 'IconActive' => true, 'IconValue' => 'Plug'],
+            ['Value' => 9, 'Caption' => 'Geysir (Schuss)', 'Color' => 0x00FFFF, 'IconActive' => true, 'IconValue' => 'Drop'],
         ]);
 
         $oldChoreo = @$this->GetValue('Choreography');
@@ -367,24 +367,6 @@ class SmartFountain extends IPSModuleStrict
         // Immer hart von 0% bis zur gewünschten Intensität springen (für alle Effekte)
         $targetSpeed = (int)round($rawValue * $intensity);
         
-        // Handle Mode 9 (Relais Klackern)
-        if ($mode === 9) {
-            $relayState = ($rawValue > 0.5);
-            $shellyID = $this->ReadPropertyInteger('ShellyStateID');
-            if ($shellyID > 1 && @IPS_ObjectExists($shellyID)) {
-                if (GetValue($shellyID) != $relayState) {
-                    $this->SLogInfo("Modus 9: Schalte Relais " . ($relayState ? 'AN' : 'AUS'));
-                    try {
-                        RequestAction($shellyID, $relayState);
-                    } catch (Exception $e) {
-                        $this->SLogError("Modus 9: Fehler beim Schalten des Relais: " . $e->getMessage());
-                    }
-                }
-            } else {
-                $this->SLogInfo("Modus 9: Kein Shelly State ID konfiguriert oder Variable existiert nicht.");
-            }
-        }
-        
         // Ramp-Limiter
         $currentSpeed = $this->GetValue('PumpSpeed');
         $intervalMs = $this->ReadPropertyInteger('ChoreographyIntervalMs');
@@ -513,9 +495,19 @@ class SmartFountain extends IPSModuleStrict
                 $childT = $t - $mixStartTime; 
                 return $this->CalculatePattern($currentMixMode, $childT);
 
-            case 8: // Ein/Aus Intervall (4s cycle)
-                $cycle = fmod($t, 4.0);
-                return ($cycle < 2.0) ? 1.0 : 0.0;
+            case 8: // Ein/Aus Intervall
+                $intensity = $this->GetValue('ChoreographyIntensity') / 100.0;
+                return (fmod($t, 2.0) < (2.0 * $intensity)) ? 1.0 : 0.0;
+
+            case 9: // Geysir (Schuss)
+                $speedPercent = $this->GetValue('ChoreographySpeed');
+                if ($speedPercent <= 0) $speedPercent = 100;
+                $realTime = $t / ($speedPercent / 100.0);
+                
+                $onDuration = max(0.1, ($speedPercent / 100.0) * 2.0);
+                $cycleTime = $onDuration + 5.0; // 5 seconds pause
+                
+                return (fmod($realTime, $cycleTime) < $onDuration) ? 1.0 : 0.0;
 
             default:
                 return 0.0;
@@ -799,9 +791,17 @@ class SmartFountain extends IPSModuleStrict
                 $p2 = exp(-pow($cycle - 0.45, 2) / (2 * 0.04 * 0.04)) * 0.7;
                 return max($p1, $p2);
             case 8: // Ein/Aus Intervall
-                return (fmod($t, 2.0) < 1.0) ? 1.0 : 0.0;
-            case 9: // Ein/Aus Intervall
-                return (fmod($t, 2.0) < 1.0) ? 1.0 : 0.0;
+                $intensity = $this->GetValue('ChoreographyIntensity') / 100.0;
+                return (fmod($t, 2.0) < (2.0 * $intensity)) ? 1.0 : 0.0;
+            case 9: // Geysir (Schuss)
+                $speedPercent = $this->GetValue('ChoreographySpeed');
+                if ($speedPercent <= 0) $speedPercent = 100;
+                $realTime = $t / ($speedPercent / 100.0);
+                
+                $onDuration = max(0.1, ($speedPercent / 100.0) * 2.0);
+                $cycleTime = $onDuration + 5.0; // 5 seconds pause
+                
+                return (fmod($realTime, $cycleTime) < $onDuration) ? 1.0 : 0.0;
             default: // Fallback for random/mix: use sine
                 return (sin(2 * M_PI * $t / 4.0) + 1.0) / 2.0;
         }
