@@ -111,15 +111,7 @@ class SmartFountain extends IPSModuleStrict
             ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0xFFFFFF, 'IconActive' => true, 'IconValue' => 'Execute'],
         ]);
 
-        // Force recreation of Choreography if the new option is missing
-        $vid = @$this->GetIDForIdent('Choreography');
-        if ($vid > 0) {
-            $pres = @IPS_GetVariableCustomPresentation($vid);
-            if (!is_array($pres) || !isset($pres['OPTIONS']) || strpos($pres['OPTIONS'], 'Ein/Aus') === false) {
-                $this->UnregisterVariable('Choreography');
-            }
-        }
-        
+
         $this->RegisterVariableInteger('Choreography', 'Muster', [
             'PRESENTATION' => $enumPres,
             'ICON' => 'Menu',
