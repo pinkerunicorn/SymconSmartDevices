@@ -271,6 +271,9 @@ class GardenaGateway extends IPSModuleStrict
 
         if ($httpCode >= 200 && $httpCode < 300) {
             @file_put_contents(sys_get_temp_dir() . '/api_dump.txt', "HTTP $httpCode\n$response");
+            if (empty($response)) {
+                return [];
+            }
             return json_decode($response, true);
         }
 
