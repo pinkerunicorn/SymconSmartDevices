@@ -74,9 +74,9 @@ class SmartFountain extends IPSModuleStrict
             ['Value' => 6, 'Caption' => 'Musik-Show',  'Color' => 0x0066FF, 'IconActive' => true, 'IconValue' => 'Melody'],
         ]);
 
-        $this->RegisterVariableInteger('ShowMode', 'Show-Modus', [
+        $this->RegisterVariableInteger('ShowMode', 'Szenen-Modus', [
             'PRESENTATION' => $enumPres,
-            'ICON' => 'Execute',
+            'ICON' => 'Star',
             'OPTIONS' => $showModeOptions
         ], 25);
         $this->EnableAction('ShowMode');
@@ -94,18 +94,20 @@ class SmartFountain extends IPSModuleStrict
         $this->EnableAction('PumpSpeed');
 
         $choreoOptions = json_encode([
-            ['Value' => 0, 'Caption' => 'Manuell', 'Color' => -1, 'IconActive' => true, 'IconValue' => 'Gear'],
-            ['Value' => 1, 'Caption' => 'Sinuswelle', 'Color' => 0x0044FF, 'IconActive' => true, 'IconValue' => 'Drops'],
-            ['Value' => 2, 'Caption' => 'Puls', 'Color' => 0xFF0000, 'IconActive' => true, 'IconValue' => 'Activity'],
-            ['Value' => 3, 'Caption' => 'Atmen', 'Color' => 0x00FFFF, 'IconActive' => true, 'IconValue' => 'Wind'],
-            ['Value' => 4, 'Caption' => 'Zufall', 'Color' => 0x888888, 'IconActive' => true, 'IconValue' => 'Shuffle'],
-            ['Value' => 5, 'Caption' => 'Treppe', 'Color' => 0x00FF00, 'IconActive' => true, 'IconValue' => 'Graph'],
+            ['Value' => 0, 'Caption' => 'Aus (Manuell)', 'Color' => 0x888888, 'IconActive' => true, 'IconValue' => 'Close'],
+            ['Value' => 1, 'Caption' => 'Sinuswelle', 'Color' => 0x00FF00, 'IconActive' => true, 'IconValue' => 'Wave'],
+            ['Value' => 2, 'Caption' => 'Puls', 'Color' => 0xFF0000, 'IconActive' => true, 'IconValue' => 'Lightning'],
+            ['Value' => 3, 'Caption' => 'Atmen', 'Color' => 0x0000FF, 'IconActive' => true, 'IconValue' => 'Wind'],
+            ['Value' => 4, 'Caption' => 'Zufall', 'Color' => 0xFFFF00, 'IconActive' => true, 'IconValue' => 'Question'],
+            ['Value' => 5, 'Caption' => 'Treppe', 'Color' => 0x00FFFF, 'IconActive' => true, 'IconValue' => 'Graph'],
             ['Value' => 6, 'Caption' => 'Herzschlag', 'Color' => 0xFF00FF, 'IconActive' => true, 'IconValue' => 'Heart'],
             ['Value' => 7, 'Caption' => 'Zufalls-Mix', 'Color' => 0xFF9900, 'IconActive' => true, 'IconValue' => 'Shuffle'],
             ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0xFFFFFF, 'IconActive' => true, 'IconValue' => 'Execute'],
             ['Value' => 9, 'Caption' => 'Relais Klackern', 'Color' => 0xFF0000, 'IconActive' => true, 'IconValue' => 'Plug'],
         ]);
 
+        $oldChoreo = @$this->GetValue('Choreography');
+        $this->UnregisterVariable('Choreography');
 
         $this->RegisterVariableInteger('Choreography', 'Muster', [
             'PRESENTATION' => $enumPres,
@@ -113,6 +115,10 @@ class SmartFountain extends IPSModuleStrict
             'OPTIONS' => $choreoOptions
         ], 30);
         $this->EnableAction('Choreography');
+        
+        if ($oldChoreo !== false) {
+            $this->SetValue('Choreography', $oldChoreo);
+        }
 
         $this->RegisterVariableBoolean('EnableLight', 'Licht (WLED/Twinkly)', [
             'PRESENTATION' => $switchPres,
@@ -793,9 +799,9 @@ class SmartFountain extends IPSModuleStrict
                 $p2 = exp(-pow($cycle - 0.45, 2) / (2 * 0.04 * 0.04)) * 0.7;
                 return max($p1, $p2);
             case 8: // Ein/Aus Intervall
-                return (fmod($t, 4.0) < 2.0) ? 1.0 : 0.0;
+                return (fmod($t, 2.0) < 1.0) ? 1.0 : 0.0;
             case 9: // Ein/Aus Intervall
-                return (fmod($t, 4.0) < 2.0) ? 1.0 : 0.0;
+                return (fmod($t, 2.0) < 1.0) ? 1.0 : 0.0;
             default: // Fallback for random/mix: use sine
                 return (sin(2 * M_PI * $t / 4.0) + 1.0) / 2.0;
         }
