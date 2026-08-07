@@ -161,9 +161,8 @@ class GardenaConfigurator extends IPSModuleStrict
                 foreach ($valves as $v) {
                     $vId = $v['id'];
                     $vName = $v['attributes']['name']['value'] ?? 'Valve';
-                    // Extract ValveID from id (e.g. "deviceid:1")
                     $parts = explode(':', $vId);
-                    $valveIdStr = isset($parts[1]) ? $parts[1] : '1';
+                    $valveIdStr = isset($parts[1]) ? $parts[1] : '';
                     
                     $vInstanceID = $this->GetExistingInstanceID($valveModuleID, $deviceId, $valveIdStr);
                     $values[] = [

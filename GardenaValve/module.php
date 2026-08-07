@@ -310,7 +310,7 @@ class GardenaValve extends IPSModuleStrict
 
         $deviceID = $this->ReadPropertyString('DeviceID');
         $valveID = $this->ReadPropertyString('ValveID');
-        $serviceID = $valveID !== '' ? $valveID : $deviceID;
+        $serviceID = $valveID !== '' ? $deviceID . ':' . $valveID : $deviceID;
 
         $body = json_encode([
             'data' => [
@@ -337,7 +337,7 @@ class GardenaValve extends IPSModuleStrict
     {
         $deviceID = $this->ReadPropertyString('DeviceID');
         $valveID = $this->ReadPropertyString('ValveID');
-        $serviceID = $valveID !== '' ? $valveID : $deviceID;
+        $serviceID = $valveID !== '' ? $deviceID . ':' . $valveID : $deviceID;
 
         $body = json_encode([
             'data' => [
