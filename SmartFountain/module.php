@@ -366,8 +366,15 @@ class SmartFountain extends IPSModuleStrict
             $shellyID = $this->ReadPropertyInteger('ShellyStateID');
             if ($shellyID > 1 && @IPS_ObjectExists($shellyID)) {
                 if (GetValue($shellyID) != $relayState) {
-                    @RequestAction($shellyID, $relayState);
+                    $this->SLogInfo("Modus 9: Schalte Relais " . ($relayState ? 'AN' : 'AUS'));
+                    try {
+                        RequestAction($shellyID, $relayState);
+                    } catch (Exception $e) {
+                        $this->SLogError("Modus 9: Fehler beim Schalten des Relais: " . $e->getMessage());
+                    }
                 }
+            } else {
+                $this->SLogInfo("Modus 9: Kein Shelly State ID konfiguriert oder Variable existiert nicht.");
             }
         } else {
             $targetSpeed = (int)round($min + ($rawValue * ($intensity - $min)));
