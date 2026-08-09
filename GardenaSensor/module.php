@@ -76,8 +76,10 @@ class GardenaSensor extends IPSModuleStrict
         }
     }
 
-    public function ReceiveData(string $JSONString): string
+    public function ReceiveData($JSONString)
     {
+        @file_put_contents(sys_get_temp_dir() . '/sensor_recv.txt', $JSONString . "\n", FILE_APPEND);
+        
         $data = json_decode($JSONString, true);
         if (!is_array($data)) {
             return '';

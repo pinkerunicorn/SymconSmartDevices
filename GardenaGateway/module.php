@@ -195,6 +195,9 @@ class GardenaGateway extends IPSModuleStrict
                 IPS_ApplyChanges($parentId);
                 $this->SLogInfo('WebSocket URL updated and parent activated.');
                 $this->SetStatus(102);
+                
+                // Fetch and push initial snapshot to all child instances
+                $this->PushSnapshot();
             } else {
                 $this->SLogError('ConnectWebSocket: Parent ID is 0, cannot set URL.');
             }
@@ -207,6 +210,48 @@ class GardenaGateway extends IPSModuleStrict
     {
         $instance = IPS_GetInstance($this->InstanceID);
         return $instance['ConnectionID'];
+    }
+
+    private function PushSnapshot(): void
+    {
+        $locationId = $this->GetLocationID();
+        if (empty($locationId)) {
+            $this->SLogError('PushSnapshot: LocationID empty');
+            return;
+        }
+
+        $response = $this->ApiRequest('GET', "https://api.smart.gardena.dev/v1/locations/$locationId");
+        if (!$response) {
+            $this->SLogError('PushSnapshot: ApiRequest returned false');
+            return;
+        }
+        
+        @file_put_contents(sys_get_temp_dir() . '/push_snap.txt', json_encode($response));
+
+        if (isset($response['included']) && is_array($response['included'])) {
+            $this->SLogInfo('Pushing initial snapshot to children. Found ' . count($response['included']) . ' items.');
+            foreach ($response['included'] as $event) {
+                if (!is_array($event)) {
+                    continue;
+                }
+
+                $rawId = $event['id'] ?? '';
+                $parts = explode(':', $rawId);
+                $deviceId = $parts[0];
+                $serviceId = isset($parts[1]) ? $parts[1] : '';
+
+                $forward = [
+                    'DataID'      => '{FE3A29C6-B712-4D85-9C3E-71A5F82DB430}',
+                    'DeviceID'    => $deviceId,
+                    'ServiceID'   => $serviceId,
+                    'ServiceType' => $event['type'] ?? '',
+                    'Attributes'  => $event['attributes'] ?? []
+                ];
+                $this->SendDataToChildren(json_encode($forward));
+            }
+        } else {
+            $this->SLogError('PushSnapshot: No included array found in response');
+        }
     }
 
     public function ApiRequest(string $method, string $url, string $body = '')
