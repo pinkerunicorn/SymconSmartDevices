@@ -440,10 +440,7 @@ class GardenaGateway extends IPSModuleStrict
 
     public function GetConfigurationForParent(): string
     {
-        return json_encode([
-            'URL' => '',
-            'Active' => false
-        ]);
+        return '{}';
     }
 
     public function RequestAction(string $Ident, mixed $Value): void
