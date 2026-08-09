@@ -96,6 +96,9 @@ class SmartFountain extends IPSModuleStrict
         $choreoOptions = json_encode([
             ['Value' => 0, 'Caption' => 'Aus (Manuell)', 'Color' => 0x888888, 'IconActive' => true, 'IconValue' => 'Close'],
             ['Value' => 1, 'Caption' => 'Sinuswelle', 'Color' => 0x00FF00, 'IconActive' => true, 'IconValue' => 'Wave'],
+            ['Value' => 2, 'Caption' => 'Sägezahn (Crescendo)', 'Color' => 0xFF00FF, 'IconActive' => true, 'IconValue' => 'Graph'],
+            ['Value' => 3, 'Caption' => 'High / Low (Plateau)', 'Color' => 0xFFFF00, 'IconActive' => true, 'IconValue' => 'Move'],
+            ['Value' => 4, 'Caption' => 'Träger Zufall', 'Color' => 0x00FFFF, 'IconActive' => true, 'IconValue' => 'Shuffle'],
             ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0xFFFFFF, 'IconActive' => true, 'IconValue' => 'Execute'],
             ['Value' => 9, 'Caption' => 'Geysir (Schuss)', 'Color' => 0x00FFFF, 'IconActive' => true, 'IconValue' => 'Drop'],
         ]);
@@ -405,6 +408,30 @@ class SmartFountain extends IPSModuleStrict
                 $period = 4.0;
                 return (sin(2 * M_PI * $t / $period) + 1.0) / 2.0;
 
+            case 2: // Sägezahn (Crescendo) - 10s cycle
+                $cycle = fmod($t, 10.0);
+                if ($cycle < 8.0) {
+                    return $cycle / 8.0;
+                } else {
+                    return 0.0;
+                }
+
+            case 3: // High / Low (Plateau) - 8s cycle
+                $cycle = fmod($t, 8.0);
+                return ($cycle < 4.0) ? 0.3 : 1.0;
+
+            case 4: // Träger Zufall
+                $lastTime = (float)$this->GetBuffer('RandTime');
+                $lastRandom = (float)$this->GetBuffer('RandLast');
+                
+                // Change every 6 seconds (at 100% speed)
+                if ($lastTime == 0 || ($t - $lastTime) > 6.0) {
+                    $lastRandom = mt_rand(20, 100) / 100.0; // Between 0.2 and 1.0
+                    $lastTime = $t;
+                    $this->SetBuffer('RandLast', (string)$lastRandom);
+                    $this->SetBuffer('RandTime', (string)$lastTime);
+                }
+                return $lastRandom;
 
             case 8: // Ein/Aus Intervall
                 $intensity = $this->GetValue('ChoreographyIntensity') / 100.0;
@@ -486,10 +513,25 @@ class SmartFountain extends IPSModuleStrict
                 $this->WLED_Set($wledID, 'Effect', 2); $this->WLED_Set($wledID, 'Color', 0x0044FF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
                 $this->WLED_Set($gardenID, 'Effect', 2); $this->WLED_Set($gardenID, 'Color', 0x001155); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
                 break;
-
+            case 2: // Sägezahn - Fade, Purple
+                $this->WLED_Set($wledID, 'Effect', 12); $this->WLED_Set($wledID, 'Color', 0xFF00FF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
+                $this->WLED_Set($gardenID, 'Effect', 12); $this->WLED_Set($gardenID, 'Color', 0x440044); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
+                break;
+            case 3: // High/Low - Blink, Yellow
+                $this->WLED_Set($wledID, 'Effect', 1); $this->WLED_Set($wledID, 'Color', 0xFFFF00); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
+                $this->WLED_Set($gardenID, 'Effect', 1); $this->WLED_Set($gardenID, 'Color', 0x888800); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
+                break;
+            case 4: // Träger Zufall - Random, Cyan
+                $this->WLED_Set($wledID, 'Effect', 74); $this->WLED_Set($wledID, 'Color', 0x00FFFF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
+                $this->WLED_Set($gardenID, 'Effect', 9); $this->WLED_Set($gardenID, 'Color', 0x004488); $this->WLED_Set($gardenID, 'Speed', 20);
+                break;
             case 8: // Ein/Aus Intervall - Blink, White
                 $this->WLED_Set($wledID, 'Effect', 1); $this->WLED_Set($wledID, 'Color', 0xFFFFFF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
                 $this->WLED_Set($gardenID, 'Effect', 1); $this->WLED_Set($gardenID, 'Color', 0xFFFFFF); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
+                break;
+            case 9: // Geysir - Strobe/Blink, Cyan
+                $this->WLED_Set($wledID, 'Effect', 1); $this->WLED_Set($wledID, 'Color', 0x00FFFF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
+                $this->WLED_Set($gardenID, 'Effect', 1); $this->WLED_Set($gardenID, 'Color', 0x008888); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
                 break;
         }
     }
@@ -499,10 +541,10 @@ class SmartFountain extends IPSModuleStrict
         // Scene definitions: [choreography, speed, intensity, theme, twinklyMode, twinklyBrightness]
         $scenes = [
             // 0 = Manuell -> Do nothing, user controls manually
-            1 => ['choreo' => 1, 'speed' => 30,  'intensity' => 40,  'theme' => 'zen',       'twMode' => 'movie', 'twBright' => 30],  // Dinner (Sinus)
+            1 => ['choreo' => 3, 'speed' => 30,  'intensity' => 40,  'theme' => 'zen',       'twMode' => 'movie', 'twBright' => 30],  // Dinner (High / Low)
             2 => ['choreo' => 9, 'speed' => 80,  'intensity' => 90,  'theme' => null,        'twMode' => 'movie', 'twBright' => 100], // Party (Geysir)
-            3 => ['choreo' => 1, 'speed' => 50,  'intensity' => 60,  'theme' => 'zen',       'twMode' => 'movie', 'twBright' => 20],  // Zen (Sinus)
-            4 => ['choreo' => 1, 'speed' => 40,  'intensity' => 50,  'theme' => 'mystisch',  'twMode' => 'movie', 'twBright' => 15],  // Romantik (Sinus)
+            3 => ['choreo' => 2, 'speed' => 50,  'intensity' => 60,  'theme' => 'zen',       'twMode' => 'movie', 'twBright' => 20],  // Zen (Sägezahn)
+            4 => ['choreo' => 4, 'speed' => 40,  'intensity' => 50,  'theme' => 'mystisch',  'twMode' => 'movie', 'twBright' => 15],  // Romantik (Träger Zufall)
             5 => ['choreo' => 8, 'speed' => 60,  'intensity' => 70,  'theme' => 'karibik',   'twMode' => 'movie', 'twBright' => 70],  // Regenbogen (Ein/Aus)
             6 => ['choreo' => 1, 'speed' => 70,  'intensity' => 80,  'theme' => null,        'twMode' => 'movie', 'twBright' => 80],  // Musik-Show (Sinus)
         ];
@@ -657,6 +699,19 @@ class SmartFountain extends IPSModuleStrict
         switch ($mode) {
             case 1: // Sinuswelle
                 return (sin(2 * M_PI * $t / 4.0) + 1.0) / 2.0;
+
+            case 2: // Sägezahn (Crescendo)
+                $cycle = fmod($t, 10.0);
+                return ($cycle < 8.0) ? ($cycle / 8.0) : 0.0;
+
+            case 3: // High / Low (Plateau)
+                $cycle = fmod($t, 8.0);
+                return ($cycle < 4.0) ? 0.3 : 1.0;
+
+            case 4: // Träger Zufall (Static fake)
+                $step = floor($t / 6.0);
+                $fakeRandom = (sin($step * 12.9898) * 43758.5453) - floor(sin($step * 12.9898) * 43758.5453);
+                return 0.2 + ($fakeRandom * 0.8);
 
             case 8: // Ein/Aus Intervall
                 $intensity = $this->GetValue('ChoreographyIntensity') / 100.0;
