@@ -19,7 +19,7 @@ class GardenaSensor extends IPSModuleStrict
         $this->DA_RegisterAvailability(900);
         $this->DA_RegisterWatchdog();
 
-        $this->RegisterVariableFloat('SoilMoisture', 'Bodenfeuchte', [
+        $this->RegisterVariableInteger('SoilMoisture', 'Bodenfeuchte', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'SUFFIX' => ' %',
             'ICON' => 'Drops'
@@ -28,7 +28,8 @@ class GardenaSensor extends IPSModuleStrict
         $this->RegisterVariableFloat('SoilTemperature', 'Bodentemperatur', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'SUFFIX' => ' °C',
-            'ICON' => 'Temperature'
+            'ICON' => 'Temperature',
+            'DIGITS' => 1
         ], 2);
 
 
@@ -102,7 +103,7 @@ class GardenaSensor extends IPSModuleStrict
         $attributes = $data['Attributes'] ?? [];
 
         if (isset($attributes['soilHumidity']['value'])) {
-            $this->SetValue('SoilMoisture', (float)$attributes['soilHumidity']['value']);
+            $this->SetValue('SoilMoisture', (int)$attributes['soilHumidity']['value']);
         }
         if (isset($attributes['soilTemperature']['value'])) {
             $this->SetValue('SoilTemperature', (float)$attributes['soilTemperature']['value']);
