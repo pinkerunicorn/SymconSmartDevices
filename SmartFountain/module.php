@@ -96,12 +96,6 @@ class SmartFountain extends IPSModuleStrict
         $choreoOptions = json_encode([
             ['Value' => 0, 'Caption' => 'Aus (Manuell)', 'Color' => 0x888888, 'IconActive' => true, 'IconValue' => 'Close'],
             ['Value' => 1, 'Caption' => 'Sinuswelle', 'Color' => 0x00FF00, 'IconActive' => true, 'IconValue' => 'Wave'],
-            ['Value' => 2, 'Caption' => 'Puls', 'Color' => 0xFF0000, 'IconActive' => true, 'IconValue' => 'Lightning'],
-            ['Value' => 3, 'Caption' => 'Atmen', 'Color' => 0x0000FF, 'IconActive' => true, 'IconValue' => 'Wind'],
-            ['Value' => 4, 'Caption' => 'Zufall', 'Color' => 0xFFFF00, 'IconActive' => true, 'IconValue' => 'Question'],
-            ['Value' => 5, 'Caption' => 'Treppe', 'Color' => 0x00FFFF, 'IconActive' => true, 'IconValue' => 'Graph'],
-            ['Value' => 6, 'Caption' => 'Herzschlag', 'Color' => 0xFF00FF, 'IconActive' => true, 'IconValue' => 'Heart'],
-            ['Value' => 7, 'Caption' => 'Zufalls-Mix', 'Color' => 0xFF9900, 'IconActive' => true, 'IconValue' => 'Shuffle'],
             ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0xFFFFFF, 'IconActive' => true, 'IconValue' => 'Execute'],
             ['Value' => 9, 'Caption' => 'Geysir (Schuss)', 'Color' => 0x00FFFF, 'IconActive' => true, 'IconValue' => 'Drop'],
         ]);
@@ -411,89 +405,6 @@ class SmartFountain extends IPSModuleStrict
                 $period = 4.0;
                 return (sin(2 * M_PI * $t / $period) + 1.0) / 2.0;
 
-            case 2: // Puls / Shooter (3s cycle)
-                $cycle = fmod($t, 3.0);
-                if ($cycle < 0.2) {
-                    return 0.0;
-                } elseif ($cycle < 0.8) {
-                    return 1.0;
-                } elseif ($cycle < 1.0) {
-                    return 1.0 - (($cycle - 0.8) / 0.2);
-                } else {
-                    return 0.0;
-                }
-
-            case 3: // Atmen (8s cycle)
-                $cycle = fmod($t, 8.0);
-                if ($cycle < 3.0) {
-                    $val = sin(M_PI * $cycle / 6.0);
-                    return $val * $val;
-                } elseif ($cycle < 4.0) {
-                    return 1.0;
-                } elseif ($cycle < 6.0) {
-                    $val = cos(M_PI * ($cycle - 4.0) / 4.0);
-                    return $val * $val;
-                } else {
-                    return 0.0;
-                }
-
-            case 4: // Zufall
-                // Interpolated Random Walk
-                $lastRandom = (float)$this->GetBuffer('RandLast');
-                $nextRandom = (float)$this->GetBuffer('RandNext');
-                $lastTime = (float)$this->GetBuffer('RandTime');
-                
-                if ($lastTime == 0 || ($t - $lastTime) > 2.0) { // Every 2 seconds
-                    $lastRandom = $nextRandom == 0 ? 0.5 : $nextRandom;
-                    $nextRandom = mt_rand(0, 100) / 100.0;
-                    $lastTime = $t;
-                    $this->SetBuffer('RandLast', (string)$lastRandom);
-                    $this->SetBuffer('RandNext', (string)$nextRandom);
-                    $this->SetBuffer('RandTime', (string)$lastTime);
-                }
-                
-                $progress = ($t - $lastTime) / 2.0;
-                if ($progress > 1.0) $progress = 1.0;
-                
-                // smoothstep: 3x^2 - 2x^3
-                $smooth = (3 * $progress * $progress) - (2 * $progress * $progress * $progress);
-                
-                return $lastRandom + (($nextRandom - $lastRandom) * $smooth);
-
-            case 5: // Treppe (15s cycle, 5 steps)
-                $cycle = fmod($t, 15.0);
-                $steps = 5;
-                if ($cycle < 7.5) {
-                    $step = floor($cycle / 1.5);
-                    return $step / ($steps - 1);
-                } else {
-                    $step = floor(($cycle - 7.5) / 1.5);
-                    return 1.0 - ($step / ($steps - 1));
-                }
-
-            case 6: // Herzschlag (2s cycle)
-                $cycle = fmod($t, 2.0);
-                $t1 = 0.15;
-                $t2 = 0.45;
-                $var = 2 * (0.04 * 0.04);
-                $p1 = exp(-pow($cycle - $t1, 2) / $var);
-                $p2 = exp(-pow($cycle - $t2, 2) / $var) * 0.7;
-                return max($p1, $p2);
-
-            case 7: // Zufalls-Mix
-                $currentMixMode = (int)$this->GetBuffer('MixMode');
-                $mixStartTime = (float)$this->GetBuffer('MixStartTime');
-                
-                // Change pattern every 20 seconds
-                if ($currentMixMode == 0 || ($t - $mixStartTime) > 20.0) {
-                    $currentMixMode = mt_rand(1, 6);
-                    $mixStartTime = $t;
-                    $this->SetBuffer('MixMode', (string)$currentMixMode);
-                    $this->SetBuffer('MixStartTime', (string)$mixStartTime);
-                }
-                
-                $childT = $t - $mixStartTime; 
-                return $this->CalculatePattern($currentMixMode, $childT);
 
             case 8: // Ein/Aus Intervall
                 $intensity = $this->GetValue('ChoreographyIntensity') / 100.0;
@@ -575,30 +486,7 @@ class SmartFountain extends IPSModuleStrict
                 $this->WLED_Set($wledID, 'Effect', 2); $this->WLED_Set($wledID, 'Color', 0x0044FF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
                 $this->WLED_Set($gardenID, 'Effect', 2); $this->WLED_Set($gardenID, 'Color', 0x001155); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
                 break;
-            case 2: // Puls - Heartbeat, Red
-                $this->WLED_Set($wledID, 'Effect', 65); $this->WLED_Set($wledID, 'Color', 0xFF0000); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
-                $this->WLED_Set($gardenID, 'Effect', 0); $this->WLED_Set($gardenID, 'Color', 0x440000);
-                break;
-            case 3: // Atmen - Fade, Cyan
-                $this->WLED_Set($wledID, 'Effect', 12); $this->WLED_Set($wledID, 'Color', 0x00FFFF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
-                $this->WLED_Set($gardenID, 'Effect', 12); $this->WLED_Set($gardenID, 'Color', 0x004488); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
-                break;
-            case 4: // Zufall - Chase Random
-                $this->WLED_Set($wledID, 'Effect', 74); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
-                $this->WLED_Set($gardenID, 'Effect', 9); $this->WLED_Set($gardenID, 'Speed', 20);
-                break;
-            case 5: // Treppe - Rainbow
-                $this->WLED_Set($wledID, 'Effect', 11); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
-                $this->WLED_Set($gardenID, 'Effect', 11); $this->WLED_Set($gardenID, 'Speed', 15);
-                break;
-            case 6: // Herzschlag - Heartbeat, Magenta
-                $this->WLED_Set($wledID, 'Effect', 65); $this->WLED_Set($wledID, 'Color', 0xFF00FF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
-                $this->WLED_Set($gardenID, 'Effect', 2); $this->WLED_Set($gardenID, 'Color', 0x440044); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
-                break;
-            case 7: // Zufalls-Mix
-                $this->WLED_Set($wledID, 'Effect', 9); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
-                $this->WLED_Set($gardenID, 'Effect', 9); $this->WLED_Set($gardenID, 'Speed', 20);
-                break;
+
             case 8: // Ein/Aus Intervall - Blink, White
                 $this->WLED_Set($wledID, 'Effect', 1); $this->WLED_Set($wledID, 'Color', 0xFFFFFF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
                 $this->WLED_Set($gardenID, 'Effect', 1); $this->WLED_Set($gardenID, 'Color', 0xFFFFFF); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
@@ -611,12 +499,12 @@ class SmartFountain extends IPSModuleStrict
         // Scene definitions: [choreography, speed, intensity, theme, twinklyMode, twinklyBrightness]
         $scenes = [
             // 0 = Manuell -> Do nothing, user controls manually
-            1 => ['choreo' => 3, 'speed' => 30,  'intensity' => 40,  'theme' => 'zen',       'twMode' => 'movie', 'twBright' => 30],  // Dinner
-            2 => ['choreo' => 7, 'speed' => 80,  'intensity' => 90,  'theme' => null,        'twMode' => 'movie', 'twBright' => 100], // Party (no synth, WLED sound reactive)
-            3 => ['choreo' => 1, 'speed' => 50,  'intensity' => 60,  'theme' => 'zen',       'twMode' => 'movie', 'twBright' => 20],  // Zen
-            4 => ['choreo' => 6, 'speed' => 40,  'intensity' => 50,  'theme' => 'mystisch',  'twMode' => 'movie', 'twBright' => 15],  // Romantik
-            5 => ['choreo' => 5, 'speed' => 60,  'intensity' => 70,  'theme' => 'karibik',   'twMode' => 'movie', 'twBright' => 70],  // Regenbogen
-            6 => ['choreo' => 1, 'speed' => 70,  'intensity' => 80,  'theme' => null,        'twMode' => 'movie', 'twBright' => 80],  // Musik-Show (no synth, WLED sound reactive)
+            1 => ['choreo' => 1, 'speed' => 30,  'intensity' => 40,  'theme' => 'zen',       'twMode' => 'movie', 'twBright' => 30],  // Dinner (Sinus)
+            2 => ['choreo' => 9, 'speed' => 80,  'intensity' => 90,  'theme' => null,        'twMode' => 'movie', 'twBright' => 100], // Party (Geysir)
+            3 => ['choreo' => 1, 'speed' => 50,  'intensity' => 60,  'theme' => 'zen',       'twMode' => 'movie', 'twBright' => 20],  // Zen (Sinus)
+            4 => ['choreo' => 1, 'speed' => 40,  'intensity' => 50,  'theme' => 'mystisch',  'twMode' => 'movie', 'twBright' => 15],  // Romantik (Sinus)
+            5 => ['choreo' => 8, 'speed' => 60,  'intensity' => 70,  'theme' => 'karibik',   'twMode' => 'movie', 'twBright' => 70],  // Regenbogen (Ein/Aus)
+            6 => ['choreo' => 1, 'speed' => 70,  'intensity' => 80,  'theme' => null,        'twMode' => 'movie', 'twBright' => 80],  // Musik-Show (Sinus)
         ];
 
         if ($mode === 0) {
@@ -769,27 +657,7 @@ class SmartFountain extends IPSModuleStrict
         switch ($mode) {
             case 1: // Sinuswelle
                 return (sin(2 * M_PI * $t / 4.0) + 1.0) / 2.0;
-            case 2: // Puls
-                $cycle = fmod($t, 3.0);
-                if ($cycle < 0.2) return 0.0;
-                if ($cycle < 0.8) return 1.0;
-                if ($cycle < 1.0) return 1.0 - (($cycle - 0.8) / 0.2);
-                return 0.0;
-            case 3: // Atmen
-                $cycle = fmod($t, 8.0);
-                if ($cycle < 3.0) { $v = sin(M_PI * $cycle / 6.0); return $v * $v; }
-                if ($cycle < 4.0) return 1.0;
-                if ($cycle < 6.0) { $v = cos(M_PI * ($cycle - 4.0) / 4.0); return $v * $v; }
-                return 0.0;
-            case 5: // Treppe
-                $cycle = fmod($t, 15.0);
-                if ($cycle < 7.5) return floor($cycle / 1.5) / 4;
-                return 1.0 - (floor(($cycle - 7.5) / 1.5) / 4);
-            case 6: // Herzschlag
-                $cycle = fmod($t, 2.0);
-                $p1 = exp(-pow($cycle - 0.15, 2) / (2 * 0.04 * 0.04));
-                $p2 = exp(-pow($cycle - 0.45, 2) / (2 * 0.04 * 0.04)) * 0.7;
-                return max($p1, $p2);
+
             case 8: // Ein/Aus Intervall
                 $intensity = $this->GetValue('ChoreographyIntensity') / 100.0;
                 return (fmod($t, 2.0) < (2.0 * $intensity)) ? 1.0 : 0.0;
