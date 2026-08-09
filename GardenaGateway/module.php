@@ -83,7 +83,7 @@ class GardenaGateway extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
-        
+        $this->RequireParent('{D68FD31F-0E90-7019-F16C-1949BD3079EF}');
         $this->DA_ApplyPresentation();
 
         if ($this->ReadPropertyString('AppKey') !== '' && $this->ReadPropertyString('AppSecret') !== '') {
