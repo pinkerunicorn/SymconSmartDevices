@@ -249,10 +249,20 @@ class MikroTikRouter extends IPSModuleStrict
             }
         }
 
-        $res = $this->SendRestRequest('/rest/system/package/update/check-for-updates', 'POST');
+        $this->SendRestRequest('/rest/system/package/update/check-for-updates', 'POST');
+        
+        // Kurz warten, damit der Router die Info laden kann
+        IPS_Sleep(2000);
+
+        $res = $this->SendRestRequest('/rest/system/package/update', 'GET');
         if ($res !== null) {
-            $status = $res['status'] ?? '';
-            if (strpos(strtolower($status), 'new version is available') !== false) {
+            // Wenn die API ein Array mit einem Element zurückgibt (z.B. bei print commands)
+            $data = isset($res[0]) ? $res[0] : $res;
+            
+            $installed = $data['installed-version'] ?? '';
+            $latest = $data['latest-version'] ?? '';
+            
+            if ($installed !== '' && $latest !== '' && $installed !== $latest) {
                 $this->SetValue('UpdateAvailable', true);
             } else {
                 $this->SetValue('UpdateAvailable', false);
