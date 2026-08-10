@@ -48,7 +48,7 @@ class MikroTikRouter extends IPSModuleStrict
         $this->RegisterVariableFloat('Temperature', 'Temperatur', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Temperature',
-            'SUFFIX' => ' Ã‚Â°C',
+            'SUFFIX' => ' °C',
             'SHOW_PREVIEW' => true
         ], 3);
         $this->RegisterVariableString('BoardName', 'Modell', [
@@ -69,9 +69,9 @@ class MikroTikRouter extends IPSModuleStrict
 
         $updateOptions = json_encode([
             ['Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'Ok', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC44, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC44],
-            ['Value' => true, 'Caption' => 'VerfÃƒÂ¼gbar', 'IconValue' => 'Repeat', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF8800, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF8800]
+            ['Value' => true, 'Caption' => 'Verfügbar', 'IconValue' => 'Repeat', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF8800, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF8800]
         ]);
-        $this->RegisterVariableBoolean('UpdateAvailable', 'OS-Update verfÃƒÂ¼gbar', [
+        $this->RegisterVariableBoolean('UpdateAvailable', 'OS-Update verfügbar', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Repeat',
             'SHOW_PREVIEW' => true,
@@ -82,26 +82,24 @@ class MikroTikRouter extends IPSModuleStrict
             'ICON' => 'Clock'
         ], 999);
 
-        $actionPres = [
-            'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-            'ICON'         => 'Execute',
-            'OPTIONS'      => json_encode([
-                ['Value' => 0, 'Caption' => 'Bereit', 'IconActive' => true, 'IconValue' => 'Ok', 'Color' => 0x00CC44],
-                ['Value' => 1, 'Caption' => 'AusfÃƒÂ¼hren!', 'IconActive' => true, 'IconValue' => 'Warning', 'Color' => 0xFF4444]
-            ])
-        ];
+        if (!IPS_VariableProfileExists('MIKROTIK.Action')) {
+            IPS_CreateVariableProfile('MIKROTIK.Action', 1);
+            IPS_SetVariableProfileIcon('MIKROTIK.Action', 'Execute');
+            IPS_SetVariableProfileAssociation('MIKROTIK.Action', 0, 'Bereit', 'Ok', 0x00CC44);
+            IPS_SetVariableProfileAssociation('MIKROTIK.Action', 1, 'Ausführen!', 'Warning', 0xFF4444);
+        }
 
         // Action Variables
-        $this->RegisterVariableInteger('ActionCheckUpdate', 'Auf Updates prÃƒÂ¼fen', $actionPres, 100);
+        $this->RegisterVariableInteger('ActionCheckUpdate', 'Auf Updates prüfen', 'MIKROTIK.Action', 100);
         $this->EnableAction('ActionCheckUpdate');
 
-        $this->RegisterVariableInteger('ActionInstallOS', 'OS-Update installieren', $actionPres, 101);
+        $this->RegisterVariableInteger('ActionInstallOS', 'OS-Update installieren', 'MIKROTIK.Action', 101);
         $this->EnableAction('ActionInstallOS');
 
-        $this->RegisterVariableInteger('ActionUpgradeFW', 'Firmware upgraden', $actionPres, 102);
+        $this->RegisterVariableInteger('ActionUpgradeFW', 'Firmware upgraden', 'MIKROTIK.Action', 102);
         $this->EnableAction('ActionUpgradeFW');
 
-        $this->RegisterVariableInteger('ActionReboot', 'Neustarten', $actionPres, 103);
+        $this->RegisterVariableInteger('ActionReboot', 'Neustarten', 'MIKROTIK.Action', 103);
         $this->EnableAction('ActionReboot');
     }
 
@@ -132,14 +130,7 @@ class MikroTikRouter extends IPSModuleStrict
             $this->SetTimerInterval('CheckUpdateTimer', 0);
         }
 
-        // Migration: Delete legacy profile
-        if (IPS_VariableProfileExists('MIKROTIK.Action')) {
-            $vars = ['ActionCheckUpdate', 'ActionInstallOS', 'ActionUpgradeFW', 'ActionReboot'];
-            foreach ($vars as $v) {
-                IPS_SetVariableCustomProfile($this->GetIDForIdent($v), '');
-            }
-            IPS_DeleteVariableProfile('MIKROTIK.Action');
-        }
+
     }
 
     public function RequestAction(string $Ident, mixed $Value): void
