@@ -210,6 +210,8 @@ class GardenaValve extends IPSModuleStrict
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Clock'
         ], 901);
+        
+        $this->RegisterTimer('CountdownTimer', 0, 'IPS_RequestAction($_IPS[\'TARGET\'], "CountdownTimer", "");');
     }
 
     public function ApplyChanges(): void
@@ -262,6 +264,12 @@ class GardenaValve extends IPSModuleStrict
             $activity = $this->MapValveActivity((string)$attributes['activity']['value']);
             $this->SetValue('ValveActivity', $activity);
             $this->SetValue('Watering', ($activity === 1 || $activity === 2));
+            
+            if ($activity === 1 || $activity === 2) {
+                $this->SetTimerInterval('CountdownTimer', 60000);
+            } else {
+                $this->SetTimerInterval('CountdownTimer', 0);
+            }
         }
 
         if (isset($attributes['duration']['value'])) {
@@ -293,6 +301,16 @@ class GardenaValve extends IPSModuleStrict
         switch ($Ident) {
             case 'DA_Watchdog':
                 $this->DA_HandleWatchdog();
+                break;
+
+            case 'CountdownTimer':
+                $remaining = $this->GetValue('RemainingTime');
+                if ($remaining > 0) {
+                    $this->SetValue('RemainingTime', $remaining - 1);
+                }
+                if ($remaining <= 1) {
+                    $this->SetTimerInterval('CountdownTimer', 0);
+                }
                 break;
 
             case 'Watering':
