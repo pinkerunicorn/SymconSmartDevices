@@ -43,6 +43,12 @@ class GardenaSensor extends IPSModuleStrict
             [ 'IntervalMinValue' => 5, 'IntervalMaxValue' => 5, 'ConstantActive' => true, 'ConstantValue' => 'NO_BATTERY', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Plug', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 6, 'IntervalMaxValue' => 6, 'ConstantActive' => true, 'ConstantValue' => 'UNKNOWN', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Help', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ]
         ]);
+        
+        $this->RegisterVariableInteger('BatteryLevel', 'Batterieladung', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX' => ' %',
+            'ICON' => 'Battery'
+        ], 10);
 
         $this->RegisterVariableInteger('BatteryStatus', 'Batteriestatus', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
@@ -111,6 +117,10 @@ class GardenaSensor extends IPSModuleStrict
 
         if (isset($attributes['batteryState']['value'])) {
             $this->SetValue('BatteryStatus', $this->MapBatteryStatus((string)$attributes['batteryState']['value']));
+        }
+        
+        if (isset($attributes['batteryLevel']['value'])) {
+            $this->SetValue('BatteryLevel', (int)$attributes['batteryLevel']['value']);
         }
         if (isset($attributes['rfLinkLevel']['value'])) {
             $this->SetValue('RFLinkLevel', (int)$attributes['rfLinkLevel']['value']);

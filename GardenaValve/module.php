@@ -200,6 +200,12 @@ class GardenaValve extends IPSModuleStrict
         ], 200);
         $this->EnableAction('WateringDuration');
 
+        $this->RegisterVariableInteger('BatteryLevel', 'Batterieladung', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX' => ' %',
+            'ICON' => 'Battery'
+        ], 201);
+
         $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Clock'
@@ -271,6 +277,10 @@ class GardenaValve extends IPSModuleStrict
             if (in_array($errorStr, ['VALVE_BROKEN', 'FROST_PREVENTS_STARTING', 'LOW_BATTERY_PREVENTS_STARTING', 'VALVE_POWER_SUPPLY_FAILED'])) {
                 $this->SendDebug('ValveError', "Kritischer Ventil-Fehler: " . $errorStr, 0);
             }
+        }
+        
+        if (isset($attributes['batteryLevel']['value'])) {
+            $this->SetValue('BatteryLevel', (int)$attributes['batteryLevel']['value']);
         }
 
         $this->SetValue('LastUpdate', date('d.m.Y H:i:s'));
