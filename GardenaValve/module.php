@@ -16,7 +16,6 @@ class GardenaValve extends IPSModuleStrict
 
         $this->RegisterPropertyString('DeviceID', '');
         $this->RegisterPropertyString('ValveID', '');
-        $this->RegisterPropertyInteger('DefaultDuration', 30);
 
         $this->DA_RegisterAvailability(900);
         $this->DA_RegisterWatchdog();
@@ -219,9 +218,8 @@ class GardenaValve extends IPSModuleStrict
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
 
-        $defaultDuration = $this->ReadPropertyInteger('DefaultDuration');
         if ($this->GetValue('WateringDuration') === 0) {
-            $this->SetValue('WateringDuration', $defaultDuration);
+            $this->SetValue('WateringDuration', 30);
         }
 
         $deviceID = $this->ReadPropertyString('DeviceID');

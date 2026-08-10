@@ -12,13 +12,6 @@
             "hint": "nur f\u00fcr Irrigation Control"
         },
         {
-            "type": "NumberSpinner",
-            "name": "DefaultDuration",
-            "caption": "Standard-Bew\u00e4sserungsdauer (Minuten)",
-            "minimum": 1,
-            "maximum": 240
-        },
-        {
             "type": "Label",
             "caption": "Wird automatisch vom Konfigurator gesetzt"
         }
