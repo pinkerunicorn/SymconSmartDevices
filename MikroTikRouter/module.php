@@ -56,16 +56,21 @@ class MikroTikRouter extends IPSModuleStrict
             'ICON' => 'Information',
             'SHOW_PREVIEW' => true
         ], 4);
-        $this->RegisterVariableString('FirmwareVersion', 'Firmware', [
+        $this->RegisterVariableString('FirmwareVersion', 'RouterOS', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Information',
             'SHOW_PREVIEW' => true
         ], 5);
+        $this->RegisterVariableString('RouterBoardFirmware', 'RouterBOARD', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Gear',
+            'SHOW_PREVIEW' => true
+        ], 6);
         $this->RegisterVariableString('Uptime', 'Uptime', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Clock',
             'SHOW_PREVIEW' => true
-        ], 6);
+        ], 7);
 
         $updateOptions = json_encode([
             ['Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'Ok', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC44, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC44],
@@ -77,6 +82,12 @@ class MikroTikRouter extends IPSModuleStrict
             'SHOW_PREVIEW' => true,
             'OPTIONS' => $updateOptions
         ], 10);
+        $this->RegisterVariableBoolean('FirmwareUpdateAvailable', 'Firmware-Update verfügbar', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Repeat',
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $updateOptions
+        ], 11);
         $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Clock'
@@ -208,6 +219,24 @@ class MikroTikRouter extends IPSModuleStrict
                 if (isset($item['name']) && strpos($item['name'], 'temperature') !== false) {
                     $this->SetValue('Temperature', (float)$item['value']);
                     break;
+                }
+            }
+        }
+
+        // 3. Get RouterBOARD Info
+        $routerboard = $this->SendRestRequest('/rest/system/routerboard');
+        if ($routerboard !== null) {
+            $rbData = isset($routerboard[0]) ? $routerboard[0] : $routerboard;
+            
+            if (isset($rbData['current-firmware'])) {
+                $this->SetValue('RouterBoardFirmware', (string)$rbData['current-firmware']);
+            }
+            
+            if (isset($rbData['current-firmware']) && isset($rbData['upgrade-firmware'])) {
+                if ($rbData['current-firmware'] !== $rbData['upgrade-firmware']) {
+                    $this->SetValue('FirmwareUpdateAvailable', true);
+                } else {
+                    $this->SetValue('FirmwareUpdateAvailable', false);
                 }
             }
         }
