@@ -56,12 +56,12 @@ class MikroTikRouter extends IPSModuleStrict
             'ICON' => 'Information',
             'SHOW_PREVIEW' => true
         ], 4);
-        $this->RegisterVariableString('FirmwareVersion', 'RouterOS', [
+        $this->RegisterVariableString('FirmwareVersion', 'OS-Version', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Information',
             'SHOW_PREVIEW' => true
         ], 5);
-        $this->RegisterVariableString('RouterBoardFirmware', 'RouterBOARD', [
+        $this->RegisterVariableString('RouterBoardFirmware', 'Firmware-Version', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Gear',
             'SHOW_PREVIEW' => true
