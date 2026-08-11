@@ -75,6 +75,7 @@ class GardenaGateway extends IPSModuleStrict
         $this->RegisterTimer('TokenRefresh', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "TokenRefresh", "");');
         $this->RegisterTimer('MidnightReset', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "MidnightReset", "");');
         $this->RegisterTimer('Reconnect', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "Reconnect", "");');
+        $this->RegisterTimer('StartConnection', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "StartConnection", "");');
     }
 
 
@@ -88,9 +89,8 @@ class GardenaGateway extends IPSModuleStrict
         if ($this->ReadPropertyString('AppKey') !== '' && $this->ReadPropertyString('AppSecret') !== '') {
             $this->SetStatus(102);
             $this->SetMidnightResetTimer();
-            if ($this->Authenticate()) {
-                $this->ConnectWebSocket();
-            }
+            // Start connection in the background to avoid blocking Symcon startup
+            $this->SetTimerInterval('StartConnection', 2000);
         } else {
             $this->SetStatus(104);
         }
@@ -465,6 +465,13 @@ class GardenaGateway extends IPSModuleStrict
                 if ($this->Authenticate()) {
                     $this->ConnectWebSocket();
                     $this->WriteAttributeInteger('BackoffCount', 0);
+                }
+                break;
+                
+            case 'StartConnection':
+                $this->SetTimerInterval('StartConnection', 0); // Execute once
+                if ($this->Authenticate()) {
+                    $this->ConnectWebSocket();
                 }
                 break;
 
