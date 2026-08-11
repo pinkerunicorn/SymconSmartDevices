@@ -108,12 +108,15 @@ class GardenaGateway extends IPSModuleStrict
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data): void
     {
         if ($Message == IM_CHANGESTATUS && $SenderID == $this->GetParent()) {
+            $this->SLogInfo("MessageSink: Parent Status changed to $Data[0]");
             // Status 200 = Faulty (e.g. disconnected), Status 201 = Not quite right
             if ($Data[0] >= 200) {
                 $this->SLogWarning("WebSocket Client error (Status $Data[0]). Requesting new URL...");
                 // Disconnect it to avoid auto-reconnect loops to the dead URL
-                IPS_SetProperty($SenderID, 'Active', false);
-                IPS_ApplyChanges($SenderID);
+                if (IPS_GetProperty($SenderID, 'Active')) {
+                    IPS_SetProperty($SenderID, 'Active', false);
+                    IPS_ApplyChanges($SenderID);
+                }
                 // Trigger background reconnect
                 $this->SetTimerInterval('StartConnection', 3000);
             }
@@ -165,8 +168,9 @@ class GardenaGateway extends IPSModuleStrict
             }
         }
 
-        $this->SLogError("Authentication failed. HTTP Code: $httpCode. Response: $response");
-        $this->SetStatus(200);
+        $this->SLogError("Authentication failed. HTTP: $httpCode, Response: $response");
+        // Keep status < 200 so timers continue to work
+        $this->SetStatus(104);
         return false;
     }
 
@@ -212,6 +216,7 @@ class GardenaGateway extends IPSModuleStrict
             
             $parentId = $this->GetParent();
             $this->SLogInfo('ConnectWebSocket: Got URL. Parent ID is ' . $parentId);
+            IPS_LogMessage('FGG_DEBUG', 'Got URL. Parent: ' . $parentId);
             
             if ($parentId > 0) {
                 // Ensure clean reconnect by deactivating first
@@ -234,6 +239,7 @@ class GardenaGateway extends IPSModuleStrict
             }
         } else {
             $this->SLogError('Failed to get WebSocket URL. Response: ' . json_encode($response));
+            IPS_LogMessage('FGG_DEBUG', 'Failed to get URL');
         }
     }
 
@@ -343,9 +349,10 @@ class GardenaGateway extends IPSModuleStrict
         }
 
         if ($httpCode === 429) {
+            $this->SLogError('HTTP 429 - Rate Limit erreicht! Sperre API für 24 Stunden.');
             $this->WriteAttributeInteger('CooldownUntil', time() + 86400);
-            $this->SetStatus(202);
-            $this->SLogError("Rate limit exceeded (429). Blocked for 24 hours.");
+            // Keep status < 200 so timers continue to work
+            $this->SetStatus(104);
             return false;
         }
 
@@ -474,8 +481,9 @@ class GardenaGateway extends IPSModuleStrict
         return '{}';
     }
 
-    public function RequestAction(string $Ident, mixed $Value): void
+    public function RequestAction($Ident, $Value)
     {
+        IPS_LogMessage('FGG_DEBUG', "RequestAction called with Ident: $Ident");
         switch ($Ident) {
             case 'DA_Watchdog':
                 $this->DA_HandleWatchdog();
