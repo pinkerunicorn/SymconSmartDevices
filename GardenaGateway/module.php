@@ -76,6 +76,7 @@ class GardenaGateway extends IPSModuleStrict
         $this->RegisterTimer('MidnightReset', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "MidnightReset", "");');
         $this->RegisterTimer('Reconnect', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "Reconnect", "");');
         $this->RegisterTimer('StartConnection', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "StartConnection", "");');
+        $this->RegisterTimer('WSPing', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "WSPing", "");');
     }
 
 
@@ -101,7 +102,7 @@ class GardenaGateway extends IPSModuleStrict
         }
 
         // Keep-Alive Ping Timer (Gardena schließt die WSS-Verbindung nach 60s Inaktivität)
-        $this->RegisterTimer('WSPing', 45000, 'IPS_RequestAction(' . $this->InstanceID . ', "WSPing", "");');
+        $this->SetTimerInterval('WSPing', 45000);
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data): void
