@@ -94,6 +94,29 @@ class GardenaGateway extends IPSModuleStrict
         } else {
             $this->SetStatus(104);
         }
+
+        $parentId = $this->GetParent();
+        if ($parentId > 0) {
+            $this->RegisterMessage($parentId, IM_CHANGESTATUS);
+        }
+
+        // Keep-Alive Ping Timer (Gardena schließt die WSS-Verbindung nach 60s Inaktivität)
+        $this->RegisterTimer('WSPing', 45000, 'IPS_RequestAction(' . $this->InstanceID . ', "WSPing", "");');
+    }
+
+    public function MessageSink($TimeStamp, $SenderID, $Message, $Data): void
+    {
+        if ($Message == IM_CHANGESTATUS && $SenderID == $this->GetParent()) {
+            // Status 200 = Faulty (e.g. disconnected), Status 201 = Not quite right
+            if ($Data[0] >= 200) {
+                $this->SLogWarning("WebSocket Client error (Status $Data[0]). Requesting new URL...");
+                // Disconnect it to avoid auto-reconnect loops to the dead URL
+                IPS_SetProperty($SenderID, 'Active', false);
+                IPS_ApplyChanges($SenderID);
+                // Trigger background reconnect
+                $this->SetTimerInterval('StartConnection', 3000);
+            }
+        }
     }
 
     private function SetMidnightResetTimer(): void
@@ -141,7 +164,7 @@ class GardenaGateway extends IPSModuleStrict
             }
         }
 
-        $this->SLogError("Authentication failed (HTTP $httpCode): " . $response);
+        $this->SLogError("Authentication failed. HTTP Code: $httpCode. Response: $response");
         $this->SetStatus(200);
         return false;
     }
@@ -190,6 +213,13 @@ class GardenaGateway extends IPSModuleStrict
             $this->SLogInfo('ConnectWebSocket: Got URL. Parent ID is ' . $parentId);
             
             if ($parentId > 0) {
+                // Ensure clean reconnect by deactivating first
+                if (IPS_GetProperty($parentId, 'Active')) {
+                    IPS_SetProperty($parentId, 'Active', false);
+                    IPS_ApplyChanges($parentId);
+                    IPS_Sleep(100);
+                }
+                
                 IPS_SetProperty($parentId, 'URL', $wssUrl);
                 IPS_SetProperty($parentId, 'Active', true);
                 IPS_ApplyChanges($parentId);
@@ -491,6 +521,16 @@ class GardenaGateway extends IPSModuleStrict
                 $this->SetValue('ApiCalls', 0);
                 $this->SetMidnightResetTimer();
                 $this->SLogInfo('API-Call Counter zurückgesetzt.');
+                break;
+
+            case 'WSPing':
+                $parentId = $this->GetParent();
+                if ($parentId > 0 && @IPS_GetProperty($parentId, 'Active')) {
+                    $this->SendDataToParent(json_encode([
+                        'DataID' => '{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}',
+                        'Buffer' => '{}'
+                    ]));
+                }
                 break;
 
             default:
