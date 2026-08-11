@@ -481,7 +481,7 @@ class GardenaGateway extends IPSModuleStrict
         return '{}';
     }
 
-    public function RequestAction($Ident, $Value)
+    public function RequestAction(string $Ident, mixed $Value): void
     {
         IPS_LogMessage('FGG_DEBUG', "RequestAction called with Ident: $Ident");
         switch ($Ident) {
