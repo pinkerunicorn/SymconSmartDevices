@@ -203,7 +203,7 @@ class GardenaValve extends IPSModuleStrict
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'SUFFIX' => ' %',
             'ICON' => 'Battery'
-        ], 201);
+        ], 100);
 
         $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
@@ -303,10 +303,13 @@ class GardenaValve extends IPSModuleStrict
 
             case 'CountdownTimer':
                 $remaining = $this->GetValue('RemainingTime');
-                if ($remaining > 0) {
+                if ($remaining > 1) {
                     $this->SetValue('RemainingTime', $remaining - 1);
-                }
-                if ($remaining <= 1) {
+                } else {
+                    // Countdown abgelaufen - Status zurücksetzen
+                    $this->SetValue('RemainingTime', 0);
+                    $this->SetValue('Watering', false);
+                    $this->SetValue('ValveActivity', 0);
                     $this->SetTimerInterval('CountdownTimer', 0);
                 }
                 break;
@@ -356,9 +359,8 @@ class GardenaValve extends IPSModuleStrict
             'Body' => $body
         ]));
 
-        $this->SetValue('Watering', true);
-        $this->SetValue('ValveActivity', 1); // MANUAL_WATERING
-        $this->SetValue('RemainingTime', $durationMinutes);
+        // Status wird durch WebSocket-Push von Gardena bestätigt (kein optimistisches Update)
+        $this->SLogInfo("Bewässerungsbefehl gesendet, warte auf Bestätigung...");
 
         $this->SLogInfo("Bewaesserung gestartet fuer {$durationMinutes} Minuten (Service: {$serviceID})");
     }
@@ -386,9 +388,8 @@ class GardenaValve extends IPSModuleStrict
             'Body' => $body
         ]));
 
-        $this->SetValue('Watering', false);
-        $this->SetValue('ValveActivity', 0); // CLOSED
-        $this->SetValue('RemainingTime', 0);
+        // Status wird durch WebSocket-Push von Gardena bestätigt (kein optimistisches Update)
+        $this->SLogInfo("Stopp-Befehl gesendet, warte auf Bestätigung...");
 
         $this->SLogInfo("Bewaesserung gestoppt (Service: {$serviceID})");
     }
@@ -421,16 +422,4 @@ class GardenaValve extends IPSModuleStrict
         };
     }
 
-    private function MapBatteryStatus(string $status): int
-    {
-        return match (strtoupper($status)) {
-            'OK' => 0,
-            'LOW' => 1,
-            'REPLACE_NOW' => 2,
-            'OUT_OF_OPERATION' => 3,
-            'CHARGING' => 4,
-            'NO_BATTERY' => 5,
-            default => 6,
-        };
-    }
 }

@@ -32,7 +32,18 @@ class GardenaSensor extends IPSModuleStrict
             'DIGITS' => 1
         ], 2);
 
+        $this->RegisterVariableFloat('AmbientTemperature', 'Lufttemperatur', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX' => ' °C',
+            'ICON' => 'Temperature',
+            'DIGITS' => 1
+        ], 3);
 
+        $this->RegisterVariableInteger('LightIntensity', 'Lichtstaerke', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX' => ' Lux',
+            'ICON' => 'Sun'
+        ], 4);
 
         $batteryIntervals = json_encode([
             [ 'IntervalMinValue' => 0, 'IntervalMaxValue' => 0, 'ConstantActive' => true, 'ConstantValue' => 'OK', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Battery', 'ColorActive' => true, 'ColorValue' => 0x00FF00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
@@ -48,20 +59,20 @@ class GardenaSensor extends IPSModuleStrict
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'SUFFIX' => ' %',
             'ICON' => 'Battery'
-        ], 10);
+        ], 100);
 
         $this->RegisterVariableInteger('BatteryStatus', 'Batteriestatus', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Battery',
             'INTERVALS_ACTIVE' => true,
             'INTERVALS' => $batteryIntervals
-        ], 11);
+        ], 101);
 
         $this->RegisterVariableInteger('RFLinkLevel', 'Funkverbindung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'SUFFIX' => ' %',
             'ICON' => 'Wireless'
-        ], 12);
+        ], 102);
 
         $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
@@ -85,8 +96,6 @@ class GardenaSensor extends IPSModuleStrict
 
     public function ReceiveData(string $JSONString): string
     {
-        @file_put_contents(sys_get_temp_dir() . '/sensor_recv.txt', $JSONString . "\n", FILE_APPEND);
-        
         $data = json_decode($JSONString, true);
         if (!is_array($data)) {
             return '';
@@ -113,6 +122,12 @@ class GardenaSensor extends IPSModuleStrict
         }
         if (isset($attributes['soilTemperature']['value'])) {
             $this->SetValue('SoilTemperature', (float)$attributes['soilTemperature']['value']);
+        }
+        if (isset($attributes['ambientTemperature']['value'])) {
+            $this->SetValue('AmbientTemperature', (float)$attributes['ambientTemperature']['value']);
+        }
+        if (isset($attributes['lightIntensity']['value'])) {
+            $this->SetValue('LightIntensity', (int)$attributes['lightIntensity']['value']);
         }
 
         if (isset($attributes['batteryState']['value'])) {
@@ -144,22 +159,14 @@ class GardenaSensor extends IPSModuleStrict
 
     private function MapBatteryStatus(string $status): int
     {
-        switch (strtoupper($status)) {
-            case 'OK':
-                return 0;
-            case 'LOW':
-                return 1;
-            case 'REPLACE_NOW':
-                return 2;
-            case 'OUT_OF_OPERATION':
-                return 3;
-            case 'CHARGING':
-                return 4;
-            case 'NO_BATTERY':
-                return 5;
-            case 'UNKNOWN':
-            default:
-                return 6;
-        }
+        return match (strtoupper($status)) {
+            'OK' => 0,
+            'LOW' => 1,
+            'REPLACE_NOW' => 2,
+            'OUT_OF_OPERATION' => 3,
+            'CHARGING' => 4,
+            'NO_BATTERY' => 5,
+            default => 6,
+        };
     }
 }

@@ -101,13 +101,17 @@ class GardenaGateway extends IPSModuleStrict
             $this->RegisterMessage($parentId, IM_CHANGESTATUS);
         }
 
-        // Keep-Alive Ping Timer (Gardena schließt die WSS-Verbindung nach 60s Inaktivität)
-        $this->SetTimerInterval('WSPing', 45000);
+        // Keep-Alive Ping (Gardena Idle-Timeout: 150s, Ping alle 120s wie HA/openHAB)
+        $this->SetTimerInterval('WSPing', 120000);
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data): void
     {
         if ($Message == IM_CHANGESTATUS && $SenderID == $this->GetParent()) {
+            // Geplanten Reconnect nicht stören
+            if ($this->GetBuffer('IsReconnecting') === 'true') {
+                return;
+            }
             $this->SLogInfo("MessageSink: Parent Status changed to $Data[0]");
             // Status 200 = Faulty (e.g. disconnected), Status 201 = Not quite right
             if ($Data[0] >= 200) {
@@ -209,16 +213,17 @@ class GardenaGateway extends IPSModuleStrict
         ]);
 
         $response = $this->ApiRequest('POST', 'https://api.smart.gardena.dev/v1/websocket', $body);
-        @file_put_contents(sys_get_temp_dir() . '/ws_dump.txt', json_encode($response));
 
         if ($response && isset($response['data']['attributes']['url'])) {
             $wssUrl = $response['data']['attributes']['url'];
             
             $parentId = $this->GetParent();
             $this->SLogInfo('ConnectWebSocket: Got URL. Parent ID is ' . $parentId);
-            IPS_LogMessage('FGG_DEBUG', 'Got URL. Parent: ' . $parentId);
             
             if ($parentId > 0) {
+                // Flag setzen um MessageSink-Race-Condition zu vermeiden
+                $this->SetBuffer('IsReconnecting', 'true');
+                
                 // Ensure clean reconnect by deactivating first
                 if (IPS_GetProperty($parentId, 'Active')) {
                     IPS_SetProperty($parentId, 'Active', false);
@@ -229,6 +234,8 @@ class GardenaGateway extends IPSModuleStrict
                 IPS_SetProperty($parentId, 'URL', $wssUrl);
                 IPS_SetProperty($parentId, 'Active', true);
                 IPS_ApplyChanges($parentId);
+                
+                $this->SetBuffer('IsReconnecting', 'false');
                 $this->SLogInfo('WebSocket URL updated and parent activated.');
                 $this->SetStatus(102);
                 
@@ -239,7 +246,6 @@ class GardenaGateway extends IPSModuleStrict
             }
         } else {
             $this->SLogError('Failed to get WebSocket URL. Response: ' . json_encode($response));
-            IPS_LogMessage('FGG_DEBUG', 'Failed to get URL');
         }
     }
 
@@ -262,8 +268,6 @@ class GardenaGateway extends IPSModuleStrict
             $this->SLogError('PushSnapshot: ApiRequest returned false');
             return;
         }
-        
-        @file_put_contents(sys_get_temp_dir() . '/push_snap.txt', json_encode($response));
 
         if (isset($response['included']) && is_array($response['included'])) {
             $this->SLogInfo('Pushing initial snapshot to children. Found ' . count($response['included']) . ' items.');
@@ -291,7 +295,7 @@ class GardenaGateway extends IPSModuleStrict
         }
     }
 
-    public function ApiRequest(string $method, string $url, string $body = '')
+    public function ApiRequest(string $method, string $url, string $body = '', bool $isRetry = false): array|false
     {
         $cooldown = $this->ReadAttributeInteger('CooldownUntil');
         if (time() < $cooldown) {
@@ -311,10 +315,6 @@ class GardenaGateway extends IPSModuleStrict
             $this->WriteAttributeString('ApiCallsDate', $date);
             $this->WriteAttributeInteger('ApiCallsToday', 0);
         }
-
-        $calls = $this->ReadAttributeInteger('ApiCallsToday') + 1;
-        $this->WriteAttributeInteger('ApiCallsToday', $calls);
-        $this->SetValue('ApiCalls', $calls);
 
         $token = $this->ReadAttributeString('Token');
         $appKey = $this->ReadPropertyString('AppKey');
@@ -340,10 +340,10 @@ class GardenaGateway extends IPSModuleStrict
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($httpCode === 401) {
-            $this->SLogWarning("Received 401 Unauthorized, re-authenticating and retrying...");
+        if ($httpCode === 401 && !$isRetry) {
+            $this->SLogWarning('HTTP 401 - Erneuere Token und versuche erneut...');
             if ($this->Authenticate()) {
-                return $this->ApiRequest($method, $url, $body);
+                return $this->ApiRequest($method, $url, $body, true);
             }
             return false;
         }
@@ -357,14 +357,16 @@ class GardenaGateway extends IPSModuleStrict
         }
 
         if ($httpCode >= 200 && $httpCode < 300) {
-            @file_put_contents(sys_get_temp_dir() . '/api_dump.txt', "HTTP $httpCode\n$response");
+            // API-Call erst nach Erfolg zählen (kein doppeltes Zählen bei 401-Retry)
+            $calls = $this->ReadAttributeInteger('ApiCallsToday') + 1;
+            $this->WriteAttributeInteger('ApiCallsToday', $calls);
+            $this->SetValue('ApiCalls', $calls);
             if (empty($response)) {
                 return [];
             }
             return json_decode($response, true);
         }
 
-        @file_put_contents(sys_get_temp_dir() . '/api_dump.txt', "HTTP $httpCode\n$response");
         $this->SLogError("API Request failed (HTTP $httpCode): $response");
         return false;
     }
@@ -383,7 +385,7 @@ class GardenaGateway extends IPSModuleStrict
         }
 
         // DEBUG: Was kommt rein?
-        $this->SLogInfo('WS_RECV: ' . substr($payload, 0, 500));
+        $this->SendDebug('WS_RECV', substr($payload, 0, 500), 0);
 
         $this->DA_ResetWatchdog(300); 
         $this->DA_SetAvailable(true);
@@ -394,10 +396,6 @@ class GardenaGateway extends IPSModuleStrict
             return '';
         }
 
-        $type = $payloadArray['type'] ?? '';
-        if ($type !== 'VALVE_CONTROL' && $type !== 'COMMON') {
-            // Wir parsen vorerst nur das Notwendigste
-        }
 
         // Gardena liefert entweder direkt ein Event-Objekt (z.B. {"type":"...", "id":"..."})
         // oder bei Initialisierung ein JSONAPI-Objekt mit "data" und "included"
@@ -483,7 +481,6 @@ class GardenaGateway extends IPSModuleStrict
 
     public function RequestAction(string $Ident, mixed $Value): void
     {
-        IPS_LogMessage('FGG_DEBUG', "RequestAction called with Ident: $Ident");
         switch ($Ident) {
             case 'DA_Watchdog':
                 $this->DA_HandleWatchdog();
