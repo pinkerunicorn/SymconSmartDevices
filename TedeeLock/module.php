@@ -478,7 +478,7 @@ class TedeeLock extends IPSModuleStrict
         },
         {
             "type": "Label",
-            "label": "Sicherheit und Schloss-Auswahl: Nutze am besten verschlÃƒÂ¼sselte Tokens. Wenn du mehrere SchlÃƒÂ¶sser hast, kannst du hier die ID deines Schlosses eintragen. TrÃƒÂ¤gst du eine 0 ein, so wird automatisch das erste gefundene Schloss verwendet."
+            "label": "Sicherheit und Schloss-Auswahl: Nutze am besten verschlüsselte Tokens. Wenn du mehrere Schlösser hast, kannst du hier die ID deines Schlosses eintragen. Trägst du eine 0 ein, so wird automatisch das erste gefundene Schloss verwendet."
         },
         {
             "type": "RowLayout",
@@ -486,7 +486,7 @@ class TedeeLock extends IPSModuleStrict
                 {
                     "type": "CheckBox",
                     "name": "UseEncryptedToken",
-                    "caption": "VerschlÃƒÂ¼sselter Token (Empfohlen, wie in der App eingestellt)"
+                    "caption": "Verschlüsselter Token (Empfohlen, wie in der App eingestellt)"
                 },
                 {
                     "type": "NumberSpinner",
@@ -498,7 +498,7 @@ class TedeeLock extends IPSModuleStrict
         },
         {
             "type": "Label",
-            "label": "Webhook-Basis-URL: ÃƒÅ“ber diese URL kommuniziert die Bridge mit deinem IP-Symcon, um Status-Updates in Echtzeit zu senden."
+            "label": "Webhook-Basis-URL: Über diese URL kommuniziert die Bridge mit deinem IP-Symcon, um Status-Updates in Echtzeit zu senden."
         },
         {
             "type": "RowLayout",
@@ -506,7 +506,7 @@ class TedeeLock extends IPSModuleStrict
                 {
                     "type": "ValidationTextBox",
                     "name": "SymconBaseURL",
-                    "caption": "Symcon Base URL fÃƒÂ¼r Webhooks (z.B. http://10.1.60.150:3777)",
+                    "caption": "Symcon Base URL für Webhooks (z.B. http://10.1.60.150:3777)",
                     "validate": "^https?://.+"
                 }
             ]
@@ -534,5 +534,3 @@ class TedeeLock extends IPSModuleStrict
 EOT;
     }
 }
-
-
