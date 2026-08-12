@@ -464,11 +464,22 @@ class GardenaGateway extends IPSModuleStrict
             $serviceId = $data['ServiceID'] ?? '';
             $actionBody = $data['Body'] ?? '';
 
-            if ($serviceId && $actionBody) {
-                $url = "https://api.smart.gardena.dev/v1/command/$serviceId";
-                $response = $this->ApiRequest('PUT', $url, $actionBody);
-                return json_encode($response ?: ['error' => true]);
+            if (empty($serviceId) || empty($actionBody)) {
+                return json_encode(['error' => true, 'message' => 'ServiceID oder Body fehlt']);
             }
+
+            // Cooldown-Check
+            $cooldown = $this->ReadAttributeInteger('CooldownUntil');
+            if (time() < $cooldown) {
+                return json_encode(['error' => true, 'message' => 'API gesperrt (Rate Limit) bis ' . date('H:i', $cooldown)]);
+            }
+
+            $url = "https://api.smart.gardena.dev/v1/command/$serviceId";
+            $response = $this->ApiRequest('PUT', $url, $actionBody);
+            if ($response === false) {
+                return json_encode(['error' => true, 'message' => 'API-Anfrage fehlgeschlagen (Timeout/Auth/Netzwerk)']);
+            }
+            return json_encode($response);
         }
 
         return '';

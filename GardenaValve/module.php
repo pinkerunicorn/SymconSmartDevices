@@ -82,11 +82,25 @@ class GardenaValve extends IPSModuleStrict
         ], 2);
         $this->EnableAction('Watering');
 
-        // --- Restlaufzeit (Read-only) ---
+        // --- Restlaufzeit in Sekunden (Read-only, Anzeige als mm:ss via ConversionFactor) ---
+        $remainingIntervals = json_encode([
+            [
+                'IntervalMinValue' => 0, 'IntervalMaxValue' => 99999,
+                'ConstantActive' => false, 'ConstantValue' => '',
+                'ConversionFactor' => 0.016666667,
+                'PrefixActive' => false, 'PrefixValue' => '',
+                'SuffixActive' => true, 'SuffixValue' => ' min',
+                'DigitsActive' => true, 'DigitsValue' => 1,
+                'IconActive' => true, 'IconValue' => 'Clock',
+                'ColorActive' => false, 'ColorValue' => 0,
+                'ContentColorActive' => false, 'ContentColorValue' => 0
+            ]
+        ]);
         $this->RegisterVariableInteger('RemainingTime', 'Restlaufzeit', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Clock',
-            'SUFFIX' => ' min'
+            'INTERVALS_ACTIVE' => true,
+            'INTERVALS' => $remainingIntervals
         ], 101);
 
         // --- Fehler (Read-only Integer mit Intervallen) ---
@@ -211,6 +225,9 @@ class GardenaValve extends IPSModuleStrict
         ], 901);
         
         $this->RegisterTimer('CountdownTimer', 0, 'IPS_RequestAction($_IPS[\'TARGET\'], "CountdownTimer", "");');
+
+        // --- WateringCommandResult Buffer fuer Fehler-Propagierung ---
+        // Wird von Gateway via ForwardData-Response befuellt
     }
 
     public function ApplyChanges(): void
@@ -264,14 +281,14 @@ class GardenaValve extends IPSModuleStrict
             $this->SetValue('Watering', ($activity === 1 || $activity === 2));
             
             if ($activity === 1 || $activity === 2) {
-                $this->SetTimerInterval('CountdownTimer', 60000);
+                $this->SetTimerInterval('CountdownTimer', 1000);
             } else {
                 $this->SetTimerInterval('CountdownTimer', 0);
             }
         }
 
         if (isset($attributes['duration']['value'])) {
-            $this->SetValue('RemainingTime', (int)round((int)$attributes['duration']['value'] / 60));
+            $this->SetValue('RemainingTime', (int)$attributes['duration']['value']);
         }
 
         if (isset($attributes['error']['value'])) {
@@ -306,7 +323,7 @@ class GardenaValve extends IPSModuleStrict
                 if ($remaining > 1) {
                     $this->SetValue('RemainingTime', $remaining - 1);
                 } else {
-                    // Countdown abgelaufen - Status zurücksetzen
+                    // Countdown abgelaufen - Status zuruecksetzen
                     $this->SetValue('RemainingTime', 0);
                     $this->SetValue('Watering', false);
                     $this->SetValue('ValveActivity', 0);
@@ -352,15 +369,20 @@ class GardenaValve extends IPSModuleStrict
             ]
         ]);
 
-        $this->SendDataToParent(json_encode([
+        $response = $this->SendDataToParent(json_encode([
             'DataID' => '{2C4A6B8D-F1E3-4A5C-9B7D-3E5F1A7C9B2D}',
             'Command' => 'SendCommand',
             'ServiceID' => $serviceID,
             'Body' => $body
         ]));
 
-        // Status wird durch WebSocket-Push von Gardena bestätigt (kein optimistisches Update)
-        $this->SLogInfo("Bewässerungsbefehl gesendet, warte auf Bestätigung...");
+        // Gateway-Antwort pruefen (Fehler-Propagierung an SmartLawnAI)
+        $result = @json_decode($response, true);
+        if (isset($result['error']) && $result['error'] === true) {
+            $reason = $result['message'] ?? 'Unbekannter Gateway-Fehler';
+            $this->SLogError("Bewaesserung konnte nicht gestartet werden: {$reason}");
+            throw new Exception('Gateway-Fehler: ' . $reason);
+        }
 
         $this->SLogInfo("Bewaesserung gestartet fuer {$durationMinutes} Minuten (Service: {$serviceID})");
     }
@@ -381,15 +403,20 @@ class GardenaValve extends IPSModuleStrict
             ]
         ]);
 
-        $this->SendDataToParent(json_encode([
+        $response = $this->SendDataToParent(json_encode([
             'DataID' => '{2C4A6B8D-F1E3-4A5C-9B7D-3E5F1A7C9B2D}',
             'Command' => 'SendCommand',
             'ServiceID' => $serviceID,
             'Body' => $body
         ]));
 
-        // Status wird durch WebSocket-Push von Gardena bestätigt (kein optimistisches Update)
-        $this->SLogInfo("Stopp-Befehl gesendet, warte auf Bestätigung...");
+        // Gateway-Antwort pruefen
+        $result = @json_decode($response, true);
+        if (isset($result['error']) && $result['error'] === true) {
+            $reason = $result['message'] ?? 'Unbekannter Gateway-Fehler';
+            $this->SLogError("Stopp-Befehl fehlgeschlagen: {$reason}");
+            throw new Exception('Gateway-Fehler: ' . $reason);
+        }
 
         $this->SLogInfo("Bewaesserung gestoppt (Service: {$serviceID})");
     }
