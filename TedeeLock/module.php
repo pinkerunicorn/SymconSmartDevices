@@ -42,7 +42,8 @@ class TedeeLock extends IPSModuleStrict
             [ 'IntervalMinValue' => 7, 'IntervalMaxValue' => 8, 'ConstantActive' => true, 'ConstantValue' => 'Falle gezogen', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Door', 'ColorActive' => true, 'ColorValue' => 0x00AAFF, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 8, 'IntervalMaxValue' => 9, 'ConstantActive' => true, 'ConstantValue' => 'Falle zieht...', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Door', 'ColorActive' => true, 'ColorValue' => 0x0066CC, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 9, 'IntervalMaxValue' => 18, 'ConstantActive' => true, 'ConstantValue' => 'Unbekannt', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Information', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-            [ 'IntervalMinValue' => 18, 'IntervalMaxValue' => 19, 'ConstantActive' => true, 'ConstantValue' => 'Aktualisiert...', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Gear', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ]
+            [ 'IntervalMinValue' => 18, 'IntervalMaxValue' => 19, 'ConstantActive' => true, 'ConstantValue' => 'Aktualisiert...', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Gear', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+            [ 'IntervalMinValue' => 255, 'IntervalMaxValue' => 256, 'ConstantActive' => true, 'ConstantValue' => 'Offline (255)', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Warning', 'ColorActive' => true, 'ColorValue' => 0xFF0000, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ]
         ]);
 
         $this->RegisterVariableInteger('LockState', 'Schloss Status', [
@@ -362,7 +363,10 @@ class TedeeLock extends IPSModuleStrict
             $targetLockId = @$this->ReadPropertyInteger('LockID');
             $found = false;
             
-            foreach ($data as $lock) {
+            $locks = $data['result'] ?? $data;
+            if (!is_array($locks)) $locks = [];
+            
+            foreach ($locks as $lock) {
                 $lockId = (int)($lock['id'] ?? 0);
                 
                 // Match specific lock if configured, otherwise use first
