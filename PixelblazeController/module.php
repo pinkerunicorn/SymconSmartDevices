@@ -20,7 +20,6 @@ class PixelblazeController extends IPSModuleStrict
 
         // Properties
         $this->RegisterPropertyInteger('AutoReconnectInterval', 30);
-        $this->RegisterPropertyInteger('FetchStateInterval', 10);
 
         // Internes Attribut für die letzte Helligkeit vor dem Ausschalten
         $this->RegisterAttributeInteger('LastBrightness', 50);
@@ -51,7 +50,6 @@ class PixelblazeController extends IPSModuleStrict
 
         // Timer für Auto-Reconnect
         $this->RegisterTimer('ReconnectTimer', 0, 'PB_Reconnect($_IPS[\'TARGET\']);');
-        $this->RegisterTimer('FetchStateTimer', 0, 'PB_FetchState($_IPS[\'TARGET\']);');
     }
 
     public function GetCompatibleParents(): string
@@ -82,8 +80,8 @@ class PixelblazeController extends IPSModuleStrict
         $interval = $this->ReadPropertyInteger('AutoReconnectInterval');
         $this->SetTimerInterval('ReconnectTimer', $interval * 1000);
 
-        $fetchInterval = $this->ReadPropertyInteger('FetchStateInterval');
-        $this->SetTimerInterval('FetchStateTimer', $fetchInterval * 1000);
+        // Alten Timer löschen falls vorhanden
+        @$this->UnregisterTimer('FetchStateTimer');
 
 
 
@@ -439,7 +437,7 @@ class PixelblazeController extends IPSModuleStrict
     "elements": [
         {
             "type": "Label",
-            "label": "Hier stellst du ein, wie oft das Modul im Hintergrund arbeiten soll. Du kannst das Auto-Reconnect Intervall für Verbindungsabbrüche und das Intervall für die Status-Abfrage anpassen."
+            "label": "Hier stellst du ein, wie oft das Modul im Hintergrund arbeiten soll. Du kannst das Auto-Reconnect Intervall für Verbindungsabbrüche anpassen."
         },
         {
             "type": "RowLayout",
@@ -448,11 +446,6 @@ class PixelblazeController extends IPSModuleStrict
                     "type": "NumberSpinner",
                     "name": "AutoReconnectInterval",
                     "caption": "Auto-Reconnect Intervall (Sekunden)"
-                },
-                {
-                    "type": "NumberSpinner",
-                    "name": "FetchStateInterval",
-                    "caption": "Status-Abfrage Intervall (Sekunden)"
                 }
             ]
         }
