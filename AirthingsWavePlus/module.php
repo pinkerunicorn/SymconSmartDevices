@@ -20,6 +20,9 @@ class AirthingsWavePlus extends IPSModuleStrict
         // Properties for MQTT
         $this->RegisterPropertyString('MQTTBaseTopic', 'airthings01');
         $this->RegisterPropertyInteger('Timeout', 30); // 30 minutes default timeout
+        $this->RegisterPropertyInteger('RadonThresholdMedium', 100);
+        $this->RegisterPropertyInteger('RadonThresholdHigh', 200);
+        $this->RegisterPropertyInteger('RadonThresholdCritical', 300);
         $this->SetReceiveDataFilter('.*' . preg_quote($this->ReadPropertyString('MQTTBaseTopic')) . '.*');
 
         // Variables
@@ -61,6 +64,19 @@ class AirthingsWavePlus extends IPSModuleStrict
         $this->RegisterVariableInteger('AirRadonST', 'Radon (Short Term)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Bq/mÂ³', 'ICON' => 'Radiation']);
         $this->RegisterVariableInteger('AirRadonLT', 'Radon (Long Term)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Bq/mÂ³', 'ICON' => 'Radiation']);
         
+        $radonIntervals = json_encode([
+            ['IntervalMinValue' => 0, 'IntervalMaxValue' => 1, 'ConstantActive' => true, 'ConstantValue' => 'Gut', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Ok', 'ColorActive' => true, 'ColorValue' => 0x00CC00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF],
+            ['IntervalMinValue' => 1, 'IntervalMaxValue' => 2, 'ConstantActive' => true, 'ConstantValue' => 'Mittel', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Warning', 'ColorActive' => true, 'ColorValue' => 0xFFFF00, 'ContentColorActive' => true, 'ContentColorValue' => 0x000000],
+            ['IntervalMinValue' => 2, 'IntervalMaxValue' => 3, 'ConstantActive' => true, 'ConstantValue' => 'Hoch', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Alert', 'ColorActive' => true, 'ColorValue' => 0xFF9900, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF],
+            ['IntervalMinValue' => 3, 'IntervalMaxValue' => 4, 'ConstantActive' => true, 'ConstantValue' => 'Kritisch', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Alert', 'ColorActive' => true, 'ColorValue' => 0xFF0000, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF]
+        ]);
+        $this->RegisterVariableInteger('AirRadonStatus', 'Radon Status', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Radiation',
+            'INTERVALS_ACTIVE' => true,
+            'INTERVALS' => $radonIntervals
+        ], 10);
+
         // Timer
         $this->RegisterTimer('WatchdogTimer', 0, 'AIRTHINGS_WatchdogTriggered($_IPS[\'TARGET\']);');
     }
@@ -183,8 +199,25 @@ class AirthingsWavePlus extends IPSModuleStrict
                 } elseif (strpos($topic, 'radon') !== false && @IPS_GetObjectIDByIdent('AirRadonST', $this->InstanceID) !== false) {
                     // Check if it's not the long term to avoid double matching
                     if (strpos($topic, 'long') === false && strpos($topic, 'lt') === false) {
-                        $this->SetValue('AirRadonST', (int)$value);
+                        $radonVal = (int)$value;
+                        $this->SetValue('AirRadonST', $radonVal);
                         $updated = true;
+                        
+                        $tMed = $this->ReadPropertyInteger('RadonThresholdMedium');
+                        $tHigh = $this->ReadPropertyInteger('RadonThresholdHigh');
+                        $tCrit = $this->ReadPropertyInteger('RadonThresholdCritical');
+                        
+                        $status = 0; // Gut
+                        if ($radonVal >= $tCrit) {
+                            $status = 3;
+                        } elseif ($radonVal >= $tHigh) {
+                            $status = 2;
+                        } elseif ($radonVal >= $tMed) {
+                            $status = 1;
+                        }
+                        if (@IPS_GetObjectIDByIdent('AirRadonStatus', $this->InstanceID) !== false) {
+                            $this->SetValue('AirRadonStatus', $status);
+                        }
                     }
                 }
                 
@@ -235,5 +268,19 @@ class AirthingsWavePlus extends IPSModuleStrict
 
         $this->SendDataToParent(json_encode($data));
         echo "Update-Anfrage an ESPHome gesendet ($topic)!";
+    }
+
+    public function GetConfigurationForm(): string
+    {
+        $elements = [];
+        $elements[] = ["type" => "ValidationTextBox", "name" => "MQTTBaseTopic", "caption" => "MQTT Base Topic"];
+        $elements[] = ["type" => "NumberSpinner", "name" => "Timeout", "caption" => "Watchdog Timeout (Minuten)"];
+        $elements[] = ["type" => "Label", "caption" => " "];
+        $elements[] = ["type" => "Label", "caption" => "Radon Ampel Schwellwerte (Bq/m³)"];
+        $elements[] = ["type" => "NumberSpinner", "name" => "RadonThresholdMedium", "caption" => "Schwelle 'Mittel'"];
+        $elements[] = ["type" => "NumberSpinner", "name" => "RadonThresholdHigh", "caption" => "Schwelle 'Hoch'"];
+        $elements[] = ["type" => "NumberSpinner", "name" => "RadonThresholdCritical", "caption" => "Schwelle 'Kritisch'"];
+        
+        return json_encode(["elements" => $elements]);
     }
 }
