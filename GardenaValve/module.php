@@ -284,6 +284,10 @@ class GardenaValve extends IPSModuleStrict
                 $this->SetTimerInterval('CountdownTimer', 1000);
             } else {
                 $this->SetTimerInterval('CountdownTimer', 0);
+                // WICHTIG: RemainingTime sofort auf 0 setzen wenn Ventil geschlossen!
+                // Sonst denkt SmartLawnAI durch den RemainingSeconds-Fallback,
+                // das Ventil waere noch offen (Race Condition).
+                $this->SetValue('RemainingTime', 0);
             }
         }
 
