@@ -27,13 +27,13 @@ class PixelblazeController extends IPSModuleStrict
         $this->RegisterAttributeString('ProgramMap', '[]');
 
         // Variablen
-        $this->RegisterVariableBoolean('Power', 'ðŸ’¡ Status', [
+        $this->RegisterVariableBoolean('Power', 'Status', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
             'ICON' => 'Power'
         ], 10);
         $this->EnableAction('Power');
 
-        $this->RegisterVariableInteger('Brightness', 'ðŸ”† Helligkeit', [
+        $this->RegisterVariableInteger('Brightness', 'Helligkeit', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
             'ICON' => 'Sun',
             'MIN' => 0.0,
@@ -285,7 +285,6 @@ class PixelblazeController extends IPSModuleStrict
                                 // Speichere den echten Namen auch direkt in eine String-Variable zur Anzeige
                                 if (isset($payload['activeProgram']['name'])) {
                                     $progName = $payload['activeProgram']['name'];
-                                    @$this->RegisterVariableString('ActiveProgramName', 'Aktuelles Programm (Name)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 35);
                                     if ($this->GetValue('ActiveProgramName') !== $progName) {
                                         $this->SetValue('ActiveProgramName', $progName);
                                     }
