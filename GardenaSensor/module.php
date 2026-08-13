@@ -111,7 +111,7 @@ class GardenaSensor extends IPSModuleStrict
             return '';
         }
 
-        $this->DA_ResetWatchdog(3600);
+        $this->DA_ResetWatchdog(14400); // 4h - Sensor meldet ca. alle 1h
         $this->DA_SetAvailable(true);
 
         // Gateway sendet: {DataID, DeviceID, ServiceType, Attributes}

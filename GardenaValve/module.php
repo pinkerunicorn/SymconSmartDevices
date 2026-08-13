@@ -18,7 +18,6 @@ class GardenaValve extends IPSModuleStrict
         $this->RegisterPropertyString('ValveID', '');
 
         $this->DA_RegisterAvailability(900);
-        $this->DA_RegisterWatchdog();
 
         // --- Ventilstatus (Read-only Integer mit Intervallen) ---
         $activityIntervals = json_encode([
@@ -269,7 +268,6 @@ class GardenaValve extends IPSModuleStrict
             return '';
         }
 
-        $this->DA_ResetWatchdog(3600);
         $this->DA_SetAvailable(true);
 
         // Gateway sendet: {DataID, DeviceID, ServiceType, Attributes}
@@ -318,9 +316,7 @@ class GardenaValve extends IPSModuleStrict
     public function RequestAction(string $Ident, mixed $Value): void
     {
         switch ($Ident) {
-            case 'DA_Watchdog':
-                $this->DA_HandleWatchdog();
-                break;
+
 
             case 'CountdownTimer':
                 $remaining = $this->GetValue('RemainingTime');
