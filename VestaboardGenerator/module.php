@@ -878,7 +878,7 @@ class VestaboardGenerator extends IPSModuleStrict {
         {
             "type": "Button",
             "label": "Board jetzt manuell aktualisieren",
-            "onClick": "VESTA_UpdateBoard($id, true);"
+            "onClick": "VESTAG_UpdateBoard($id, true);"
         }
     ]
 }
