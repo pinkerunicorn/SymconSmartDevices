@@ -80,8 +80,8 @@ class PixelblazeController extends IPSModuleStrict
         $interval = $this->ReadPropertyInteger('AutoReconnectInterval');
         $this->SetTimerInterval('ReconnectTimer', $interval * 1000);
 
-        // Alten Timer löschen falls vorhanden
-        @$this->UnregisterTimer('FetchStateTimer');
+        // Alten Timer deaktivieren falls vorhanden
+        $this->SetTimerInterval('FetchStateTimer', 0);
 
 
 
