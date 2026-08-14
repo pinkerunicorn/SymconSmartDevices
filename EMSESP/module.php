@@ -48,6 +48,29 @@ class EMSESPDevice extends IPSModuleStrict
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
 
+        $children = IPS_GetChildrenIDs($this->InstanceID);
+        foreach ($children as $child) {
+            $obj = IPS_GetObject($child);
+            if ($obj['ObjectType'] == 2) { 
+                $var = IPS_GetVariable($child);
+                if ($var['VariableProfile'] === 'EMSESP.Mode' || $var['VariableCustomProfile'] === 'EMSESP.Mode') {
+                    $ident = $obj['ObjectIdent'];
+                    $modeOptions = json_encode([
+                        ['Value' => 0, 'Caption' => 'Auto', 'IconActive' => true, 'IconValue' => 'calendar', 'Color' => -1],
+                        ['Value' => 1, 'Caption' => 'Manuell', 'IconActive' => true, 'IconValue' => 'user', 'Color' => -1],
+                        ['Value' => 2, 'Caption' => 'Aus', 'IconActive' => true, 'IconValue' => 'power', 'Color' => -1]
+                    ]);
+                    $presArray = [
+                        'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+                        'ICON' => 'cog',
+                        'OPTIONS' => $modeOptions
+                    ];
+                    $this->RegisterVariableInteger($ident, $obj['ObjectName'], $presArray, 0);
+                    $this->EnableAction($ident);
+                }
+            }
+        }
+
         if (IPS_VariableProfileExists('EMSESP.Mode')) {
             IPS_DeleteVariableProfile('EMSESP.Mode');
         }
@@ -160,7 +183,6 @@ class EMSESPDevice extends IPSModuleStrict
 
         $presArray = [];
         if ($isWritable) {
-            $this->EnableAction($ident);
             if ($lowerKey === 'mode') {
                 $modeOptions = json_encode([
                     ['Value' => 0, 'Caption' => 'Auto', 'IconActive' => true, 'IconValue' => 'calendar', 'Color' => -1],
@@ -214,6 +236,10 @@ class EMSESPDevice extends IPSModuleStrict
             case 1: $this->RegisterVariableInteger($ident, $name, $presArray ?: $profile, 0); break;
             case 2: $this->RegisterVariableFloat($ident, $name, $presArray ?: $profile, 0); break;
             case 3: $this->RegisterVariableString($ident, $name, $presArray ?: $profile, 0); break;
+        }
+
+        if ($isWritable) {
+            $this->EnableAction($ident);
         }
 
         $varID = $this->GetIDForIdent($ident);
