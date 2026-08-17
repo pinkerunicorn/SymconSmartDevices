@@ -97,7 +97,7 @@ class WLEDDevice extends IPSModuleStrict
     private function RegisterOptionalVariables(): void
     {
         if ($this->ReadPropertyBoolean('ShowWhiteChannel')) {
-            $this->RegisterVariableInteger('WhiteChannel', 'Wei\u00dfkanal', [
+            $this->RegisterVariableInteger('WhiteChannel', 'Weißkanal', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
                 'MIN' => 0.0,
                 'MAX' => 100.0,
@@ -121,7 +121,7 @@ class WLEDDevice extends IPSModuleStrict
                 'SUFFIX' => ' %',
                 'PERCENTAGE' => true
             ], 21);
-            $this->RegisterVariableInteger('EffectIntensity', 'Intensit\u00e4t', [
+            $this->RegisterVariableInteger('EffectIntensity', 'Intensität', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
                 'ICON' => 'Intensity',
                 'MIN' => 0.0,
@@ -134,6 +134,7 @@ class WLEDDevice extends IPSModuleStrict
             $this->EnableAction('EffectIntensity');
         } else {
             $this->UnregisterVariableIfExists('Effect');
+            $this->UnregisterVariableIfExists('EffectName');
             $this->UnregisterVariableIfExists('EffectSpeed');
             $this->UnregisterVariableIfExists('EffectIntensity');
         }
@@ -217,30 +218,21 @@ class WLEDDevice extends IPSModuleStrict
 
     private function BuildEffectEnumeration(): void
     {
-        $cachedStr = $this->ReadAttributeString('CachedEffects');
-        $cached = json_decode($cachedStr, true);
-
-        $options = [];
-        if (is_array($cached)) {
-            foreach ($cached as $index => $label) {
-                if (!is_numeric((string)$index)) continue;
-                $options[] = [
-                    'Value' => (int)$index,
-                    'Caption' => (string)$label
-                ];
-            }
-        }
-
-        if (empty($options)) {
-            $options[] = ['Value' => 0, 'Caption' => 'Solid'];
-        }
-
-        $this->RegisterVariableInteger('Effect', 'Effekt', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-            'ICON' => 'Star',
-            'OPTIONS' => json_encode($options)
+        // Effekt-ID als schlanker Slider (schnelles WebFront)
+        $this->RegisterVariableInteger('Effect', 'Effekt-ID', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'ICON'         => 'Star',
+            'MIN'          => 0.0,
+            'MAX'          => 255.0,
+            'STEP_SIZE'    => 1.0,
         ], 20);
         $this->EnableAction('Effect');
+
+        // Effektname als lesbare Info-Variable (wird aus Cache befüllt)
+        $this->RegisterVariableString('EffectName', 'Effekt', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Star',
+        ], 21);
     }
 
     private function BuildPaletteEnumeration(): void
@@ -510,6 +502,11 @@ class WLEDDevice extends IPSModuleStrict
                 $this->setSafeValue('Effect', $seg['fx']);
                 if ($oldFx !== $seg['fx']) {
                     $needsUiUpdate = true;
+                    // Effektnamen aus Cache aktualisieren
+                    $cached = json_decode($this->ReadAttributeString('CachedEffects'), true);
+                    if (is_array($cached) && isset($cached[$seg['fx']])) {
+                        $this->setSafeValue('EffectName', (string)$cached[$seg['fx']]);
+                    }
                 }
             }
             if (isset($seg['sx'])) {
