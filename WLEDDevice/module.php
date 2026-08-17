@@ -79,12 +79,16 @@ class WLEDDevice extends IPSModuleStrict
 
         $this->RegisterOptionalVariables();
 
-        $interval = $this->ReadPropertyInteger('AutoReconnectInterval');
-        $this->SetTimerInterval('ReconnectTimer', $interval * 1000);
-
-        // Timer for initial state fetch (delayed to not block apply changes)
+        // ReconnectTimer: Nur starten wenn Verbindung wirklich nicht aktiv ist.
+        // Wenn verbunden, Timer stoppen – spart 1 Wakeup/30s
         if (IPS_GetKernelRunlevel() === KR_READY) {
+            $interval = $this->ReadPropertyInteger('AutoReconnectInterval');
+            $connected = $this->HasActiveParent();
+            $this->SetTimerInterval('ReconnectTimer', $connected ? 0 : ($interval * 1000));
             $this->SetTimerInterval('StateRefreshTimer', 2000);
+        } else {
+            $this->SetTimerInterval('ReconnectTimer', 0);
+            $this->SetTimerInterval('StateRefreshTimer', 0);
         }
 
         $this->updateControlState();
@@ -336,20 +340,27 @@ class WLEDDevice extends IPSModuleStrict
 
     public function Reconnect(): void
     {
-        if (!$this->HasActiveParent()) {
-            $parentID = $this->GetParentID();
-            if ($parentID > 0) {
-                $parentConfig = json_decode(IPS_GetConfiguration($parentID), true);
-                $propName = isset($parentConfig['Active']) ? 'Active' : (isset($parentConfig['Open']) ? 'Open' : '');
-                if ($propName !== '' && IPS_GetProperty($parentID, $propName)) {
-                    $this->SLogInfo("Verbindung getrennt. Versuche Reconnect...");
-                    @IPS_SetProperty($parentID, $propName, false);
-                    @IPS_ApplyChanges($parentID);
-                    @IPS_SetProperty($parentID, $propName, true);
-                    @IPS_ApplyChanges($parentID);
-                }
+        if ($this->HasActiveParent()) {
+            // Verbindung ist aktiv – Timer deaktivieren, nichts tun
+            $this->SetTimerInterval('ReconnectTimer', 0);
+            return;
+        }
+
+        $parentID = $this->GetParentID();
+        if ($parentID > 0) {
+            $parentConfig = json_decode(IPS_GetConfiguration($parentID), true);
+            $propName = isset($parentConfig['Active']) ? 'Active' : (isset($parentConfig['Open']) ? 'Open' : '');
+            if ($propName !== '' && IPS_GetProperty($parentID, $propName)) {
+                $this->SLogInfo('Verbindung getrennt. Versuche Reconnect...');
+                @IPS_SetProperty($parentID, $propName, false);
+                @IPS_ApplyChanges($parentID);
+                @IPS_SetProperty($parentID, $propName, true);
+                @IPS_ApplyChanges($parentID);
             }
         }
+        // Timer erneut planen für nächsten Versuch
+        $interval = $this->ReadPropertyInteger('AutoReconnectInterval');
+        $this->SetTimerInterval('ReconnectTimer', $interval * 1000);
     }
 
 
@@ -439,16 +450,18 @@ class WLEDDevice extends IPSModuleStrict
 
         $buffer = ctype_xdigit($bufferRaw) ? hex2bin($bufferRaw) : $bufferRaw;
 
-        // Deduplizierung: identische Payloads ignorieren (z.B. WLED-Keepalives ohne Änderung)
+        // Deduplizierung: Identische Payloads via In-Memory-Buffer ignorieren.
+        // SetBuffer/GetBuffer schreibt nur in RAM, nicht auf Festplatte (anders als WriteAttributeString).
         $hash = md5($buffer);
-        if ($this->ReadAttributeString('LastPayloadHash') === $hash) {
+        if ($this->GetBuffer('LastPayloadHash') === $hash) {
             return '';
         }
-        $this->WriteAttributeString('LastPayloadHash', $hash);
+        $this->SetBuffer('LastPayloadHash', $hash);
 
-        // Erst jetzt Availability setzen, da echte Daten ankommen
+        // Bei Verbindungsaufbau: ReconnectTimer stoppen, Availability setzen
         $this->DA_ResetWatchdog(WLEDConstants::WATCHDOG_TIMEOUT);
         $this->DA_SetAvailable(true);
+        $this->SetTimerInterval('ReconnectTimer', 0);
 
         try {
             $json = json_decode($buffer, true, 512, JSON_THROW_ON_ERROR);
@@ -571,15 +584,11 @@ class WLEDDevice extends IPSModuleStrict
 
     private function setSafeValue(string $ident, mixed $value): void
     {
-        $id = @$this->GetIDForIdent($ident);
-        if ($id > 0) {
+        // Deduplication passiert bereits auf Payload-Ebene (GetBuffer/SetBuffer).
+        // Hier nur noch prüfen ob die Variable überhaupt existiert und ob Wert abweicht.
+        if (@$this->GetIDForIdent($ident) > 0) {
             if ($this->GetValue($ident) !== $value) {
-                // Throttle incoming updates to prevent WebFront flooding (e.g. LedFx music sync)
-                $var = IPS_GetVariable($id);
-                // Wenn die Variable in der aktuellen Sekunde schon aktualisiert wurde, ignorieren
-                if (time() - $var['VariableUpdated'] >= 1) {
-                    $this->SetValue($ident, $value);
-                }
+                $this->SetValue($ident, $value);
             }
         }
     }
