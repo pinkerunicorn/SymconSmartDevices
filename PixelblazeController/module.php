@@ -131,7 +131,10 @@ class PixelblazeController extends IPSModuleStrict
     {
         $id = @$this->GetIDForIdent($ident);
         if ($id > 0) {
-            IPS_SetHidden($id, $hidden);
+            $obj = IPS_GetObject($id);
+            if ($obj['ObjectIsHidden'] !== $hidden) {
+                IPS_SetHidden($id, $hidden);
+            }
         }
     }
 
