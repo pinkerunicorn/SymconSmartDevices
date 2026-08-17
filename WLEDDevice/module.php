@@ -464,21 +464,16 @@ class WLEDDevice extends IPSModuleStrict
 
         if (isset($state['on'])) {
             if ($this->GetValue('Power') !== $state['on']) {
-                $this->SLogInfo("VARIABLE_UPDATE: Power changed to " . json_encode($state['on']));
-                $this->SetValue('Power', $state['on']);
-                $needsUiUpdate = true;
+                $this->setSafeValue('Power', $state['on']);
             }
         }
         if (isset($state['bri'])) {
             $bri = (int)round($state['bri'] / 2.55);
             if ($this->GetValue('Brightness') !== $bri) {
-                $this->SLogInfo("VARIABLE_UPDATE: Brightness changed to " . json_encode($bri));
-                $this->SetValue('Brightness', $bri);
+                $this->setSafeValue('Brightness', $bri);
             }
             if ($state['bri'] == 0 && $this->GetValue('Power')) {
-                $this->SLogInfo("VARIABLE_UPDATE: Power changed to false (bri=0)");
-                $this->SetValue('Power', false);
-                $needsUiUpdate = true;
+                $this->setSafeValue('Power', false);
             }
         }
         if (isset($state['ps'])) {
@@ -571,8 +566,12 @@ class WLEDDevice extends IPSModuleStrict
         $id = @$this->GetIDForIdent($ident);
         if ($id > 0) {
             if ($this->GetValue($ident) !== $value) {
-                $this->SLogInfo("VARIABLE_UPDATE: " . $ident . " changed to " . json_encode($value));
-                $this->SetValue($ident, $value);
+                // Throttle incoming updates to prevent WebFront flooding (e.g. LedFx music sync)
+                $var = IPS_GetVariable($id);
+                // Wenn die Variable in der aktuellen Sekunde schon aktualisiert wurde, ignorieren
+                if (time() - $var['VariableUpdated'] >= 1) {
+                    $this->SetValue($ident, $value);
+                }
             }
         }
     }
