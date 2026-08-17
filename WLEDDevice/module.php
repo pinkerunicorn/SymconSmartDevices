@@ -107,6 +107,7 @@ class WLEDDevice extends IPSModuleStrict
         if ($this->ReadPropertyBoolean('ShowWhiteChannel')) {
             $this->RegisterVariableInteger('WhiteChannel', 'Weißkanal', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+                'ICON' => 'Bulb',
                 'MIN' => 0.0,
                 'MAX' => 100.0,
                 'STEP_SIZE' => 1.0,
