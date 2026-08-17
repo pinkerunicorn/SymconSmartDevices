@@ -91,6 +91,14 @@ class WLEDDevice extends IPSModuleStrict
             $this->SetTimerInterval('StateRefreshTimer', 0);
         }
 
+        // Force rename variables that had broken Unicode escapes previously
+        if (@$this->GetIDForIdent('EffectIntensity') > 0) {
+            IPS_SetName($this->GetIDForIdent('EffectIntensity'), 'Intensität');
+        }
+        if (@$this->GetIDForIdent('WhiteChannel') > 0) {
+            IPS_SetName($this->GetIDForIdent('WhiteChannel'), 'Weißkanal');
+        }
+
         $this->updateControlState();
     }
 
@@ -391,6 +399,7 @@ class WLEDDevice extends IPSModuleStrict
             case 'Effect':
                 $this->sendToWLED(['seg' => [['id' => 0, 'fx' => $Value]]]);
                 $this->SetValue('Effect', $Value);
+                $this->updateEffectName((int)$Value);
                 $this->updateControlState();
                 break;
             case 'EffectSpeed':
@@ -500,13 +509,9 @@ class WLEDDevice extends IPSModuleStrict
             if (isset($seg['fx'])) {
                 $oldFx = $this->getSafeValue('Effect', -1);
                 $this->setSafeValue('Effect', $seg['fx']);
+                $this->updateEffectName($seg['fx']);
                 if ($oldFx !== $seg['fx']) {
                     $needsUiUpdate = true;
-                    // Effektnamen aus Cache aktualisieren
-                    $cached = json_decode($this->ReadAttributeString('CachedEffects'), true);
-                    if (is_array($cached) && isset($cached[$seg['fx']])) {
-                        $this->setSafeValue('EffectName', (string)$cached[$seg['fx']]);
-                    }
                 }
             }
             if (isset($seg['sx'])) {
@@ -522,6 +527,16 @@ class WLEDDevice extends IPSModuleStrict
 
         if ($needsUiUpdate) {
             $this->updateControlState();
+        }
+    }
+
+    private function updateEffectName(int $fx): void
+    {
+        if (@$this->GetIDForIdent('EffectName') > 0) {
+            $cached = json_decode($this->ReadAttributeString('CachedEffects'), true);
+            if (is_array($cached) && isset($cached[$fx])) {
+                $this->setSafeValue('EffectName', (string)$cached[$fx]);
+            }
         }
     }
 
