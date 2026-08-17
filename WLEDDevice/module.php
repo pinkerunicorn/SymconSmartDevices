@@ -58,6 +58,7 @@ class WLEDDevice extends IPSModuleStrict
 
         $this->RegisterTimer('ReconnectTimer', 0, 'WLED_Reconnect($_IPS[\'TARGET\']);');
         $this->RegisterTimer('StateRefreshTimer', 0, 'WLED_RequestFullState($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('FetchListsTimer', 0, 'WLED_RefreshLists($_IPS[\'TARGET\']);');
     }
 
     public function GetCompatibleParents(): string
@@ -214,13 +215,6 @@ class WLEDDevice extends IPSModuleStrict
         $cachedStr = $this->ReadAttributeString('CachedEffects');
         $cached = json_decode($cachedStr, true);
 
-        if (empty($cached)) {
-            $cached = $this->fetchHttpData(WLEDConstants::API_EFFECTS);
-            if (!empty($cached)) {
-                $this->WriteAttributeString('CachedEffects', json_encode($cached));
-            }
-        }
-
         $options = [];
         if (is_array($cached)) {
             foreach ($cached as $index => $label) {
@@ -251,13 +245,6 @@ class WLEDDevice extends IPSModuleStrict
     {
         $cachedStr = $this->ReadAttributeString('CachedPalettes');
         $cached = json_decode($cachedStr, true);
-
-        if (empty($cached)) {
-            $cached = $this->fetchHttpData(WLEDConstants::API_PALETTES);
-            if (!empty($cached)) {
-                $this->WriteAttributeString('CachedPalettes', json_encode($cached));
-            }
-        }
 
         $options = [];
         if (is_array($cached)) {
@@ -290,13 +277,6 @@ class WLEDDevice extends IPSModuleStrict
         $cachedStr = $this->ReadAttributeString('CachedPresets');
         $cached = json_decode($cachedStr, true);
 
-        if (empty($cached)) {
-            $cached = $this->fetchHttpData(WLEDConstants::API_PRESETS);
-            if (!empty($cached)) {
-                $this->WriteAttributeString('CachedPresets', json_encode($cached));
-            }
-        }
-
         $options = [['Value' => 0, 'Caption' => '- keine -', 'IconActive' => false, 'IconValue' => '', 'Color' => -1]];
         if (is_array($cached)) {
             foreach ($cached as $key => $preset) {
@@ -326,9 +306,23 @@ class WLEDDevice extends IPSModuleStrict
 
     public function RefreshLists(): void
     {
-        $this->WriteAttributeString('CachedEffects', '[]');
-        $this->WriteAttributeString('CachedPalettes', '[]');
-        $this->WriteAttributeString('CachedPresets', '[]');
+        $this->SetTimerInterval('FetchListsTimer', 0);
+        
+        $effects = $this->fetchHttpData(WLEDConstants::API_EFFECTS);
+        if (!empty($effects)) {
+            $this->WriteAttributeString('CachedEffects', json_encode($effects));
+        }
+
+        $palettes = $this->fetchHttpData(WLEDConstants::API_PALETTES);
+        if (!empty($palettes)) {
+            $this->WriteAttributeString('CachedPalettes', json_encode($palettes));
+        }
+
+        $presets = $this->fetchHttpData(WLEDConstants::API_PRESETS);
+        if (!empty($presets)) {
+            $this->WriteAttributeString('CachedPresets', json_encode($presets));
+        }
+
         $this->ApplyChanges();
         $this->SLogInfo('Listen aktualisiert.');
     }
