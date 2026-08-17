@@ -341,18 +341,32 @@ class WLEDDevice extends IPSModuleStrict
 
     public function Reconnect(): void
     {
-        $parentID = $this->GetParentID();
-        if ($parentID > 0) {
-            $parentConfig = json_decode(IPS_GetConfiguration($parentID), true);
-            $propName = isset($parentConfig['Active']) ? 'Active' : (isset($parentConfig['Open']) ? 'Open' : '');
-            if ($propName !== '' && IPS_GetProperty($parentID, $propName)) {
-                $this->SLogInfo("Verbindung getrennt. Versuche Reconnect...");
-                @IPS_SetProperty($parentID, $propName, false);
-                @IPS_ApplyChanges($parentID);
-                @IPS_SetProperty($parentID, $propName, true);
-                @IPS_ApplyChanges($parentID);
+        if (!$this->HasActiveParent()) {
+            $parentID = $this->GetParentID();
+            if ($parentID > 0) {
+                $parentConfig = json_decode(IPS_GetConfiguration($parentID), true);
+                $propName = isset($parentConfig['Active']) ? 'Active' : (isset($parentConfig['Open']) ? 'Open' : '');
+                if ($propName !== '' && IPS_GetProperty($parentID, $propName)) {
+                    $this->SLogInfo("Verbindung getrennt. Versuche Reconnect...");
+                    @IPS_SetProperty($parentID, $propName, false);
+                    @IPS_ApplyChanges($parentID);
+                    @IPS_SetProperty($parentID, $propName, true);
+                    @IPS_ApplyChanges($parentID);
+                }
             }
         }
+    }
+
+    private function HasActiveParent(): bool
+    {
+        $parentID = $this->GetParentID();
+        if ($parentID > 0) {
+            $parent = @IPS_GetInstance($parentID);
+            if ($parent && $parent['InstanceStatus'] == 102) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private function GetParentID(): int
@@ -459,11 +473,16 @@ class WLEDDevice extends IPSModuleStrict
         $needsUiUpdate = false;
 
         if (isset($state['on'])) {
-            $this->SetValue('Power', $state['on']);
-            $needsUiUpdate = true;
+            if ($this->GetValue('Power') !== $state['on']) {
+                $this->SetValue('Power', $state['on']);
+                $needsUiUpdate = true;
+            }
         }
         if (isset($state['bri'])) {
-            $this->SetValue('Brightness', (int)round($state['bri'] / 2.55));
+            $bri = (int)round($state['bri'] / 2.55);
+            if ($this->GetValue('Brightness') !== $bri) {
+                $this->SetValue('Brightness', $bri);
+            }
             if ($state['bri'] == 0 && $this->GetValue('Power')) {
                 $this->SetValue('Power', false);
                 $needsUiUpdate = true;
@@ -480,15 +499,18 @@ class WLEDDevice extends IPSModuleStrict
             if (isset($seg['col']) && is_array($seg['col']) && count($seg['col']) > 0) {
                 $c = $seg['col'][0];
                 if (is_array($c) && count($c) >= 3) {
-                    $this->SetValue('Color', $this->RGBToHex($c));
+                    $this->setSafeValue('Color', $this->RGBToHex($c));
                     if (count($c) >= 4) {
                         $this->setSafeValue('WhiteChannel', (int)round($c[3] / 2.55));
                     }
                 }
             }
             if (isset($seg['fx'])) {
+                $oldFx = $this->getSafeValue('Effect', -1);
                 $this->setSafeValue('Effect', $seg['fx']);
-                $needsUiUpdate = true;
+                if ($oldFx !== $seg['fx']) {
+                    $needsUiUpdate = true;
+                }
             }
             if (isset($seg['sx'])) {
                 $this->setSafeValue('EffectSpeed', (int)round($seg['sx'] / 2.55));
@@ -549,7 +571,9 @@ class WLEDDevice extends IPSModuleStrict
     private function setSafeValue(string $ident, mixed $value): void
     {
         if (@$this->GetIDForIdent($ident) > 0) {
-            $this->SetValue($ident, $value);
+            if ($this->GetValue($ident) !== $value) {
+                $this->SetValue($ident, $value);
+            }
         }
     }
 
