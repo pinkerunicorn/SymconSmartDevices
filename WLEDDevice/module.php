@@ -59,6 +59,11 @@ class WLEDDevice extends IPSModuleStrict
         $this->RegisterTimer('ReconnectTimer', 0, 'WLED_Reconnect($_IPS[\'TARGET\']);');
         $this->RegisterTimer('StateRefreshTimer', 0, 'WLED_RequestFullState($_IPS[\'TARGET\']);');
         $this->RegisterTimer('FetchListsTimer', 0, 'WLED_RefreshLists($_IPS[\'TARGET\']);');
+
+        $this->RegisterAttributeString('CachedEffects', '[]');
+        $this->RegisterAttributeString('CachedPalettes', '[]');
+        $this->RegisterAttributeString('CachedPresets', '[]');
+        $this->RegisterAttributeString('LastPayloadHash', '');
     }
 
     public function GetCompatibleParents(): string
@@ -361,24 +366,14 @@ class WLEDDevice extends IPSModuleStrict
 
     public function RequestAction(string $Ident, mixed $Value): void
     {
-        $start = microtime(true);
         switch ($Ident) {
             case 'DA_Watchdog':
                 $this->DA_HandleWatchdog();
                 break;
             case 'Power':
-                $t1 = microtime(true);
                 $this->sendToWLED(['on' => $Value, 'transition' => $this->getTransitionTicks()]);
-                IPS_LogMessage("WLED_Profiling", sprintf("sendToWLED took: %f ms", (microtime(true) - $t1) * 1000));
-                
-                $t2 = microtime(true);
                 $this->SetValue('Power', $Value);
-                IPS_LogMessage("WLED_Profiling", sprintf("SetValue took: %f ms", (microtime(true) - $t2) * 1000));
-                
-                $t3 = microtime(true);
                 $this->updateControlState();
-                IPS_LogMessage("WLED_Profiling", sprintf("updateControlState took: %f ms", (microtime(true) - $t3) * 1000));
-                IPS_LogMessage("WLED_Profiling", sprintf("Total Power RequestAction took: %f ms", (microtime(true) - $start) * 1000));
                 break;
             case 'Brightness':
                 $raw = (int)round($Value * 2.55);
@@ -431,16 +426,33 @@ class WLEDDevice extends IPSModuleStrict
 
     public function ReceiveData(string $JSONString): string
     {
+        if ($JSONString === '' || $JSONString === '{}') {
+            return '';
+        }
+
         $data = json_decode($JSONString, true, 512, JSON_THROW_ON_ERROR);
-        $this->DA_ResetWatchdog(WLEDConstants::WATCHDOG_TIMEOUT);
-        $this->DA_SetAvailable(true);
 
         if ($data['DataID'] != '{018EF6B5-AB94-40C6-AA53-46943E824ACF}') {
             return '';
         }
 
         $bufferRaw = trim($data['Buffer'] ?? '');
+        if ($bufferRaw === '') {
+            return '';
+        }
+
         $buffer = ctype_xdigit($bufferRaw) ? hex2bin($bufferRaw) : $bufferRaw;
+
+        // Deduplizierung: identische Payloads ignorieren (z.B. WLED-Keepalives ohne Änderung)
+        $hash = md5($buffer);
+        if ($this->ReadAttributeString('LastPayloadHash') === $hash) {
+            return '';
+        }
+        $this->WriteAttributeString('LastPayloadHash', $hash);
+
+        // Erst jetzt Availability setzen, da echte Daten ankommen
+        $this->DA_ResetWatchdog(WLEDConstants::WATCHDOG_TIMEOUT);
+        $this->DA_SetAvailable(true);
 
         try {
             $json = json_decode($buffer, true, 512, JSON_THROW_ON_ERROR);
@@ -454,7 +466,7 @@ class WLEDDevice extends IPSModuleStrict
         } catch (Throwable $e) {
             $this->SLogWarning("ReceiveData Error: " . $e->getMessage());
         }
-        
+
         return '';
     }
 
