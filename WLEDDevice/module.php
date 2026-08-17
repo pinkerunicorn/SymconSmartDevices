@@ -464,6 +464,7 @@ class WLEDDevice extends IPSModuleStrict
 
         if (isset($state['on'])) {
             if ($this->GetValue('Power') !== $state['on']) {
+                $this->SLogInfo("VARIABLE_UPDATE: Power changed to " . json_encode($state['on']));
                 $this->SetValue('Power', $state['on']);
                 $needsUiUpdate = true;
             }
@@ -471,9 +472,11 @@ class WLEDDevice extends IPSModuleStrict
         if (isset($state['bri'])) {
             $bri = (int)round($state['bri'] / 2.55);
             if ($this->GetValue('Brightness') !== $bri) {
+                $this->SLogInfo("VARIABLE_UPDATE: Brightness changed to " . json_encode($bri));
                 $this->SetValue('Brightness', $bri);
             }
             if ($state['bri'] == 0 && $this->GetValue('Power')) {
+                $this->SLogInfo("VARIABLE_UPDATE: Power changed to false (bri=0)");
                 $this->SetValue('Power', false);
                 $needsUiUpdate = true;
             }
@@ -565,8 +568,10 @@ class WLEDDevice extends IPSModuleStrict
 
     private function setSafeValue(string $ident, mixed $value): void
     {
-        if (@$this->GetIDForIdent($ident) > 0) {
+        $id = @$this->GetIDForIdent($ident);
+        if ($id > 0) {
             if ($this->GetValue($ident) !== $value) {
+                $this->SLogInfo("VARIABLE_UPDATE: " . $ident . " changed to " . json_encode($value));
                 $this->SetValue($ident, $value);
             }
         }
