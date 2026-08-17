@@ -1,15 +1,15 @@
 {
     "id": "{7C731A3E-763A-4297-A548-CEFE837EC2A4}",
-    "name": "Vestaboard Generator",
+    "name": "Vestaboard",
     "type": 3,
-    "vendor": "Florian Gra\u00dfinger",
+    "vendor": "Florian Graßinger",
     "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/VestaboardGenerator",
     "aliases": [
-        "Vestaboard Generator"
+        "Vestaboard"
     ],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
     "prefix": "VESTAG",
-    "author": "Florian Gra\u00dfinger"
+    "author": "Florian Graßinger"
 }

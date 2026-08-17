@@ -14,9 +14,9 @@ class VestaboardGenerator extends IPSModuleStrict {
     public function Create(): void {
         parent::Create();
         
-        // Eigenschaften (Eingabefelder für die Instanz) anlegen
         $this->RegisterPropertyString("VariablesList", "[]");
-        $this->RegisterPropertyInteger("InstIdVestaboardLocal", 0); // Die InstanzID vom Vestaboard Local Modul
+        $this->RegisterPropertyString("ApiUrl", "http://<IP-ADRESSE>:7000/local-api/message");
+        $this->RegisterPropertyString("ApiKey", "");
         $this->RegisterPropertyInteger("ManualUpdateTriggerID", 0); // Trigger für manuelles Update
         $this->RegisterPropertyInteger("ActiveViewVariableID", 0); // Trigger für Multi-View
         $this->RegisterPropertyInteger("HeimkinoModeVariableID", 0); // Veraltet
@@ -44,10 +44,7 @@ class VestaboardGenerator extends IPSModuleStrict {
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
         }
-        $ref_InstIdVestaboardLocal = $this->ReadPropertyInteger('InstIdVestaboardLocal');
-        if ($ref_InstIdVestaboardLocal > 1 && @IPS_ObjectExists($ref_InstIdVestaboardLocal)) {
-            $this->RegisterReference($ref_InstIdVestaboardLocal);
-        }
+        // Removed VestaboardLocal reference
         $ref_ManualUpdateTriggerID = $this->ReadPropertyInteger('ManualUpdateTriggerID');
         if ($ref_ManualUpdateTriggerID > 1 && @IPS_ObjectExists($ref_ManualUpdateTriggerID)) {
             $this->RegisterReference($ref_ManualUpdateTriggerID);
@@ -166,15 +163,9 @@ class VestaboardGenerator extends IPSModuleStrict {
             return;
         }
 
-        $instId = $this->ReadPropertyInteger("InstIdVestaboardLocal");
-        if ($instId <= 0 || !IPS_InstanceExists($instId)) {
-            $this->SLogInfo("PushAlert: Keine gueltige Vestaboard Local Instanz.");
-            return;
-        }
-
         $this->SLogInfo("PushAlert: Sende Alarm-Nachricht direkt auf Board.");
         try {
-            VESTA_SendMessage($instId, $text);
+            $this->SendTextToBoard($text);
         } catch (Exception $e) {
             $this->SLogInfo("PushAlert: Fehler beim Senden: " . $e->getMessage());
         }
@@ -268,7 +259,6 @@ class VestaboardGenerator extends IPSModuleStrict {
         }
         $textBasis = rtrim($textBasis, "\n"); // Letzten Zeilenumbruch entfernen
         
-        $instId = $this->ReadPropertyInteger("InstIdVestaboardLocal");
         $activeStart = $this->ReadPropertyInteger("ActiveTimeStart");
         $activeEnd = $this->ReadPropertyInteger("ActiveTimeEnd");
         $currentHour = (int)date('G');
@@ -288,23 +278,19 @@ class VestaboardGenerator extends IPSModuleStrict {
 
         $isAbsent = !$this->IsHome();
 
-        if ($instId > 0 && IPS_InstanceExists($instId)) {
-            if ($isAbsent) {
-                $this->SLogInfo('VestaboardGenerator: Aktualisierung uebersprungen (Haus im Abwesenheitsmodus)');
-            } elseif ($isActiveTime || $force) {
-                // Direkt die Funktion der Vestaboard Local Instanz aufrufen
-                VESTA_SendMessage($instId, $textBasis);
-            } else {
-                $sleepText = $this->ReadPropertyString("SleepText");
-                if ($isHeimkinoTurningOff && $sleepText !== "") {
-                    $sleepText = $this->SanitizeTextForVestaboard($sleepText);
-                    VESTA_SendMessage($instId, $sleepText);
-                } else {
-                    $this->SLogInfo('VestaboardGenerator: '. "Aktualisierung uebersprungen (Ruhezeit aktiv: ". $currentHour . "Uhr)");
-                }
-            }
+        if ($isAbsent) {
+            $this->SLogInfo('VestaboardGenerator: Aktualisierung uebersprungen (Haus im Abwesenheitsmodus)');
+        } elseif ($isActiveTime || $force) {
+            // Direkt ans Board senden
+            $this->SendTextToBoard($textBasis);
         } else {
-            $this->SLogInfo('VestaboardGenerator: '. "Keine gueltige Vestaboard Local Instanz hinterlegt.");
+            $sleepText = $this->ReadPropertyString("SleepText");
+            if ($isHeimkinoTurningOff && $sleepText !== "") {
+                $sleepText = $this->SanitizeTextForVestaboard($sleepText);
+                $this->SendTextToBoard($sleepText);
+            } else {
+                $this->SLogInfo('VestaboardGenerator: '. "Aktualisierung uebersprungen (Ruhezeit aktiv: ". $currentHour . "Uhr)");
+            }
         }
     }
 
@@ -319,10 +305,7 @@ class VestaboardGenerator extends IPSModuleStrict {
             }
         }
         
-        $instId = $this->ReadPropertyInteger("InstIdVestaboardLocal");
-        if ($instId > 0 && IPS_InstanceExists($instId)) {
-            VESTA_SendMessage($instId, $this->PadToRight($textBasis, ""));
-        }
+        $this->SendTextToBoard($this->PadToRight($textBasis, ""));
     }
 
     private function GetLineText(string $type, int $id, string $format): string {
@@ -557,13 +540,11 @@ class VestaboardGenerator extends IPSModuleStrict {
 
     public function SendSleepText(): void {
         $sleepText = $this->ReadPropertyString("SleepText");
-        $instId = $this->ReadPropertyInteger("InstIdVestaboardLocal");
-
         $isAbsent = !$this->IsHome();
 
-        if ($sleepText !== ""&& $instId > 0 && IPS_InstanceExists($instId) && !$isAbsent) {
+        if ($sleepText !== ""&& !$isAbsent) {
             $sleepText = $this->SanitizeTextForVestaboard($sleepText);
-            VESTA_SendMessage($instId, $sleepText);
+            $this->SendTextToBoard($sleepText);
         }
         
         $this->UpdateSleepTimer();
@@ -610,7 +591,125 @@ class VestaboardGenerator extends IPSModuleStrict {
         $this->SetTimerInterval("VestaboardWakeupTimer", $interval);
     }
 
-    
+    public function SendMessage(string $text): void {
+        $this->SendTextToBoard($text);
+    }
+
+    private function SendTextToBoard(string $text): void {
+        $layout = $this->ConvertTextToArray($text);
+        
+        $ip = $this->ReadPropertyString('ApiUrl');
+        $token = $this->ReadPropertyString('ApiKey');
+
+        if (empty($ip) || strpos($ip, '<IP-ADRESSE>') !== false || empty($token)) {
+            $this->DA_SetAvailable(false, 'Missing IP or Token');
+            return;
+        }
+
+        $headers = [
+            'X-Vestaboard-Local-Api-Key: ' . $token,
+            'Content-Type: application/json'
+        ];
+
+        $body = json_encode($layout);
+
+        $ch = curl_init($ip);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if (curl_errno($ch)) {
+            $this->DA_SetAvailable(false, curl_error($ch));
+        } elseif ($httpCode !== 200) {
+            $this->DA_SetAvailable(false, 'HTTP Error ' . $httpCode);
+        } else {
+            $this->DA_SetAvailable(true);
+        }
+
+        curl_close($ch);
+    }
+
+    private function ConvertTextToArray(string $text): array {
+        $lines = explode("\n", $text);
+        $layout = array_fill(0, 6, array_fill(0, 22, 0));
+        
+        $charMap = [
+            ' ' => 0,
+            '!' => 37, '@' => 38, '#' => 39, '$' => 40, '(' => 41, ')' => 42,
+            '-' => 44, '+' => 46, '&' => 47, '=' => 48, ';' => 49, ':' => 50,
+            '\'' => 52, '"' => 53, '%' => 54, ',' => 55, '.' => 56, '/' => 59,
+            '?' => 60, '°' => 62
+        ];
+
+        $parsedLines = [];
+        foreach ($lines as $line) {
+            $tokens = [];
+            $parts = preg_split('/(\{[\d]+\})/', $line, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+            
+            foreach ($parts as $part) {
+                if (preg_match('/^\{(\d+)\}$/', $part, $matches)) {
+                    $tokens[] = (int)$matches[1];
+                } else {
+                    $chars = mb_str_split($part, 1, 'UTF-8');
+                    foreach ($chars as $char) {
+                        $char = mb_strtoupper($char, 'UTF-8');
+                        if (preg_match('/^[A-Z]$/', $char)) {
+                            $tokens[] = ord($char) - ord('A') + 1;
+                        } elseif (preg_match('/^[1-9]$/', $char)) {
+                            $tokens[] = (int)$char + 26;
+                        } elseif ($char === '0') {
+                            $tokens[] = 36;
+                        } elseif (isset($charMap[$char])) {
+                            $tokens[] = $charMap[$char];
+                        } elseif ($char === 'Ä') {
+                            $tokens[] = ord('A') - ord('A') + 1;
+                            $tokens[] = ord('E') - ord('A') + 1;
+                        } elseif ($char === 'Ö') {
+                            $tokens[] = ord('O') - ord('A') + 1;
+                            $tokens[] = ord('E') - ord('A') + 1;
+                        } elseif ($char === 'Ü') {
+                            $tokens[] = ord('U') - ord('A') + 1;
+                            $tokens[] = ord('E') - ord('A') + 1;
+                        } elseif ($char === 'ß') {
+                            $tokens[] = ord('S') - ord('A') + 1;
+                            $tokens[] = ord('S') - ord('A') + 1;
+                        } else {
+                            $tokens[] = 0; 
+                        }
+                    }
+                }
+            }
+            
+            if (empty($tokens)) {
+                $parsedLines[] = [];
+            } else {
+                $chunks = array_chunk($tokens, 22);
+                foreach ($chunks as $chunk) {
+                    $parsedLines[] = $chunk;
+                }
+            }
+        }
+        
+        $maxLines = min(6, count($parsedLines));
+        
+        for ($r = 0; $r < $maxLines; $r++) {
+            $rowTokens = $parsedLines[$r];
+            $tokenCount = count($rowTokens);
+            
+            for ($c = 0; $c < $tokenCount; $c++) {
+                if ($c < 22) {
+                    $layout[$r][$c] = $rowTokens[$c];
+                }
+            }
+        }
+
+        return $layout;
+    }
 
     public function GetConfigurationForm(): string
     {
@@ -787,16 +886,38 @@ class VestaboardGenerator extends IPSModuleStrict {
             "items": [
                 {
                     "type": "Label",
-                    "caption": "Ziel-Instanz"
+                    "label": "Verbindungseinstellungen zum lokalen Vestaboard:"
+                },
+                {
+                    "type": "RowLayout",
+                    "items": [
+                        {
+                            "type": "ValidationTextBox",
+                            "name": "ApiUrl",
+                            "caption": "Vestaboard Local API URL"
+                        }
+                    ]
+                },
+                {
+                    "type": "PasswordTextBox",
+                    "name": "ApiKey",
+                    "caption": "Local API Key"
                 },
                 {
                     "type": "Label",
-                    "label": "Wähle hier die 'Vestaboard Local' Instanz aus, an die die generierten Daten gesendet werden."
+                    "label": " "
                 },
                 {
-                    "type": "SelectInstance",
-                    "name": "InstIdVestaboardLocal",
-                    "caption": "Vestaboard Local Instanz"
+                    "type": "Label",
+                    "label": "Vestaboard Farbcodes & Sonderzeichen (Info)"
+                },
+                {
+                    "type": "Label",
+                    "label": "Farben: {63} Rot | {64} Orange | {65} Gelb | {66} Grün | {67} Blau | {68} Violett | {69} Weiß | {70} Schwarz | {0} Leer"
+                },
+                {
+                    "type": "Label",
+                    "label": "Sonderzeichen: {37} ! | {38} @ | {39} # | {40} $ | {41} ( | {42} ) | {44} - | {46} + | {47} & | {48} = | {49} ; | {50} : | {52} ' | {53} \" | {54} % | {55} , | {56} . | {59} / | {60} ? | {62} °"
                 },
                 {
                     "type": "Label",
