@@ -369,16 +369,16 @@ class WLEDDevice extends IPSModuleStrict
             case 'Power':
                 $t1 = microtime(true);
                 $this->sendToWLED(['on' => $Value, 'transition' => $this->getTransitionTicks()]);
-                $this->SLogInfo(sprintf("sendToWLED took: %f ms", (microtime(true) - $t1) * 1000));
+                IPS_LogMessage("WLED_Profiling", sprintf("sendToWLED took: %f ms", (microtime(true) - $t1) * 1000));
                 
                 $t2 = microtime(true);
                 $this->SetValue('Power', $Value);
-                $this->SLogInfo(sprintf("SetValue took: %f ms", (microtime(true) - $t2) * 1000));
+                IPS_LogMessage("WLED_Profiling", sprintf("SetValue took: %f ms", (microtime(true) - $t2) * 1000));
                 
                 $t3 = microtime(true);
                 $this->updateControlState();
-                $this->SLogInfo(sprintf("updateControlState took: %f ms", (microtime(true) - $t3) * 1000));
-                $this->SLogInfo(sprintf("Total Power RequestAction took: %f ms", (microtime(true) - $start) * 1000));
+                IPS_LogMessage("WLED_Profiling", sprintf("updateControlState took: %f ms", (microtime(true) - $t3) * 1000));
+                IPS_LogMessage("WLED_Profiling", sprintf("Total Power RequestAction took: %f ms", (microtime(true) - $start) * 1000));
                 break;
             case 'Brightness':
                 $raw = (int)round($Value * 2.55);
