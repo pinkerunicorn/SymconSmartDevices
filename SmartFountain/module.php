@@ -16,8 +16,7 @@ class SmartFountain extends IPSModuleStrict
         // --- Properties ---
         $this->RegisterPropertyInteger('PumpTargetID', 0);
         $this->RegisterPropertyInteger('ShellyStateID', 0);
-        $this->RegisterPropertyInteger('WledDeviceID', 0);
-        $this->RegisterPropertyInteger('WledGardenID', 0);
+        // Note: WLED device IDs are replaced by direct variable IDs below
         $this->RegisterPropertyInteger('TwinklyDeviceID', 0);
         $this->RegisterPropertyInteger('SonosDeviceID', 0);
         $this->RegisterPropertyString('SynthBaseUrl', 'http://10.1.60.150:5000');
@@ -28,6 +27,12 @@ class SmartFountain extends IPSModuleStrict
         $this->RegisterPropertyInteger('WledEffectID', 0);
         $this->RegisterPropertyInteger('WledSpeedID', 0);
         $this->RegisterPropertyInteger('WledColorID', 0);
+
+        $this->RegisterPropertyInteger('WledGardenStateID', 0);
+        $this->RegisterPropertyInteger('WledGardenBrightnessID', 0);
+        $this->RegisterPropertyInteger('WledGardenEffectID', 0);
+        $this->RegisterPropertyInteger('WledGardenSpeedID', 0);
+        $this->RegisterPropertyInteger('WledGardenColorID', 0);
 
         
         $this->RegisterPropertyInteger('MinPumpPercent', 5);
@@ -466,81 +471,61 @@ class SmartFountain extends IPSModuleStrict
         }
     }
 
-    private function WLED_Set(int $instanceID, string $ident, mixed $value): void
+    private function WLED_Set(string $target, string $ident, mixed $value): void
     {
-        if ($instanceID <= 1 || !@IPS_InstanceExists($instanceID)) {
-            return;
-        }
-
-        // 1. Direkte Variablen-Overrides prüfen (nur für den Haupt-LED-Ring)
-        if ($instanceID === $this->ReadPropertyInteger('WledDeviceID')) {
-            $overrideID = 0;
+        $varID = 0;
+        if ($target === 'Ring') {
             switch ($ident) {
-                case 'State': $overrideID = $this->ReadPropertyInteger('WledStateID'); break;
-                case 'Brightness': $overrideID = $this->ReadPropertyInteger('WledBrightnessID'); break;
-                case 'Effect': $overrideID = $this->ReadPropertyInteger('WledEffectID'); break;
-                case 'Speed': $overrideID = $this->ReadPropertyInteger('WledSpeedID'); break;
-                case 'Color': $overrideID = $this->ReadPropertyInteger('WledColorID'); break;
+                case 'State': $varID = $this->ReadPropertyInteger('WledStateID'); break;
+                case 'Brightness': $varID = $this->ReadPropertyInteger('WledBrightnessID'); break;
+                case 'Effect': $varID = $this->ReadPropertyInteger('WledEffectID'); break;
+                case 'Speed': $varID = $this->ReadPropertyInteger('WledSpeedID'); break;
+                case 'Color': $varID = $this->ReadPropertyInteger('WledColorID'); break;
             }
-            if ($overrideID > 1 && @IPS_VariableExists($overrideID)) {
-                try {
-                    RequestAction($overrideID, $value);
-                    return; // Erfolgreich gesetzt via Override
-                } catch (Exception $e) {
-                    $this->SLogError("WLED_Set: Fehler bei Override $ident: " . $e->getMessage());
-                    return;
-                }
+        } elseif ($target === 'Garden') {
+            switch ($ident) {
+                case 'State': $varID = $this->ReadPropertyInteger('WledGardenStateID'); break;
+                case 'Brightness': $varID = $this->ReadPropertyInteger('WledGardenBrightnessID'); break;
+                case 'Effect': $varID = $this->ReadPropertyInteger('WledGardenEffectID'); break;
+                case 'Speed': $varID = $this->ReadPropertyInteger('WledGardenSpeedID'); break;
+                case 'Color': $varID = $this->ReadPropertyInteger('WledGardenColorID'); break;
             }
         }
 
-        // 2. Fallback: Automatische Suche über Identifikatoren
-        $identsToTry = [$ident];
-        if ($ident === 'Effect') { $identsToTry[] = 'EffectId'; $identsToTry[] = 'Effects'; }
-        if ($ident === 'Speed') { $identsToTry[] = 'EffectSpeed'; }
-        if ($ident === 'Color') { $identsToTry[] = 'Color1'; $identsToTry[] = 'PrimaryColor'; }
-        if ($ident === 'State') { $identsToTry[] = 'Status'; }
-
-        foreach ($identsToTry as $testIdent) {
-            $varID = @IPS_GetObjectIDByIdent($testIdent, $instanceID);
-            if ($varID > 1 && @IPS_VariableExists($varID)) {
-                try {
-                    RequestAction($varID, $value);
-                    return; // Erfolgreich gesetzt
-                } catch (Exception $e) {
-                    $this->SLogError("WLED_Set: Fehler bei $testIdent: " . $e->getMessage());
-                }
+        if ($varID > 1 && @IPS_VariableExists($varID)) {
+            try {
+                RequestAction($varID, $value);
+            } catch (Exception $e) {
+                $this->SLogError("WLED_Set ($target): Fehler bei $ident: " . $e->getMessage());
             }
         }
     }
 
     private function UpdateWLEDState(int $choreography): void
     {
-        $wledID = $this->ReadPropertyInteger('WledDeviceID');
-        $gardenID = $this->ReadPropertyInteger('WledGardenID');
+        $hasRing = ($this->ReadPropertyInteger('WledStateID') > 1);
+        $hasGarden = ($this->ReadPropertyInteger('WledGardenStateID') > 1);
         
-        $hasWled = ($wledID > 1 && @IPS_InstanceExists($wledID));
-        $hasGarden = ($gardenID > 1 && @IPS_InstanceExists($gardenID));
-
-        if (!$hasWled && !$hasGarden) {
+        if (!$hasRing && !$hasGarden) {
             return;
         }
 
         if (!$this->GetValue('Active') || !$this->GetValue('EnableLight')) {
-            $this->WLED_Set($wledID, 'State', false);
-            $this->WLED_Set($gardenID, 'State', false);
+            $this->WLED_Set('Ring', 'State', false);
+            $this->WLED_Set('Garden', 'State', false);
             return;
         }
 
-        $this->WLED_Set($wledID, 'State', true);
-        $this->WLED_Set($gardenID, 'State', true);
+        $this->WLED_Set('Ring', 'State', true);
+        $this->WLED_Set('Garden', 'State', true);
 
         // Map Symcon intensity (0-100) to WLED brightness/intensity (0-255)
         $intensity = $this->GetValue('ChoreographyIntensity');
         $wledBrightness = (int)round(($intensity / 100) * 255);
         $gardenBrightness = (int)round(($wledBrightness * 0.7)); // Garten etwas dunkler (70%)
 
-        $this->WLED_Set($wledID, 'Brightness', $wledBrightness);
-        $this->WLED_Set($gardenID, 'Brightness', $gardenBrightness);
+        $this->WLED_Set('Ring', 'Brightness', $wledBrightness);
+        $this->WLED_Set('Garden', 'Brightness', $gardenBrightness);
 
         // Speed (0-100) to WLED speed (0-255)
         $speed = $this->GetValue('ChoreographySpeed');
@@ -549,32 +534,32 @@ class SmartFountain extends IPSModuleStrict
 
         switch ($choreography) {
             case 0: // Manuell - Statisch Warmweiß / Gold
-                $this->WLED_Set($wledID, 'Effect', 0); $this->WLED_Set($wledID, 'Color', 0xFF9900);
-                $this->WLED_Set($gardenID, 'Effect', 0); $this->WLED_Set($gardenID, 'Color', 0xFF7700);
+                $this->WLED_Set('Ring', 'Effect', 0); $this->WLED_Set('Ring', 'Color', 0xFF9900);
+                $this->WLED_Set('Garden', 'Effect', 0); $this->WLED_Set('Garden', 'Color', 0xFF7700);
                 break;
             case 1: // Sinuswelle - Breathe, Blue
-                $this->WLED_Set($wledID, 'Effect', 2); $this->WLED_Set($wledID, 'Color', 0x0044FF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
-                $this->WLED_Set($gardenID, 'Effect', 2); $this->WLED_Set($gardenID, 'Color', 0x001155); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
+                $this->WLED_Set('Ring', 'Effect', 2); $this->WLED_Set('Ring', 'Color', 0x0044FF); $this->WLED_Set('Ring', 'Speed', $wledSpeed);
+                $this->WLED_Set('Garden', 'Effect', 2); $this->WLED_Set('Garden', 'Color', 0x001155); $this->WLED_Set('Garden', 'Speed', $gardenSpeed);
                 break;
             case 2: // Sägezahn - Fade, Purple
-                $this->WLED_Set($wledID, 'Effect', 12); $this->WLED_Set($wledID, 'Color', 0xFF00FF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
-                $this->WLED_Set($gardenID, 'Effect', 12); $this->WLED_Set($gardenID, 'Color', 0x440044); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
+                $this->WLED_Set('Ring', 'Effect', 12); $this->WLED_Set('Ring', 'Color', 0xFF00FF); $this->WLED_Set('Ring', 'Speed', $wledSpeed);
+                $this->WLED_Set('Garden', 'Effect', 12); $this->WLED_Set('Garden', 'Color', 0x440044); $this->WLED_Set('Garden', 'Speed', $gardenSpeed);
                 break;
             case 3: // High/Low - Blink, Yellow
-                $this->WLED_Set($wledID, 'Effect', 1); $this->WLED_Set($wledID, 'Color', 0xFFFF00); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
-                $this->WLED_Set($gardenID, 'Effect', 1); $this->WLED_Set($gardenID, 'Color', 0x888800); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
+                $this->WLED_Set('Ring', 'Effect', 1); $this->WLED_Set('Ring', 'Color', 0xFFFF00); $this->WLED_Set('Ring', 'Speed', $wledSpeed);
+                $this->WLED_Set('Garden', 'Effect', 1); $this->WLED_Set('Garden', 'Color', 0x888800); $this->WLED_Set('Garden', 'Speed', $gardenSpeed);
                 break;
             case 4: // Träger Zufall - Random, Cyan
-                $this->WLED_Set($wledID, 'Effect', 74); $this->WLED_Set($wledID, 'Color', 0x00FFFF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
-                $this->WLED_Set($gardenID, 'Effect', 9); $this->WLED_Set($gardenID, 'Color', 0x004488); $this->WLED_Set($gardenID, 'Speed', 20);
+                $this->WLED_Set('Ring', 'Effect', 74); $this->WLED_Set('Ring', 'Color', 0x00FFFF); $this->WLED_Set('Ring', 'Speed', $wledSpeed);
+                $this->WLED_Set('Garden', 'Effect', 9); $this->WLED_Set('Garden', 'Color', 0x004488); $this->WLED_Set('Garden', 'Speed', 20);
                 break;
             case 8: // Ein/Aus Intervall - Blink, White
-                $this->WLED_Set($wledID, 'Effect', 1); $this->WLED_Set($wledID, 'Color', 0xFFFFFF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
-                $this->WLED_Set($gardenID, 'Effect', 1); $this->WLED_Set($gardenID, 'Color', 0xFFFFFF); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
+                $this->WLED_Set('Ring', 'Effect', 1); $this->WLED_Set('Ring', 'Color', 0xFFFFFF); $this->WLED_Set('Ring', 'Speed', $wledSpeed);
+                $this->WLED_Set('Garden', 'Effect', 1); $this->WLED_Set('Garden', 'Color', 0xFFFFFF); $this->WLED_Set('Garden', 'Speed', $gardenSpeed);
                 break;
             case 9: // Geysir - Strobe/Blink, Cyan
-                $this->WLED_Set($wledID, 'Effect', 1); $this->WLED_Set($wledID, 'Color', 0x00FFFF); $this->WLED_Set($wledID, 'Speed', $wledSpeed);
-                $this->WLED_Set($gardenID, 'Effect', 1); $this->WLED_Set($gardenID, 'Color', 0x008888); $this->WLED_Set($gardenID, 'Speed', $gardenSpeed);
+                $this->WLED_Set('Ring', 'Effect', 1); $this->WLED_Set('Ring', 'Color', 0x00FFFF); $this->WLED_Set('Ring', 'Speed', $wledSpeed);
+                $this->WLED_Set('Garden', 'Effect', 1); $this->WLED_Set('Garden', 'Color', 0x008888); $this->WLED_Set('Garden', 'Speed', $gardenSpeed);
                 break;
         }
     }
@@ -661,12 +646,9 @@ class SmartFountain extends IPSModuleStrict
 
     private function SetWLEDSoundReactive(): void
     {
-        $wledID = $this->ReadPropertyInteger('WledDeviceID');
-        $gardenID = $this->ReadPropertyInteger('WledGardenID');
-
         // Effect 74 = 'GEQ' (Graphic Equalizer) - a popular sound reactive effect
-        $this->WLED_Set($wledID, 'Effect', 74);
-        $this->WLED_Set($gardenID, 'Effect', 74);
+        $this->WLED_Set('Ring', 'Effect', 74);
+        $this->WLED_Set('Garden', 'Effect', 74);
     }
 
     private function PreRenderAndPlaySound(int $choreo, string $theme): void
@@ -799,28 +781,25 @@ class SmartFountain extends IPSModuleStrict
             "caption": "Pumpe Ein/Aus Schalter (Shelly State)"
         },
         {
-            "type": "SelectInstance",
-            "name": "WledDeviceID",
-            "caption": "WLED: Springbrunnen LED-Ring"
-        },
-        {
-            "type": "SelectInstance",
-            "name": "WledGardenID",
-            "caption": "WLED: Garten DMX-Spots (optional)"
-        },
-        {
             "type": "ExpansionPanel",
-            "caption": "WLED Experteneinstellungen (Direkte Variablen für LED-Ring)",
+            "caption": "WLED: LED-Ring (direkte Variablen)",
             "items": [
-                {
-                    "type": "Label",
-                    "caption": "Wenn WLED-Instanzen nicht korrekt erkannt werden, können hier die exakten Variablen verlinkt werden."
-                },
                 { "type": "SelectVariable", "name": "WledStateID", "caption": "Ein/Aus (State)" },
                 { "type": "SelectVariable", "name": "WledBrightnessID", "caption": "Helligkeit (Brightness)" },
                 { "type": "SelectVariable", "name": "WledEffectID", "caption": "Effekte (Effect)" },
                 { "type": "SelectVariable", "name": "WledSpeedID", "caption": "Effekt Geschwindigkeit (Speed)" },
                 { "type": "SelectVariable", "name": "WledColorID", "caption": "Farbe 1 (Color)" }
+            ]
+        },
+        {
+            "type": "ExpansionPanel",
+            "caption": "WLED: Garten-Spots (optional, direkte Variablen)",
+            "items": [
+                { "type": "SelectVariable", "name": "WledGardenStateID", "caption": "Garten: Ein/Aus (State)" },
+                { "type": "SelectVariable", "name": "WledGardenBrightnessID", "caption": "Garten: Helligkeit (Brightness)" },
+                { "type": "SelectVariable", "name": "WledGardenEffectID", "caption": "Garten: Effekte (Effect)" },
+                { "type": "SelectVariable", "name": "WledGardenSpeedID", "caption": "Garten: Effekt Geschwindigkeit (Speed)" },
+                { "type": "SelectVariable", "name": "WledGardenColorID", "caption": "Garten: Farbe 1 (Color)" }
             ]
         },
         {
