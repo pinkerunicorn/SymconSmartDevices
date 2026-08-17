@@ -59,10 +59,6 @@ class WLEDDevice extends IPSModuleStrict
         $this->RegisterTimer('ReconnectTimer', 0, 'WLED_Reconnect($_IPS[\'TARGET\']);');
         $this->RegisterTimer('StateRefreshTimer', 0, 'WLED_RequestFullState($_IPS[\'TARGET\']);');
         $this->RegisterTimer('FetchListsTimer', 0, 'WLED_RefreshLists($_IPS[\'TARGET\']);');
-
-        $this->RegisterAttributeString('CachedEffects', '[]');
-        $this->RegisterAttributeString('CachedPalettes', '[]');
-        $this->RegisterAttributeString('CachedPresets', '[]');
         $this->RegisterAttributeString('LastPayloadHash', '');
     }
 
