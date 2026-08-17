@@ -177,7 +177,19 @@ if (!trait_exists('DeviceAvailability_Trait')) {
          */
         private function DA_ResetWatchdog(int $timeoutSeconds): void
         {
-            $this->SetTimerInterval('DA_Watchdog', $timeoutSeconds * 1000);
+            $timerId = @$this->GetIDForIdent('DA_Watchdog');
+            $needsUpdate = true;
+            if ($timerId > 0) {
+                $event = IPS_GetEvent($timerId);
+                // Nur Timer neu starten, wenn weniger als die Hälfte der Zeit übrig ist
+                if ($event['NextRun'] > (time() + ($timeoutSeconds / 2))) {
+                    $needsUpdate = false;
+                }
+            }
+            
+            if ($needsUpdate) {
+                $this->SetTimerInterval('DA_Watchdog', $timeoutSeconds * 1000);
+            }
             $this->DA_SetAvailable(true);
         }
 
