@@ -622,12 +622,8 @@ class SmartFountain extends IPSModuleStrict
         $gardenID = $this->ReadPropertyInteger('WledGardenID');
 
         // Effect 74 = 'GEQ' (Graphic Equalizer) - a popular sound reactive effect
-        if ($wledID > 1 && @IPS_InstanceExists($wledID)) {
-            @WLED_SetEffect($wledID, 74);
-        }
-        if ($gardenID > 1 && @IPS_InstanceExists($gardenID)) {
-            @WLED_SetEffect($gardenID, 74);
-        }
+        $this->WLED_Set($wledID, 'Effect', 74);
+        $this->WLED_Set($gardenID, 'Effect', 74);
     }
 
     private function PreRenderAndPlaySound(int $choreo, string $theme): void
