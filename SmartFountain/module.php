@@ -23,6 +23,12 @@ class SmartFountain extends IPSModuleStrict
         $this->RegisterPropertyString('SynthBaseUrl', 'http://10.1.60.150:5000');
         $this->RegisterPropertyInteger('ShowDurationSec', 20);
 
+        $this->RegisterPropertyInteger('WledStateID', 0);
+        $this->RegisterPropertyInteger('WledBrightnessID', 0);
+        $this->RegisterPropertyInteger('WledEffectID', 0);
+        $this->RegisterPropertyInteger('WledSpeedID', 0);
+        $this->RegisterPropertyInteger('WledColorID', 0);
+
         
         $this->RegisterPropertyInteger('MinPumpPercent', 5);
         $this->RegisterPropertyInteger('MaxPumpPercent', 100);
@@ -466,6 +472,28 @@ class SmartFountain extends IPSModuleStrict
             return;
         }
 
+        // 1. Direkte Variablen-Overrides prüfen (nur für den Haupt-LED-Ring)
+        if ($instanceID === $this->ReadPropertyInteger('WledDeviceID')) {
+            $overrideID = 0;
+            switch ($ident) {
+                case 'State': $overrideID = $this->ReadPropertyInteger('WledStateID'); break;
+                case 'Brightness': $overrideID = $this->ReadPropertyInteger('WledBrightnessID'); break;
+                case 'Effect': $overrideID = $this->ReadPropertyInteger('WledEffectID'); break;
+                case 'Speed': $overrideID = $this->ReadPropertyInteger('WledSpeedID'); break;
+                case 'Color': $overrideID = $this->ReadPropertyInteger('WledColorID'); break;
+            }
+            if ($overrideID > 1 && @IPS_VariableExists($overrideID)) {
+                try {
+                    RequestAction($overrideID, $value);
+                    return; // Erfolgreich gesetzt via Override
+                } catch (Exception $e) {
+                    $this->SLogError("WLED_Set: Fehler bei Override $ident: " . $e->getMessage());
+                    return;
+                }
+            }
+        }
+
+        // 2. Fallback: Automatische Suche über Identifikatoren
         $identsToTry = [$ident];
         if ($ident === 'Effect') { $identsToTry[] = 'EffectId'; $identsToTry[] = 'Effects'; }
         if ($ident === 'Speed') { $identsToTry[] = 'EffectSpeed'; }
@@ -779,6 +807,21 @@ class SmartFountain extends IPSModuleStrict
             "type": "SelectInstance",
             "name": "WledGardenID",
             "caption": "WLED: Garten DMX-Spots (optional)"
+        },
+        {
+            "type": "Expander",
+            "caption": "WLED Experteneinstellungen (Direkte Variablen für LED-Ring)",
+            "items": [
+                {
+                    "type": "Label",
+                    "caption": "Wenn WLED-Instanzen nicht korrekt erkannt werden, können hier die exakten Variablen verlinkt werden."
+                },
+                { "type": "SelectVariable", "name": "WledStateID", "caption": "Ein/Aus (State)" },
+                { "type": "SelectVariable", "name": "WledBrightnessID", "caption": "Helligkeit (Brightness)" },
+                { "type": "SelectVariable", "name": "WledEffectID", "caption": "Effekte (Effect)" },
+                { "type": "SelectVariable", "name": "WledSpeedID", "caption": "Effekt Geschwindigkeit (Speed)" },
+                { "type": "SelectVariable", "name": "WledColorID", "caption": "Farbe 1 (Color)" }
+            ]
         },
         {
             "type": "SelectInstance",
