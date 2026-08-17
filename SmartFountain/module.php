@@ -465,7 +465,11 @@ class SmartFountain extends IPSModuleStrict
         if ($instanceID > 1 && @IPS_InstanceExists($instanceID)) {
             $varID = @IPS_GetObjectIDByIdent($ident, $instanceID);
             if ($varID > 1 && @IPS_VariableExists($varID)) {
-                @RequestAction($varID, $value);
+                try {
+                    RequestAction($varID, $value);
+                } catch (Exception $e) {
+                    $this->SLogError("WLED_Set failed for $ident: " . $e->getMessage());
+                }
             }
         }
     }
