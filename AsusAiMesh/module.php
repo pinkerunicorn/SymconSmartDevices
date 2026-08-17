@@ -31,7 +31,7 @@ class AsusAiMesh extends IPSModuleStrict
         $this->RegisterPropertyString('Username', 'admin');
         $this->RegisterPropertyString('Password', '');
         $this->RegisterPropertyBoolean('UseHTTPS', true);
-        $this->RegisterPropertyInteger('UpdateInterval', 60);
+        $this->RegisterPropertyInteger('UpdateInterval', 900);
         $this->RegisterPropertyInteger('MaxNodes', 4);
 
         // Timer
@@ -47,12 +47,12 @@ class AsusAiMesh extends IPSModuleStrict
             ['Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'circle-check', 'IconActive' => true,
              'ColorActive' => true, 'ColorDisplay' => 0x00CC44, 'ContentColorActive' => false,
              'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC44],
-            ['Value' => true, 'Caption' => 'Update verfÃƒÂ¼gbar', 'IconValue' => 'rotate', 'IconActive' => true,
+            ['Value' => true, 'Caption' => 'Update verfügbar', 'IconValue' => 'rotate', 'IconActive' => true,
              'ColorActive' => true, 'ColorDisplay' => 0xFF8800, 'ContentColorActive' => false,
              'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF8800]
         ]);
 
-        $this->RegisterVariableBoolean('FirmwareUpdate', 'Firmware-Update verfÃƒÂ¼gbar', [
+        $this->RegisterVariableBoolean('FirmwareUpdate', 'Firmware-Update verfügbar', [
             'PRESENTATION'  => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'          => 'rotate',
             'COLOR'         => -1,
@@ -99,7 +99,7 @@ class AsusAiMesh extends IPSModuleStrict
         $this->EnableAction('WiFi_6G');
 
         // Guest WiFi
-        $this->RegisterVariableInteger('GuestWiFi', 'GÃƒÂ¤stenetzwerk (Party)', $onOffPres, 205);
+        $this->RegisterVariableInteger('GuestWiFi', 'Gästenetzwerk (Party)', $onOffPres, 205);
         $this->EnableAction('GuestWiFi');
 
         // Reboot
@@ -192,7 +192,7 @@ class AsusAiMesh extends IPSModuleStrict
             // System Monitoring
             $this->MaintainNodeVariable($dummyID, 'CPU', 'CPU', 2, 10, 'Gauge', ' %');
             $this->MaintainNodeVariable($dummyID, 'RAM', 'RAM', 2, 11, 'Gauge', ' %');
-            $this->MaintainNodeVariable($dummyID, 'TempCPU', 'CPU Temperatur', 2, 12, 'Temperature', ' Ã‚Â°C');
+            $this->MaintainNodeVariable($dummyID, 'TempCPU', 'CPU Temperatur', 2, 12, 'Temperature', ' °C');
         }
     }
 
@@ -427,7 +427,7 @@ class AsusAiMesh extends IPSModuleStrict
         $this->AsusInvalidateToken();
         $token = $this->AsusGetToken();
         if ($token === null) {
-            return 'Verbindung fehlgeschlagen! Bitte Host, Benutzername und Passwort prÃƒÂ¼fen.';
+            return 'Verbindung fehlgeschlagen! Bitte Host, Benutzername und Passwort prüfen.';
         }
 
         // Try a simple hook to verify
@@ -629,7 +629,7 @@ class AsusAiMesh extends IPSModuleStrict
         curl_close($ch);
 
         if ($response === false || $httpCode >= 400) {
-            $this->SendDebug('FetchTemperatures', "HTTP {$httpCode} - Temperaturen nicht verfÃƒÂ¼gbar", 0);
+            $this->SendDebug('FetchTemperatures', "HTTP {$httpCode} - Temperaturen nicht verfügbar", 0);
             return;
         }
 
@@ -714,7 +714,7 @@ class AsusAiMesh extends IPSModuleStrict
     {
         $token = $this->AsusGetToken();
         if ($token === null) {
-            $this->SendDebug('AsusApply', 'Kein Token verfÃƒÂ¼gbar', 0);
+            $this->SendDebug('AsusApply', 'Kein Token verfügbar', 0);
             return false;
         }
 
@@ -983,7 +983,7 @@ class AsusAiMesh extends IPSModuleStrict
      */
     private function RebootRouter(): void
     {
-        $this->SendDebug('Reboot', 'Router-Neustart wird ausgelÃƒÂ¶st...', 0);
+        $this->SendDebug('Reboot', 'Router-Neustart wird ausgelöst...', 0);
 
         $success = $this->AsusApply([
             'rc_service' => 'reboot',
@@ -1009,7 +1009,7 @@ class AsusAiMesh extends IPSModuleStrict
     "elements": [
         {
             "type": "ExpansionPanel",
-            "caption": "Ã°Å¸Å’Â Verbindung zum AiMesh Controller",
+            "caption": "Verbindung zum AiMesh Controller",
             "expanded": true,
             "items": [
                 {
@@ -1049,13 +1049,13 @@ class AsusAiMesh extends IPSModuleStrict
         },
         {
             "type": "ExpansionPanel",
-            "caption": "Ã¢Å¡â„¢Ã¯Â¸Â Einstellungen",
+            "caption": "Einstellungen",
             "items": [
                 {
                     "type": "NumberSpinner",
                     "name": "UpdateInterval",
                     "caption": "Aktualisierungsintervall (Sekunden)",
-                    "minimum": 30,
+                    "minimum": 15,
                     "maximum": 3600,
                     "suffix": " Sek."
                 },
@@ -1075,12 +1075,12 @@ class AsusAiMesh extends IPSModuleStrict
             "items": [
                 {
                     "type": "Button",
-                    "caption": "Ã°Å¸â€â€ž Jetzt aktualisieren",
+                    "caption": "Jetzt aktualisieren",
                     "onClick": "ASUSMESH_Update($id);"
                 },
                 {
                     "type": "Button",
-                    "caption": "Ã°Å¸â€â€˜ Verbindung testen",
+                    "caption": "Verbindung testen",
                     "onClick": "echo ASUSMESH_TestConnection($id);",
                     "icon": "Key"
                 }
@@ -1089,9 +1089,9 @@ class AsusAiMesh extends IPSModuleStrict
     ],
     "status": [
         {"code": 102, "icon": "active",   "caption": "Aktiv"},
-        {"code": 104, "icon": "inactive", "caption": "Nicht konfiguriert Ã¢â‚¬â€œ Bitte Host und Passwort eingeben"},
-        {"code": 200, "icon": "error",    "caption": "Verbindungsfehler Ã¢â‚¬â€œ Router nicht erreichbar"},
-        {"code": 201, "icon": "error",    "caption": "Login fehlgeschlagen Ã¢â‚¬â€œ Benutzername oder Passwort falsch"}
+        {"code": 104, "icon": "inactive", "caption": "Nicht konfiguriert - Bitte Host und Passwort eingeben"},
+        {"code": 200, "icon": "error",    "caption": "Verbindungsfehler - Router nicht erreichbar"},
+        {"code": 201, "icon": "error",    "caption": "Login fehlgeschlagen - Benutzername oder Passwort falsch"}
     ]
 }
 EOT;
