@@ -1,0 +1,62 @@
+{
+    "elements": [
+        {
+            "type": "ExpansionPanel",
+            "caption": "Anzeige",
+            "items": [
+                {
+                    "type": "CheckBox",
+                    "name": "ShowEffects",
+                    "caption": "Effekte anzeigen"
+                },
+                {
+                    "type": "CheckBox",
+                    "name": "ShowPalettes",
+                    "caption": "Paletten anzeigen"
+                },
+                {
+                    "type": "CheckBox",
+                    "name": "ShowPresets",
+                    "caption": "Presets anzeigen"
+                },
+                {
+                    "type": "CheckBox",
+                    "name": "ShowWhiteChannel",
+                    "caption": "Wei\u00dfkanal anzeigen (RGBW)"
+                },
+                {
+                    "type": "CheckBox",
+                    "name": "ShowDiagnostics",
+                    "caption": "Diagnose-Sensoren anzeigen"
+                }
+            ]
+        },
+        {
+            "type": "ExpansionPanel",
+            "caption": "Verhalten",
+            "items": [
+                {
+                    "type": "NumberSpinner",
+                    "name": "DefaultTransition",
+                    "caption": "Standard-\u00dcbergang (Sekunden)",
+                    "digits": 1,
+                    "minimum": 0,
+                    "maximum": 10
+                },
+                {
+                    "type": "NumberSpinner",
+                    "name": "AutoReconnectInterval",
+                    "caption": "Reconnect-Intervall (Sekunden)",
+                    "minimum": 0
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "label": "Listen aktualisieren",
+            "onClick": "WLED_RefreshLists($id);"
+        }
+    ]
+}

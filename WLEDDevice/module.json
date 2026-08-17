@@ -1,0 +1,51 @@
+{
+    "id": "{1CAD28D8-76C6-441A-B898-82EB3CF0DC5A}",
+    "name": "WLEDDevice",
+    "type": 3,
+    "vendor": "Florian Gra\u00dfinger",
+    "aliases": ["WLED", "WLED Controller"],
+    "parentRequirements": [
+        "{D68FD31F-0E90-7019-F16C-1949BD3079EF}"
+    ],
+    "childRequirements": [],
+    "implemented": [
+        "{018EF6B5-AB94-40C6-AA53-46943E824ACF}"
+    ],
+    "prefix": "WLED",
+    "properties": {
+        "ShowEffects": {
+            "type": "boolean",
+            "default": true
+        },
+        "ShowPalettes": {
+            "type": "boolean",
+            "default": false
+        },
+        "ShowPresets": {
+            "type": "boolean",
+            "default": true
+        },
+        "ShowWhiteChannel": {
+            "type": "boolean",
+            "default": false
+        },
+        "ShowCCT": {
+            "type": "boolean",
+            "default": false
+        },
+        "ShowDiagnostics": {
+            "type": "boolean",
+            "default": false
+        },
+        "DefaultTransition": {
+            "type": "float",
+            "default": 0.7
+        },
+        "AutoReconnectInterval": {
+            "type": "integer",
+            "default": 30
+        }
+    },
+    "author": "Florian Gra\u00dfinger",
+    "url": "https://github.com/pinkerunicorn/SymconSmartDevices/tree/main/WLEDDevice"
+}
