@@ -809,7 +809,7 @@ class SmartFountain extends IPSModuleStrict
             "caption": "WLED: Garten DMX-Spots (optional)"
         },
         {
-            "type": "Expander",
+            "type": "ExpansionPanel",
             "caption": "WLED Experteneinstellungen (Direkte Variablen für LED-Ring)",
             "items": [
                 {
