@@ -13,6 +13,7 @@ class VestaboardGenerator extends IPSModuleStrict {
 
     public function Create(): void {
         parent::Create();
+        $this->DA_RegisterAvailability(900);
         
         $this->RegisterPropertyString("VariablesList", "[]");
         $this->RegisterPropertyString("ApiUrl", "http://<IP-ADRESSE>:7000/local-api/message");
