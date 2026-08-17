@@ -357,17 +357,7 @@ class WLEDDevice extends IPSModuleStrict
         }
     }
 
-    private function HasActiveParent(): bool
-    {
-        $parentID = $this->GetParentID();
-        if ($parentID > 0) {
-            $parent = @IPS_GetInstance($parentID);
-            if ($parent && $parent['InstanceStatus'] == 102) {
-                return true;
-            }
-        }
-        return false;
-    }
+
 
     private function GetParentID(): int
     {
