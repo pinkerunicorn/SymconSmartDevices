@@ -533,6 +533,10 @@ class WLEDDevice extends IPSModuleStrict
 
     private function updateControlState(): void
     {
+        // TEMPORARY FIX: Das Ausgrauen wurde deaktiviert, um zu testen, 
+        // ob IPS_SetDisabled (welches jedes Mal synchron auf die Festplatte schreibt) 
+        // den 2-Sekunden-Lag verursacht.
+        /*
         $powerOff = !$this->GetValue('Power');
         
         $this->setDisabledSafe('Brightness', $powerOff);
@@ -545,6 +549,7 @@ class WLEDDevice extends IPSModuleStrict
         $this->setDisabledSafe('EffectSpeed', $powerOff || $effectSolid);
         $this->setDisabledSafe('EffectIntensity', $powerOff || $effectSolid);
         $this->setDisabledSafe('Palette', $powerOff || $effectSolid);
+        */
     }
 
     private function setDisabledSafe(string $ident, bool $disabled): void
