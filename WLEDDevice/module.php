@@ -254,16 +254,13 @@ class WLEDDevice extends IPSModuleStrict
                 if (!is_numeric((string)$index)) continue;
                 $options[] = [
                     'Value' => (int)$index,
-                    'Caption' => (string)$label,
-                    'IconActive' => false,
-                    'IconValue' => '',
-                    'Color' => -1
+                    'Caption' => (string)$label
                 ];
             }
         }
 
         if (empty($options)) {
-            $options[] = ['Value' => 0, 'Caption' => 'Default', 'IconActive' => false, 'IconValue' => '', 'Color' => -1];
+            $options[] = ['Value' => 0, 'Caption' => 'Default'];
         }
 
         $this->RegisterVariableInteger('Palette', 'Palette', [
@@ -279,7 +276,7 @@ class WLEDDevice extends IPSModuleStrict
         $cachedStr = $this->ReadAttributeString('CachedPresets');
         $cached = json_decode($cachedStr, true);
 
-        $options = [['Value' => 0, 'Caption' => '- keine -', 'IconActive' => false, 'IconValue' => '', 'Color' => -1]];
+        $options = [['Value' => 0, 'Caption' => '- keine -']];
         if (is_array($cached)) {
             foreach ($cached as $key => $preset) {
                 if (!is_numeric((string)$key) || !is_array($preset)) continue;
@@ -290,10 +287,7 @@ class WLEDDevice extends IPSModuleStrict
                 
                 $options[] = [
                     'Value' => (int)$key,
-                    'Caption' => (string)$preset['n'],
-                    'IconActive' => false,
-                    'IconValue' => '',
-                    'Color' => -1
+                    'Caption' => (string)$preset['n']
                 ];
             }
         }
