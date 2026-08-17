@@ -462,13 +462,24 @@ class SmartFountain extends IPSModuleStrict
 
     private function WLED_Set(int $instanceID, string $ident, mixed $value): void
     {
-        if ($instanceID > 1 && @IPS_InstanceExists($instanceID)) {
-            $varID = @IPS_GetObjectIDByIdent($ident, $instanceID);
+        if ($instanceID <= 1 || !@IPS_InstanceExists($instanceID)) {
+            return;
+        }
+
+        $identsToTry = [$ident];
+        if ($ident === 'Effect') { $identsToTry[] = 'EffectId'; $identsToTry[] = 'Effects'; }
+        if ($ident === 'Speed') { $identsToTry[] = 'EffectSpeed'; }
+        if ($ident === 'Color') { $identsToTry[] = 'Color1'; $identsToTry[] = 'PrimaryColor'; }
+        if ($ident === 'State') { $identsToTry[] = 'Status'; }
+
+        foreach ($identsToTry as $testIdent) {
+            $varID = @IPS_GetObjectIDByIdent($testIdent, $instanceID);
             if ($varID > 1 && @IPS_VariableExists($varID)) {
                 try {
                     RequestAction($varID, $value);
+                    return; // Erfolgreich gesetzt
                 } catch (Exception $e) {
-                    $this->SLogError("WLED_Set failed for $ident: " . $e->getMessage());
+                    $this->SLogError("WLED_Set: Fehler bei $testIdent: " . $e->getMessage());
                 }
             }
         }
