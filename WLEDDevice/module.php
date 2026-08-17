@@ -361,18 +361,24 @@ class WLEDDevice extends IPSModuleStrict
 
     public function RequestAction(string $Ident, mixed $Value): void
     {
-        $this->DA_SetAvailable(true);
-        $this->DA_ResetWatchdog(WLEDConstants::WATCHDOG_TIMEOUT);
-
+        $start = microtime(true);
         switch ($Ident) {
             case 'DA_Watchdog':
                 $this->DA_HandleWatchdog();
                 break;
             case 'Power':
+                $t1 = microtime(true);
                 $this->sendToWLED(['on' => $Value, 'transition' => $this->getTransitionTicks()]);
-                // Optimistic update
+                $this->SLogInfo(sprintf("sendToWLED took: %f ms", (microtime(true) - $t1) * 1000));
+                
+                $t2 = microtime(true);
                 $this->SetValue('Power', $Value);
+                $this->SLogInfo(sprintf("SetValue took: %f ms", (microtime(true) - $t2) * 1000));
+                
+                $t3 = microtime(true);
                 $this->updateControlState();
+                $this->SLogInfo(sprintf("updateControlState took: %f ms", (microtime(true) - $t3) * 1000));
+                $this->SLogInfo(sprintf("Total Power RequestAction took: %f ms", (microtime(true) - $start) * 1000));
                 break;
             case 'Brightness':
                 $raw = (int)round($Value * 2.55);
