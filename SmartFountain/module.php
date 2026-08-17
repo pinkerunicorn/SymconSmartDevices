@@ -71,30 +71,30 @@ class SmartFountain extends IPSModuleStrict
         // --- Variables ---
         $this->RegisterVariableBoolean('Active', 'Aktiv', [
             'PRESENTATION' => $switchPres,
-            'ICON' => 'Power'
+            'ICON' => 'power-off'
         ], 10);
         $this->EnableAction('Active');
 
         $showModeOptions = json_encode([
-            ['Value' => 0, 'Caption' => 'Manuell',     'Color' => 0x888888, 'IconActive' => true, 'IconValue' => 'Gear'],
-            ['Value' => 1, 'Caption' => 'Dinner',      'Color' => 0xFF9900, 'IconActive' => true, 'IconValue' => 'Light'],
-            ['Value' => 2, 'Caption' => 'Party',       'Color' => 0xFF0066, 'IconActive' => true, 'IconValue' => 'Speaker'],
-            ['Value' => 3, 'Caption' => 'Zen',         'Color' => 0x00CCCC, 'IconActive' => true, 'IconValue' => 'Drops'],
-            ['Value' => 4, 'Caption' => 'Romantik',    'Color' => 0xFF00FF, 'IconActive' => true, 'IconValue' => 'Heart'],
-            ['Value' => 5, 'Caption' => 'Regenbogen',  'Color' => 0x00FF00, 'IconActive' => true, 'IconValue' => 'Sun'],
-            ['Value' => 6, 'Caption' => 'Musik-Show',  'Color' => 0x0066FF, 'IconActive' => true, 'IconValue' => 'Melody'],
+            ['Value' => 0, 'Caption' => 'Manuell',     'Color' => 0x888888, 'IconActive' => true, 'IconValue' => 'gear'],
+            ['Value' => 1, 'Caption' => 'Dinner',      'Color' => 0xFF9900, 'IconActive' => true, 'IconValue' => 'lightbulb'],
+            ['Value' => 2, 'Caption' => 'Party',       'Color' => 0xFF0066, 'IconActive' => true, 'IconValue' => 'speaker'],
+            ['Value' => 3, 'Caption' => 'Zen',         'Color' => 0x00CCCC, 'IconActive' => true, 'IconValue' => 'droplet'],
+            ['Value' => 4, 'Caption' => 'Romantik',    'Color' => 0xFF00FF, 'IconActive' => true, 'IconValue' => 'heart'],
+            ['Value' => 5, 'Caption' => 'Regenbogen',  'Color' => 0x00FF00, 'IconActive' => true, 'IconValue' => 'sun'],
+            ['Value' => 6, 'Caption' => 'Musik-Show',  'Color' => 0x0066FF, 'IconActive' => true, 'IconValue' => 'music'],
         ]);
 
         $this->RegisterVariableInteger('ShowMode', 'Szenen-Modus', [
             'PRESENTATION' => $enumPres,
-            'ICON' => 'Star',
+            'ICON' => 'wand-magic-sparkles',
             'OPTIONS' => $showModeOptions
         ], 25);
         $this->EnableAction('ShowMode');
 
         $percentPresentation = [
             'PRESENTATION' => $sliderPres,
-            'ICON' => 'Intensity',
+            'ICON' => 'sliders',
             'MIN' => 0,
             'MAX' => 100,
             'STEP' => 1,
@@ -110,8 +110,8 @@ class SmartFountain extends IPSModuleStrict
             ['Value' => 2, 'Caption' => 'Sägezahn (Crescendo)', 'Color' => 0xFF00FF, 'IconActive' => true, 'IconValue' => 'Graph'],
             ['Value' => 3, 'Caption' => 'High / Low (Plateau)', 'Color' => 0xFFFF00, 'IconActive' => true, 'IconValue' => 'Move'],
             ['Value' => 4, 'Caption' => 'Träger Zufall', 'Color' => 0x00FFFF, 'IconActive' => true, 'IconValue' => 'Shuffle'],
-            ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0xFFFFFF, 'IconActive' => true, 'IconValue' => 'Execute'],
-            ['Value' => 9, 'Caption' => 'Geysir (Schuss)', 'Color' => 0x00FFFF, 'IconActive' => true, 'IconValue' => 'Drop'],
+            ['Value' => 8, 'Caption' => 'Ein/Aus Intervall', 'Color' => 0xFFFFFF, 'IconActive' => true, 'IconValue' => 'play'],
+            ['Value' => 9, 'Caption' => 'Geysir (Schuss)', 'Color' => 0x00FFFF, 'IconActive' => true, 'IconValue' => 'droplet'],
         ]);
 
         $oldChoreo = @$this->GetValue('Choreography');
@@ -119,7 +119,7 @@ class SmartFountain extends IPSModuleStrict
 
         $this->RegisterVariableInteger('Choreography', 'Muster', [
             'PRESENTATION' => $enumPres,
-            'ICON' => 'Menu',
+            'ICON' => 'bars',
             'OPTIONS' => $choreoOptions
         ], 30);
         $this->EnableAction('Choreography');
@@ -130,19 +130,19 @@ class SmartFountain extends IPSModuleStrict
 
         $this->RegisterVariableBoolean('EnableLight', 'Licht (WLED/Twinkly)', [
             'PRESENTATION' => $switchPres,
-            'ICON' => 'Light'
+            'ICON' => 'lightbulb'
         ], 40);
         $this->EnableAction('EnableLight');
 
         $this->RegisterVariableBoolean('EnableAudio', 'Audio (Sonos)', [
             'PRESENTATION' => $switchPres,
-            'ICON' => 'Speaker'
+            'ICON' => 'speaker'
         ], 45);
         $this->EnableAction('EnableAudio');
 
         $this->RegisterVariableBoolean('EnableDamping', 'Dämpfung (Soft-Start/Stop)', [
             'PRESENTATION' => $switchPres,
-            'ICON' => 'Speedo'
+            'ICON' => 'gauge-high'
         ], 48);
         $this->EnableAction('EnableDamping');
 

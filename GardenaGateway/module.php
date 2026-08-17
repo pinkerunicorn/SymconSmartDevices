@@ -37,7 +37,7 @@ class GardenaGateway extends IPSModuleStrict
                 'PrefixActive' => false, 'PrefixValue' => '',
                 'SuffixActive' => true, 'SuffixValue' => ' / Tag',
                 'DigitsActive' => false, 'DigitsValue' => 0,
-                'IconActive' => true, 'IconValue' => 'Database',
+                'IconActive' => true, 'IconValue' => 'database',
                 'ColorActive' => true, 'ColorValue' => 0x00CC00,
                 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
             ],
@@ -48,7 +48,7 @@ class GardenaGateway extends IPSModuleStrict
                 'PrefixActive' => false, 'PrefixValue' => '',
                 'SuffixActive' => true, 'SuffixValue' => ' / Tag',
                 'DigitsActive' => false, 'DigitsValue' => 0,
-                'IconActive' => true, 'IconValue' => 'Warning',
+                'IconActive' => true, 'IconValue' => 'triangle-exclamation',
                 'ColorActive' => true, 'ColorValue' => 0xFFAA00,
                 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
             ],
@@ -59,7 +59,7 @@ class GardenaGateway extends IPSModuleStrict
                 'PrefixActive' => false, 'PrefixValue' => '',
                 'SuffixActive' => true, 'SuffixValue' => ' / Tag',
                 'DigitsActive' => false, 'DigitsValue' => 0,
-                'IconActive' => true, 'IconValue' => 'Alert',
+                'IconActive' => true, 'IconValue' => 'bell',
                 'ColorActive' => true, 'ColorValue' => 0xFF4444,
                 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
             ]
@@ -67,7 +67,7 @@ class GardenaGateway extends IPSModuleStrict
 
         $this->RegisterVariableInteger('ApiCalls', 'API Calls heute', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Database',
+            'ICON' => 'server',
             'INTERVALS_ACTIVE' => true,
             'INTERVALS' => $intervals
         ], 100);

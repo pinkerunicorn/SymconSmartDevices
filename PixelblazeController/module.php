@@ -29,13 +29,13 @@ class PixelblazeController extends IPSModuleStrict
         // Variablen
         $this->RegisterVariableBoolean('Power', 'Status', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON' => 'Power'
+            'ICON' => 'power-off'
         ], 10);
         $this->EnableAction('Power');
 
         $this->RegisterVariableInteger('Brightness', 'Helligkeit', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-            'ICON' => 'Sun',
+            'ICON' => 'sun',
             'MIN' => 0.0,
             'MAX' => 100.0,
             'STEP' => 1.0,
@@ -43,10 +43,10 @@ class PixelblazeController extends IPSModuleStrict
         ], 20);
         $this->EnableAction('Brightness');
             
-        $this->RegisterVariableInteger('ActiveProgram', 'Programm', ['ICON' => 'Script'], 30);
+        $this->RegisterVariableInteger('ActiveProgram', 'Programm', ['ICON' => 'bars-progress'], 30);
         $this->EnableAction('ActiveProgram');
 
-        $this->RegisterVariableString('ActiveProgramName', 'Aktuelles Programm (Name)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 35);
+        $this->RegisterVariableString('ActiveProgramName', 'Aktuelles Programm (Name)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'circle-info'], 35);
 
         // Timer für Auto-Reconnect
         $this->RegisterTimer('ReconnectTimer', 0, 'PB_Reconnect($_IPS[\'TARGET\']);');
@@ -101,7 +101,7 @@ class PixelblazeController extends IPSModuleStrict
             }
             $this->RegisterVariableInteger('ActiveProgram', 'Programm', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-                'ICON' => 'Script',
+                'ICON' => 'bars-progress',
                 'OPTIONS' => json_encode($options)
             ], 30);
             IPS_SetVariableCustomProfile($this->GetIDForIdent('ActiveProgram'), '');
@@ -370,7 +370,7 @@ class PixelblazeController extends IPSModuleStrict
             
             $this->RegisterVariableInteger('ActiveProgram', 'Programm', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-                'ICON' => 'Script',
+                'ICON' => 'bars-progress',
                 'OPTIONS' => json_encode($options)
             ], 30);
             IPS_SetVariableCustomProfile($this->GetIDForIdent('ActiveProgram'), '');

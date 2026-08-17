@@ -35,62 +35,62 @@ class MikroTikRouter extends IPSModuleStrict
         // Monitoring Variables (Read-Only)
         $this->RegisterVariableFloat('CPU', 'CPU', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Gauge',
+            'ICON' => 'microchip',
             'SUFFIX' => ' %',
             'SHOW_PREVIEW' => true
         ], 1);
         $this->RegisterVariableFloat('RAM', 'RAM', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Gauge',
+            'ICON' => 'microchip',
             'SUFFIX' => ' %',
             'SHOW_PREVIEW' => true
         ], 2);
         $this->RegisterVariableFloat('Temperature', 'Temperatur', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Temperature',
+            'ICON' => 'temperature-half',
             'SUFFIX' => ' °C',
             'SHOW_PREVIEW' => true
         ], 3);
         $this->RegisterVariableString('BoardName', 'Modell', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Information',
+            'ICON' => 'microchip',
             'SHOW_PREVIEW' => true
         ], 4);
         $this->RegisterVariableString('FirmwareVersion', 'OS-Version', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Information',
+            'ICON' => 'microchip',
             'SHOW_PREVIEW' => true
         ], 5);
         $this->RegisterVariableString('RouterBoardFirmware', 'Firmware-Version', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Gear',
+            'ICON' => 'microchip',
             'SHOW_PREVIEW' => true
         ], 6);
         $this->RegisterVariableString('Uptime', 'Uptime', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Clock',
+            'ICON' => 'clock',
             'SHOW_PREVIEW' => true
         ], 7);
 
         $updateOptions = json_encode([
-            ['Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'Ok', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC44, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC44],
-            ['Value' => true, 'Caption' => 'Verfügbar', 'IconValue' => 'Repeat', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF8800, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF8800]
+            ['Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'circle-check', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC44, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC44],
+            ['Value' => true, 'Caption' => 'Verfügbar', 'IconValue' => 'rotate', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF8800, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF8800]
         ]);
         $this->RegisterVariableBoolean('UpdateAvailable', 'OS-Update verfügbar', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Repeat',
+            'ICON' => 'rotate',
             'SHOW_PREVIEW' => true,
             'OPTIONS' => $updateOptions
         ], 10);
         $this->RegisterVariableBoolean('FirmwareUpdateAvailable', 'Firmware-Update verfügbar', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Repeat',
+            'ICON' => 'rotate',
             'SHOW_PREVIEW' => true,
             'OPTIONS' => $updateOptions
         ], 11);
         $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Clock'
+            'ICON' => 'clock-rotate-left'
         ], 999);
 
         if (!IPS_VariableProfileExists('MIKROTIK.Action')) {

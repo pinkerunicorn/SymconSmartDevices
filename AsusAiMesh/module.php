@@ -40,21 +40,21 @@ class AsusAiMesh extends IPSModuleStrict
         // --- Mesh Overview (1-9) ---
         $this->RegisterVariableInteger('MeshNodesOnline', 'Nodes Online', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Network'
+            'ICON'         => 'diagram-project'
         ], 1);
 
         $fwOptions = json_encode([
-            ['Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'Ok', 'IconActive' => true,
+            ['Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'circle-check', 'IconActive' => true,
              'ColorActive' => true, 'ColorDisplay' => 0x00CC44, 'ContentColorActive' => false,
              'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC44],
-            ['Value' => true, 'Caption' => 'Update verfÃƒÂ¼gbar', 'IconValue' => 'Repeat', 'IconActive' => true,
+            ['Value' => true, 'Caption' => 'Update verfÃƒÂ¼gbar', 'IconValue' => 'rotate', 'IconActive' => true,
              'ColorActive' => true, 'ColorDisplay' => 0xFF8800, 'ContentColorActive' => false,
              'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF8800]
         ]);
 
         $this->RegisterVariableBoolean('FirmwareUpdate', 'Firmware-Update verfÃƒÂ¼gbar', [
             'PRESENTATION'  => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'          => 'Repeat',
+            'ICON'          => 'rotate',
             'COLOR'         => -1,
             'CONTENT_COLOR' => -1,
             'DISPLAY_TYPE'  => 0,
@@ -65,19 +65,19 @@ class AsusAiMesh extends IPSModuleStrict
 
         $onOffPres = [
             'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-            'ICON'         => 'Power',
+            'ICON'         => 'power-off',
             'OPTIONS'      => json_encode([
                 ['Value' => 0, 'Caption' => 'Aus', 'IconActive' => true, 'IconValue' => 'Cross', 'Color' => 0xFF4444],
-                ['Value' => 1, 'Caption' => 'An', 'IconActive' => true, 'IconValue' => 'Ok', 'Color' => 0x00CC44]
+                ['Value' => 1, 'Caption' => 'An', 'IconActive' => true, 'IconValue' => 'circle-check', 'Color' => 0x00CC44]
             ])
         ];
         
         $rebootPres = [
             'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-            'ICON'         => 'Power',
+            'ICON'         => 'power-off',
             'OPTIONS'      => json_encode([
-                ['Value' => 0, 'Caption' => 'Bereit', 'IconActive' => true, 'IconValue' => 'Ok', 'Color' => 0x00CC44],
-                ['Value' => 1, 'Caption' => 'Neustarten!', 'IconActive' => true, 'IconValue' => 'Warning', 'Color' => 0xFF4444]
+                ['Value' => 0, 'Caption' => 'Bereit', 'IconActive' => true, 'IconValue' => 'circle-check', 'Color' => 0x00CC44],
+                ['Value' => 1, 'Caption' => 'Neustarten!', 'IconActive' => true, 'IconValue' => 'triangle-exclamation', 'Color' => 0xFF4444]
             ])
         ];
 
@@ -109,7 +109,7 @@ class AsusAiMesh extends IPSModuleStrict
         // --- Diagnostik (900+) ---
         $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Clock'
+            'ICON'         => 'clock-rotate-left'
         ], 999);
     }
 
@@ -265,14 +265,14 @@ class AsusAiMesh extends IPSModuleStrict
             ['Value' => false, 'Caption' => 'Offline', 'IconValue' => 'NetworkDisconnected', 'IconActive' => true,
              'ColorActive' => true, 'ColorDisplay' => 0xFF4444, 'ContentColorActive' => false,
              'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF4444],
-            ['Value' => true, 'Caption' => 'Online', 'IconValue' => 'Network', 'IconActive' => true,
+            ['Value' => true, 'Caption' => 'Online', 'IconValue' => 'network-wired', 'IconActive' => true,
              'ColorActive' => true, 'ColorDisplay' => 0x00CC44, 'ContentColorActive' => false,
              'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC44]
         ]);
 
         IPS_SetVariableCustomPresentation($varID, [
             'PRESENTATION'  => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'          => 'Network',
+            'ICON'          => 'network-wired',
             'COLOR'         => -1,
             'CONTENT_COLOR' => -1,
             'DISPLAY_TYPE'  => 0,

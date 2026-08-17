@@ -62,7 +62,7 @@ class EMSESPDevice extends IPSModuleStrict
                     ]);
                     $presArray = [
                         'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-                        'ICON' => 'cog',
+                        'ICON' => 'gear',
                         'OPTIONS' => $modeOptions
                     ];
                     $this->RegisterVariableInteger($ident, $obj['ObjectName'], $presArray, 0);
@@ -172,7 +172,7 @@ class EMSESPDevice extends IPSModuleStrict
                     $value = (float)$value;
                 }
                 if ($isWritable) {
-                    $profile = ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Temperature', 'SUFFIX' => ' °C', 'DECIMALPLACES' => 1];
+                    $profile = ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'temperature-half', 'SUFFIX' => ' °C', 'DECIMALPLACES' => 1];
                 }
             } elseif (is_int($value)) {
                 $type = 1; // Integer
@@ -191,7 +191,7 @@ class EMSESPDevice extends IPSModuleStrict
                 ]);
                 $presArray = [
                     'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-                    'ICON' => 'cog',
+                    'ICON' => 'gear',
                     'OPTIONS' => $modeOptions
                 ];
             }

@@ -35,13 +35,13 @@ class WLEDDevice extends IPSModuleStrict
         // Permanent Variables
         $this->RegisterVariableBoolean('Power', 'Power', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON' => 'Power'
+            'ICON' => 'power-off'
         ], 1);
         $this->EnableAction('Power');
 
         $this->RegisterVariableInteger('Brightness', 'Helligkeit', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-            'ICON' => 'Sun',
+            'ICON' => 'sun',
             'MIN' => 0.0,
             'MAX' => 100.0,
             'STEP_SIZE' => 1.0,
@@ -107,7 +107,7 @@ class WLEDDevice extends IPSModuleStrict
         if ($this->ReadPropertyBoolean('ShowWhiteChannel')) {
             $this->RegisterVariableInteger('WhiteChannel', 'Weißkanal', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-                'ICON' => 'Bulb',
+                'ICON' => 'lightbulb',
                 'MIN' => 0.0,
                 'MAX' => 100.0,
                 'STEP_SIZE' => 1.0,
@@ -123,7 +123,7 @@ class WLEDDevice extends IPSModuleStrict
             $this->BuildEffectEnumeration();
             $this->RegisterVariableInteger('EffectSpeed', 'Geschwindigkeit', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-                'ICON' => 'Motion',
+                'ICON' => 'gauge-high',
                 'MIN' => 0.0,
                 'MAX' => 100.0,
                 'STEP_SIZE' => 1.0,
@@ -132,7 +132,7 @@ class WLEDDevice extends IPSModuleStrict
             ], 21);
             $this->RegisterVariableInteger('EffectIntensity', 'Intensität', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-                'ICON' => 'Intensity',
+                'ICON' => 'sliders',
                 'MIN' => 0.0,
                 'MAX' => 100.0,
                 'STEP_SIZE' => 1.0,
@@ -163,16 +163,16 @@ class WLEDDevice extends IPSModuleStrict
         if ($this->ReadPropertyBoolean('ShowDiagnostics')) {
             $this->RegisterVariableInteger('WifiSignal', 'WiFi Signal', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON' => 'Network',
+                'ICON' => 'wifi',
                 'SUFFIX' => ' %'
             ], 910);
             $this->RegisterVariableString('FirmwareVersion', 'Firmware', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON' => 'Information'
+                'ICON' => 'microchip'
             ], 911);
             $this->RegisterVariableInteger('PowerConsumption', 'Stromverbrauch', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON' => 'Electricity',
+                'ICON' => 'bolt',
                 'SUFFIX' => ' mA'
             ], 912);
         } else {
@@ -230,7 +230,7 @@ class WLEDDevice extends IPSModuleStrict
         // Effekt-ID als schlanker Slider (schnelles WebFront)
         $this->RegisterVariableInteger('Effect', 'Effekt-ID', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-            'ICON'         => 'Star',
+            'ICON'         => 'wand-magic-sparkles',
             'MIN'          => 0.0,
             'MAX'          => 255.0,
             'STEP_SIZE'    => 1.0,
@@ -240,7 +240,7 @@ class WLEDDevice extends IPSModuleStrict
         // Effektname als lesbare Info-Variable (wird aus Cache befüllt)
         $this->RegisterVariableString('EffectName', 'Effekt', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Star',
+            'ICON'         => 'wand-magic-sparkles',
         ], 21);
     }
 
@@ -266,7 +266,7 @@ class WLEDDevice extends IPSModuleStrict
 
         $this->RegisterVariableInteger('Palette', 'Palette', [
             'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-            'ICON' => 'Paintbrush',
+            'ICON' => 'paintbrush',
             'OPTIONS' => json_encode($options)
         ], 25);
         $this->EnableAction('Palette');
@@ -295,7 +295,7 @@ class WLEDDevice extends IPSModuleStrict
 
         $this->RegisterVariableInteger('Preset', 'Preset', [
             'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-            'ICON' => 'Heart',
+            'ICON' => 'heart',
             'OPTIONS' => json_encode($options)
         ], 30);
         $this->EnableAction('Preset');

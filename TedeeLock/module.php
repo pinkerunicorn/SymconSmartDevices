@@ -32,40 +32,40 @@ class TedeeLock extends IPSModuleStrict
     private function RegisterVariables(): void
     {
         $stateIntervals = json_encode([
-            [ 'IntervalMinValue' => 0, 'IntervalMaxValue' => 1, 'ConstantActive' => true, 'ConstantValue' => 'Nicht kalibriert', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Warning', 'ColorActive' => true, 'ColorValue' => 0xFFA500, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-            [ 'IntervalMinValue' => 1, 'IntervalMaxValue' => 2, 'ConstantActive' => true, 'ConstantValue' => 'Kalibriert', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Gear', 'ColorActive' => true, 'ColorValue' => 0x0088FF, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+            [ 'IntervalMinValue' => 0, 'IntervalMaxValue' => 1, 'ConstantActive' => true, 'ConstantValue' => 'Nicht kalibriert', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'triangle-exclamation', 'ColorActive' => true, 'ColorValue' => 0xFFA500, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+            [ 'IntervalMinValue' => 1, 'IntervalMaxValue' => 2, 'ConstantActive' => true, 'ConstantValue' => 'Kalibriert', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'gear', 'ColorActive' => true, 'ColorValue' => 0x0088FF, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 2, 'IntervalMaxValue' => 3, 'ConstantActive' => true, 'ConstantValue' => 'Entsperrt', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'LockOpen', 'ColorActive' => true, 'ColorValue' => 0xFF0000, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-            [ 'IntervalMinValue' => 3, 'IntervalMaxValue' => 4, 'ConstantActive' => true, 'ConstantValue' => 'Halb gesperrt', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Warning', 'ColorActive' => true, 'ColorValue' => 0xFFA500, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+            [ 'IntervalMinValue' => 3, 'IntervalMaxValue' => 4, 'ConstantActive' => true, 'ConstantValue' => 'Halb gesperrt', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'triangle-exclamation', 'ColorActive' => true, 'ColorValue' => 0xFFA500, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 4, 'IntervalMaxValue' => 5, 'ConstantActive' => true, 'ConstantValue' => 'Entsperrt...', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'LockOpen', 'ColorActive' => true, 'ColorValue' => 0xFF6600, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 5, 'IntervalMaxValue' => 6, 'ConstantActive' => true, 'ConstantValue' => 'Sperrt...', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'LockClosed', 'ColorActive' => true, 'ColorValue' => 0xFFCC00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 6, 'IntervalMaxValue' => 7, 'ConstantActive' => true, 'ConstantValue' => 'Gesperrt', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'LockClosed', 'ColorActive' => true, 'ColorValue' => 0x00CC00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 7, 'IntervalMaxValue' => 8, 'ConstantActive' => true, 'ConstantValue' => 'Falle gezogen', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Door', 'ColorActive' => true, 'ColorValue' => 0x00AAFF, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 8, 'IntervalMaxValue' => 9, 'ConstantActive' => true, 'ConstantValue' => 'Falle zieht...', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Door', 'ColorActive' => true, 'ColorValue' => 0x0066CC, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-            [ 'IntervalMinValue' => 9, 'IntervalMaxValue' => 18, 'ConstantActive' => true, 'ConstantValue' => 'Unbekannt', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Information', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-            [ 'IntervalMinValue' => 18, 'IntervalMaxValue' => 19, 'ConstantActive' => true, 'ConstantValue' => 'Aktualisiert...', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Gear', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-            [ 'IntervalMinValue' => 255, 'IntervalMaxValue' => 256, 'ConstantActive' => true, 'ConstantValue' => 'Offline (255)', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Warning', 'ColorActive' => true, 'ColorValue' => 0xFF0000, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ]
+            [ 'IntervalMinValue' => 9, 'IntervalMaxValue' => 18, 'ConstantActive' => true, 'ConstantValue' => 'Unbekannt', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'microchip', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+            [ 'IntervalMinValue' => 18, 'IntervalMaxValue' => 19, 'ConstantActive' => true, 'ConstantValue' => 'Aktualisiert...', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'gear', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+            [ 'IntervalMinValue' => 255, 'IntervalMaxValue' => 256, 'ConstantActive' => true, 'ConstantValue' => 'Offline (255)', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'link-slash', 'ColorActive' => true, 'ColorValue' => 0xFF0000, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ]
         ]);
 
         $this->RegisterVariableInteger('LockState', 'Schloss Status', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Information',
+            'ICON'         => 'info',
             'INTERVALS_ACTIVE' => true,
             'INTERVALS' => $stateIntervals
         ], 1);
         
         $this->RegisterVariableInteger('BatteryLevel', 'Batterie', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Battery',
+            'ICON' => 'battery-full',
             'SUFFIX' => ' %'
         ], 2);
         
         $chargingOptions = json_encode([
-            ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'Plug', 'IconActive' => false, 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
-            ['Value' => true, 'Caption' => 'LÃƒÂ¤dt', 'IconValue' => 'Plug', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
+            ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'plug', 'IconActive' => false, 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+            ['Value' => true, 'Caption' => 'LÃƒÂ¤dt', 'IconValue' => 'plug', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
         ]);
         $this->RegisterVariableBoolean('IsCharging', 'Wird geladen', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Plug',
+            'ICON' => 'plug',
             'COLOR' => -1,
             'CONTENT_COLOR' => -1,
             'DISPLAY_TYPE' => 0,
@@ -77,7 +77,7 @@ class TedeeLock extends IPSModuleStrict
         // Control variable
         $controlPres = [
             'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-            'ICON'         => 'Gear',
+            'ICON'         => 'gear',
             'OPTIONS'      => json_encode([
                 ['Value' => 0, 'Caption' => 'Entriegeln', 'IconActive' => true, 'IconValue' => 'LockOpen', 'Color' => -1],
                 ['Value' => 1, 'Caption' => 'Verriegeln', 'IconActive' => true, 'IconValue' => 'LockClosed', 'Color' => -1],

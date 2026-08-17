@@ -35,7 +35,7 @@ class MailcowMonitor extends IPSModuleStrict
 
         $this->RegisterVariableString('Version', 'Version', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Information'
+            'ICON'         => 'microchip'
         ], 1);
 
         $updateOptions = json_encode([
@@ -45,7 +45,7 @@ class MailcowMonitor extends IPSModuleStrict
                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00FF00
             ],
             [
-                'Value' => true, 'Caption' => 'Update verfÃƒÂ¼gbar', 'IconValue' => 'Warning', 'IconActive' => true,
+                'Value' => true, 'Caption' => 'Update verfÃƒÂ¼gbar', 'IconValue' => 'arrow-up-right-dots', 'IconActive' => true,
                 'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false,
                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000
             ]
@@ -53,7 +53,7 @@ class MailcowMonitor extends IPSModuleStrict
 
         $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfÃƒÂ¼gbar', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Information',
+            'ICON'         => 'microchip',
             'COLOR'        => -1,
             'CONTENT_COLOR' => -1,
             'DISPLAY_TYPE' => 0,
@@ -64,12 +64,12 @@ class MailcowMonitor extends IPSModuleStrict
 
         $this->RegisterVariableInteger('QuarantineCount', 'QuarantÃƒÂ¤ne EintrÃƒÂ¤ge', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Warning'
+            'ICON'         => 'triangle-exclamation'
         ], 3);
 
         $this->RegisterVariableString('LastUpdate', 'Letztes Update', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Clock'
+            'ICON'         => 'clock-rotate-left'
         ], 4);
     }
 
@@ -83,7 +83,7 @@ class MailcowMonitor extends IPSModuleStrict
         if ($this->ReadPropertyBoolean('MonitorContainers')) {
             $containerOptions = json_encode([
                 [
-                    'Value' => false, 'Caption' => 'Fehler', 'IconValue' => 'Warning', 'IconActive' => true,
+                    'Value' => false, 'Caption' => 'Fehler', 'IconValue' => 'triangle-exclamation', 'IconActive' => true,
                     'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false,
                     'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000
                 ],
@@ -95,7 +95,7 @@ class MailcowMonitor extends IPSModuleStrict
             ]);
             $this->RegisterVariableBoolean('ContainersRunning', 'Container Status', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Network',
+                'ICON'         => 'network-wired',
                 'COLOR'        => -1,
                 'CONTENT_COLOR' => -1,
                 'DISPLAY_TYPE' => 0,
@@ -110,7 +110,7 @@ class MailcowMonitor extends IPSModuleStrict
         if ($this->ReadPropertyBoolean('MonitorStorage')) {
             $this->RegisterVariableInteger('StorageUsage', 'vMail Auslastung', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Database',
+                'ICON'         => 'database',
                 'SUFFIX'       => '%'
             ], 6);
         } else {
@@ -120,7 +120,7 @@ class MailcowMonitor extends IPSModuleStrict
         if ($this->ReadPropertyBoolean('MonitorMailQueue')) {
             $this->RegisterVariableInteger('MailQueue', 'Mail Warteschlange', [
                 'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Mail'
+                'ICON'         => 'envelope'
             ], 7);
         } else {
             $this->UnregisterVariable('MailQueue');

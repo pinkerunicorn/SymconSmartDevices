@@ -27,12 +27,12 @@ class AirthingsWavePlus extends IPSModuleStrict
 
         // Variables
         $onlineOptions = json_encode([
-            ['Value' => false, 'Caption' => 'Offline', 'IconValue' => 'Network', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000],
-            ['Value' => true, 'Caption' => 'Online', 'IconValue' => 'Network', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
+            ['Value' => false, 'Caption' => 'Offline', 'IconValue' => 'network-wired', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000],
+            ['Value' => true, 'Caption' => 'Online', 'IconValue' => 'network-wired', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
         ]);
         $this->RegisterVariableBoolean('Online', 'Online', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Network',
+            'ICON' => 'network-wired',
             'COLOR' => -1,
             'CONTENT_COLOR' => -1,
             'DISPLAY_TYPE' => 0,
@@ -42,12 +42,12 @@ class AirthingsWavePlus extends IPSModuleStrict
         ]);
         
         $alarmOptions = json_encode([
-            ['Value' => false, 'Caption' => 'OK', 'IconValue' => 'Alert', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00],
-            ['Value' => true, 'Caption' => 'Alarm!', 'IconValue' => 'Alert', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000]
+            ['Value' => false, 'Caption' => 'OK', 'IconValue' => 'bell', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00],
+            ['Value' => true, 'Caption' => 'Alarm!', 'IconValue' => 'bell', 'IconActive' => true, 'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false, 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000]
         ]);
         $this->RegisterVariableBoolean('Alarm', 'Alarm', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Alert',
+            'ICON' => 'bell',
             'COLOR' => -1,
             'CONTENT_COLOR' => -1,
             'DISPLAY_TYPE' => 0,
@@ -55,24 +55,24 @@ class AirthingsWavePlus extends IPSModuleStrict
             'SHOW_PREVIEW' => true,
             'OPTIONS' => $alarmOptions
         ]);
-        $this->RegisterVariableFloat('AirTemp', 'Temperatur', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Â°C', 'ICON' => 'Temperature']);
-        $this->RegisterVariableFloat('AirHum', 'Luftfeuchtigkeit', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' %', 'ICON' => 'Drops']);
-        $this->RegisterVariableFloat('AirPress', 'Luftdruck', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' hPa', 'ICON' => 'Gauge']);
-        $this->RegisterVariableFloat('AirBatt', 'Batterie', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' %', 'ICON' => 'Battery']);
-        $this->RegisterVariableInteger('AirCO2', 'CO2', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' ppm', 'ICON' => 'Wind']);
-        $this->RegisterVariableInteger('AirVOC', 'VOC', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' ppb', 'ICON' => 'Wind']);
-        $this->RegisterVariableInteger('AirRadonST', 'Radon (Short Term)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Bq/mÂ³', 'ICON' => 'Radiation']);
-        $this->RegisterVariableInteger('AirRadonLT', 'Radon (Long Term)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Bq/mÂ³', 'ICON' => 'Radiation']);
+        $this->RegisterVariableFloat('AirTemp', 'Temperatur', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Â°C', 'ICON' => 'temperature-half']);
+        $this->RegisterVariableFloat('AirHum', 'Luftfeuchtigkeit', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' %', 'ICON' => 'droplet']);
+        $this->RegisterVariableFloat('AirPress', 'Luftdruck', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' hPa', 'ICON' => 'gauge-high']);
+        $this->RegisterVariableFloat('AirBatt', 'Batterie', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' %', 'ICON' => 'battery-full']);
+        $this->RegisterVariableInteger('AirCO2', 'CO2', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' ppm', 'ICON' => 'smog']);
+        $this->RegisterVariableInteger('AirVOC', 'VOC', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' ppb', 'ICON' => 'smog']);
+        $this->RegisterVariableInteger('AirRadonST', 'Radon (Short Term)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Bq/mÂ³', 'ICON' => 'radiation']);
+        $this->RegisterVariableInteger('AirRadonLT', 'Radon (Long Term)', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'SUFFIX' => ' Bq/mÂ³', 'ICON' => 'radiation']);
         
         $radonIntervals = json_encode([
-            ['IntervalMinValue' => 0, 'IntervalMaxValue' => 1, 'ConstantActive' => true, 'ConstantValue' => 'Gut', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Ok', 'ColorActive' => true, 'ColorValue' => 0x00CC00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF],
-            ['IntervalMinValue' => 1, 'IntervalMaxValue' => 2, 'ConstantActive' => true, 'ConstantValue' => 'Mittel', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Warning', 'ColorActive' => true, 'ColorValue' => 0xFFFF00, 'ContentColorActive' => true, 'ContentColorValue' => 0x000000],
-            ['IntervalMinValue' => 2, 'IntervalMaxValue' => 3, 'ConstantActive' => true, 'ConstantValue' => 'Hoch', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Alert', 'ColorActive' => true, 'ColorValue' => 0xFF9900, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF],
-            ['IntervalMinValue' => 3, 'IntervalMaxValue' => 4, 'ConstantActive' => true, 'ConstantValue' => 'Kritisch', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Alert', 'ColorActive' => true, 'ColorValue' => 0xFF0000, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF]
+            ['IntervalMinValue' => 0, 'IntervalMaxValue' => 1, 'ConstantActive' => true, 'ConstantValue' => 'Gut', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'circle-check', 'ColorActive' => true, 'ColorValue' => 0x00CC00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF],
+            ['IntervalMinValue' => 1, 'IntervalMaxValue' => 2, 'ConstantActive' => true, 'ConstantValue' => 'Mittel', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'triangle-exclamation', 'ColorActive' => true, 'ColorValue' => 0xFFFF00, 'ContentColorActive' => true, 'ContentColorValue' => 0x000000],
+            ['IntervalMinValue' => 2, 'IntervalMaxValue' => 3, 'ConstantActive' => true, 'ConstantValue' => 'Hoch', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'bell', 'ColorActive' => true, 'ColorValue' => 0xFF9900, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF],
+            ['IntervalMinValue' => 3, 'IntervalMaxValue' => 4, 'ConstantActive' => true, 'ConstantValue' => 'Kritisch', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'bell', 'ColorActive' => true, 'ColorValue' => 0xFF0000, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF]
         ]);
         $this->RegisterVariableInteger('AirRadonStatus', 'Radon Status', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Radiation',
+            'ICON' => 'radiation',
             'INTERVALS_ACTIVE' => true,
             'INTERVALS' => $radonIntervals
         ], 10);

@@ -22,48 +22,48 @@ class GardenaSensor extends IPSModuleStrict
         $this->RegisterVariableInteger('SoilMoisture', 'Bodenfeuchte', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'SUFFIX' => ' %',
-            'ICON' => 'Drops'
+            'ICON' => 'droplet'
         ], 1);
 
         $this->RegisterVariableFloat('SoilTemperature', 'Bodentemperatur', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'SUFFIX' => ' °C',
-            'ICON' => 'Temperature',
+            'ICON' => 'temperature-half',
             'DIGITS' => 1
         ], 2);
 
         $this->RegisterVariableFloat('AmbientTemperature', 'Lufttemperatur', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'SUFFIX' => ' °C',
-            'ICON' => 'Temperature',
+            'ICON' => 'temperature-half',
             'DIGITS' => 1
         ], 3);
 
         $this->RegisterVariableInteger('LightIntensity', 'Lichtstaerke', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'SUFFIX' => ' Lux',
-            'ICON' => 'Sun'
+            'ICON' => 'sun'
         ], 4);
 
         $batteryIntervals = json_encode([
-            [ 'IntervalMinValue' => 0, 'IntervalMaxValue' => 0, 'ConstantActive' => true, 'ConstantValue' => 'OK', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Battery', 'ColorActive' => true, 'ColorValue' => 0x00FF00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-            [ 'IntervalMinValue' => 1, 'IntervalMaxValue' => 1, 'ConstantActive' => true, 'ConstantValue' => 'LOW', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Battery', 'ColorActive' => true, 'ColorValue' => 0xFFA500, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-            [ 'IntervalMinValue' => 2, 'IntervalMaxValue' => 2, 'ConstantActive' => true, 'ConstantValue' => 'REPLACE_NOW', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Warning', 'ColorActive' => true, 'ColorValue' => 0xFF0000, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+            [ 'IntervalMinValue' => 0, 'IntervalMaxValue' => 0, 'ConstantActive' => true, 'ConstantValue' => 'OK', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'battery-full', 'ColorActive' => true, 'ColorValue' => 0x00FF00, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+            [ 'IntervalMinValue' => 1, 'IntervalMaxValue' => 1, 'ConstantActive' => true, 'ConstantValue' => 'LOW', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'battery-full', 'ColorActive' => true, 'ColorValue' => 0xFFA500, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+            [ 'IntervalMinValue' => 2, 'IntervalMaxValue' => 2, 'ConstantActive' => true, 'ConstantValue' => 'REPLACE_NOW', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'triangle-exclamation', 'ColorActive' => true, 'ColorValue' => 0xFF0000, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 3, 'IntervalMaxValue' => 3, 'ConstantActive' => true, 'ConstantValue' => 'OUT_OF_OPERATION', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Cross', 'ColorActive' => true, 'ColorValue' => 0xFF0000, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 4, 'IntervalMaxValue' => 4, 'ConstantActive' => true, 'ConstantValue' => 'CHARGING', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Lightning', 'ColorActive' => true, 'ColorValue' => 0x0000FF, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
-            [ 'IntervalMinValue' => 5, 'IntervalMaxValue' => 5, 'ConstantActive' => true, 'ConstantValue' => 'NO_BATTERY', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Plug', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
+            [ 'IntervalMinValue' => 5, 'IntervalMaxValue' => 5, 'ConstantActive' => true, 'ConstantValue' => 'NO_BATTERY', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'plug', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ],
             [ 'IntervalMinValue' => 6, 'IntervalMaxValue' => 6, 'ConstantActive' => true, 'ConstantValue' => 'UNKNOWN', 'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0, 'IconActive' => true, 'IconValue' => 'Help', 'ColorActive' => true, 'ColorValue' => 0x888888, 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF ]
         ]);
         
         $this->RegisterVariableInteger('BatteryLevel', 'Batterieladung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'SUFFIX' => ' %',
-            'ICON' => 'Battery'
+            'ICON' => 'battery-full'
         ], 100);
 
         $this->RegisterVariableInteger('BatteryStatus', 'Batteriestatus', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Battery',
+            'ICON' => 'battery-full',
             'INTERVALS_ACTIVE' => true,
             'INTERVALS' => $batteryIntervals
         ], 101);
@@ -71,12 +71,12 @@ class GardenaSensor extends IPSModuleStrict
         $this->RegisterVariableInteger('RFLinkLevel', 'Funkverbindung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'SUFFIX' => ' %',
-            'ICON' => 'Wireless'
+            'ICON' => 'wifi'
         ], 102);
 
         $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Clock'
+            'ICON' => 'clock-rotate-left'
         ], 901);
     }
 

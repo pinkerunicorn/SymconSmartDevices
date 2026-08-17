@@ -28,7 +28,7 @@ class GardenaValve extends IPSModuleStrict
                 'PrefixActive' => false, 'PrefixValue' => '',
                 'SuffixActive' => false, 'SuffixValue' => '',
                 'DigitsActive' => false, 'DigitsValue' => 0,
-                'IconActive' => true, 'IconValue' => 'Tap',
+                'IconActive' => true, 'IconValue' => 'faucet',
                 'ColorActive' => true, 'ColorValue' => 0x808080,
                 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
             ],
@@ -39,7 +39,7 @@ class GardenaValve extends IPSModuleStrict
                 'PrefixActive' => false, 'PrefixValue' => '',
                 'SuffixActive' => false, 'SuffixValue' => '',
                 'DigitsActive' => false, 'DigitsValue' => 0,
-                'IconActive' => true, 'IconValue' => 'Drops',
+                'IconActive' => true, 'IconValue' => 'droplet',
                 'ColorActive' => true, 'ColorValue' => 0x2196F3,
                 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
             ],
@@ -50,7 +50,7 @@ class GardenaValve extends IPSModuleStrict
                 'PrefixActive' => false, 'PrefixValue' => '',
                 'SuffixActive' => false, 'SuffixValue' => '',
                 'DigitsActive' => false, 'DigitsValue' => 0,
-                'IconActive' => true, 'IconValue' => 'Calendar',
+                'IconActive' => true, 'IconValue' => 'calendar-days',
                 'ColorActive' => true, 'ColorValue' => 0x00CC00,
                 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
             ],
@@ -69,7 +69,7 @@ class GardenaValve extends IPSModuleStrict
 
         $this->RegisterVariableInteger('ValveActivity', 'Ventilstatus', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Tap',
+            'ICON' => 'faucet',
             'INTERVALS_ACTIVE' => true,
             'INTERVALS' => $activityIntervals
         ], 1);
@@ -77,7 +77,7 @@ class GardenaValve extends IPSModuleStrict
         // --- Bewässerung (Switch mit EnableAction) ---
         $this->RegisterVariableBoolean('Watering', 'Bewaesserung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON' => 'Drops'
+            'ICON' => 'droplet'
         ], 2);
         $this->EnableAction('Watering');
 
@@ -90,14 +90,14 @@ class GardenaValve extends IPSModuleStrict
                 'PrefixActive' => false, 'PrefixValue' => '',
                 'SuffixActive' => true, 'SuffixValue' => ' min',
                 'DigitsActive' => true, 'DigitsValue' => 1,
-                'IconActive' => true, 'IconValue' => 'Clock',
+                'IconActive' => true, 'IconValue' => 'clock',
                 'ColorActive' => false, 'ColorValue' => 0,
                 'ContentColorActive' => false, 'ContentColorValue' => 0
             ]
         ]);
         $this->RegisterVariableInteger('RemainingTime', 'Restlaufzeit', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Clock',
+            'ICON' => 'hourglass-half',
             'INTERVALS_ACTIVE' => true,
             'INTERVALS' => $remainingIntervals
         ], 101);
@@ -111,7 +111,7 @@ class GardenaValve extends IPSModuleStrict
                 'PrefixActive' => false, 'PrefixValue' => '',
                 'SuffixActive' => false, 'SuffixValue' => '',
                 'DigitsActive' => false, 'DigitsValue' => 0,
-                'IconActive' => true, 'IconValue' => 'Ok',
+                'IconActive' => true, 'IconValue' => 'circle-check',
                 'ColorActive' => true, 'ColorValue' => 0x00CC00,
                 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
             ],
@@ -122,7 +122,7 @@ class GardenaValve extends IPSModuleStrict
                 'PrefixActive' => false, 'PrefixValue' => '',
                 'SuffixActive' => false, 'SuffixValue' => '',
                 'DigitsActive' => false, 'DigitsValue' => 0,
-                'IconActive' => true, 'IconValue' => 'Warning',
+                'IconActive' => true, 'IconValue' => 'triangle-exclamation',
                 'ColorActive' => true, 'ColorValue' => 0xFFAA00,
                 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
             ],
@@ -144,7 +144,7 @@ class GardenaValve extends IPSModuleStrict
                 'PrefixActive' => false, 'PrefixValue' => '',
                 'SuffixActive' => false, 'SuffixValue' => '',
                 'DigitsActive' => false, 'DigitsValue' => 0,
-                'IconActive' => true, 'IconValue' => 'Alert',
+                'IconActive' => true, 'IconValue' => 'bell',
                 'ColorActive' => true, 'ColorValue' => 0xFF4444,
                 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
             ],
@@ -155,7 +155,7 @@ class GardenaValve extends IPSModuleStrict
                 'PrefixActive' => false, 'PrefixValue' => '',
                 'SuffixActive' => false, 'SuffixValue' => '',
                 'DigitsActive' => false, 'DigitsValue' => 0,
-                'IconActive' => true, 'IconValue' => 'Warning',
+                'IconActive' => true, 'IconValue' => 'triangle-exclamation',
                 'ColorActive' => true, 'ColorValue' => 0xFFAA00,
                 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
             ],
@@ -166,7 +166,7 @@ class GardenaValve extends IPSModuleStrict
                 'PrefixActive' => false, 'PrefixValue' => '',
                 'SuffixActive' => false, 'SuffixValue' => '',
                 'DigitsActive' => false, 'DigitsValue' => 0,
-                'IconActive' => true, 'IconValue' => 'Alert',
+                'IconActive' => true, 'IconValue' => 'bell',
                 'ColorActive' => true, 'ColorValue' => 0xFF4444,
                 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
             ],
@@ -188,7 +188,7 @@ class GardenaValve extends IPSModuleStrict
                 'PrefixActive' => false, 'PrefixValue' => '',
                 'SuffixActive' => false, 'SuffixValue' => '',
                 'DigitsActive' => false, 'DigitsValue' => 0,
-                'IconActive' => true, 'IconValue' => 'Alert',
+                'IconActive' => true, 'IconValue' => 'bell',
                 'ColorActive' => true, 'ColorValue' => 0xFF4444,
                 'ContentColorActive' => true, 'ContentColorValue' => 0xFFFFFF
             ]
@@ -196,7 +196,7 @@ class GardenaValve extends IPSModuleStrict
 
         $this->RegisterVariableInteger('ValveError', 'Fehler', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Warning',
+            'ICON' => 'triangle-exclamation',
             'INTERVALS_ACTIVE' => true,
             'INTERVALS' => $errorIntervals
         ], 10);
@@ -204,7 +204,7 @@ class GardenaValve extends IPSModuleStrict
         // --- Bewässerungsdauer (Slider mit EnableAction) ---
         $this->RegisterVariableInteger('WateringDuration', 'Bewaesserungsdauer', [
             'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-            'ICON' => 'Clock',
+            'ICON' => 'stopwatch',
             'MIN' => 1.0,
             'MAX' => 240.0,
             'STEP' => 1.0,
@@ -215,12 +215,12 @@ class GardenaValve extends IPSModuleStrict
         $this->RegisterVariableInteger('BatteryLevel', 'Batterieladung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'SUFFIX' => ' %',
-            'ICON' => 'Battery'
+            'ICON' => 'battery-full'
         ], 100);
 
         $this->RegisterVariableString('LastUpdate', 'Letzte Aktualisierung', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Clock'
+            'ICON' => 'clock-rotate-left'
         ], 901);
         
         $this->RegisterTimer('CountdownTimer', 0, 'IPS_RequestAction($_IPS[\'TARGET\'], "CountdownTimer", "");');
