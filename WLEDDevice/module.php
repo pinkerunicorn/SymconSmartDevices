@@ -539,7 +539,10 @@ class WLEDDevice extends IPSModuleStrict
     {
         $id = @$this->GetIDForIdent($ident);
         if ($id > 0) {
-            IPS_SetDisabled($id, $disabled);
+            $obj = IPS_GetObject($id);
+            if ($obj['ObjectIsDisabled'] !== $disabled) {
+                IPS_SetDisabled($id, $disabled);
+            }
         }
     }
 
