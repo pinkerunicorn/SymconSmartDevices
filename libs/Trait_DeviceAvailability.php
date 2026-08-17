@@ -122,7 +122,7 @@ if (!trait_exists('DeviceAvailability_Trait')) {
                 return;
             }
 
-            SetValue($varId, $available);
+            $this->SetValue('DeviceAvailable', $available);
 
             $instanceName = IPS_GetName($this->InstanceID);
 
