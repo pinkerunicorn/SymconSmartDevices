@@ -47,13 +47,13 @@ class MailcowMonitor extends IPSModuleStrict
                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00FF00
             ],
             [
-                'Value' => true, 'Caption' => 'Update verfÃƒÂ¼gbar', 'IconValue' => 'arrow-up-right-dots', 'IconActive' => true,
+                'Value' => true, 'Caption' => 'Update verfügbar', 'IconValue' => 'arrow-up-right-dots', 'IconActive' => true,
                 'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false,
                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000
             ]
         ]);
 
-        $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfÃƒÂ¼gbar', [
+        $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfügbar', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'microchip',
             'COLOR'        => -1,
@@ -64,7 +64,7 @@ class MailcowMonitor extends IPSModuleStrict
             'OPTIONS'      => $updateOptions
         ], 2);
 
-        $this->RegisterVariableInteger('QuarantineCount', 'QuarantÃƒÂ¤ne EintrÃƒÂ¤ge', [
+        $this->RegisterVariableInteger('QuarantineCount', 'Quarantäne Einträge', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'triangle-exclamation'
         ], 3);
@@ -200,7 +200,7 @@ class MailcowMonitor extends IPSModuleStrict
             $localVersion = $data['version'];
             $this->SetValue('Version', $localVersion);
         } else {
-            $this->DA_SetAvailable(false, 'UngÃƒÂ¼ltige API Antwort (Version)');
+            $this->DA_SetAvailable(false, 'Ungültige API Antwort (Version)');
             return;
         }
 
@@ -211,7 +211,7 @@ class MailcowMonitor extends IPSModuleStrict
                 $qCount = count($data);
                 $this->SetValue('QuarantineCount', $qCount);
                 if ($qCount > 0 && $this->ReadPropertyBoolean('AlarmOnQuarantine')) {
-                    $errors[] = 'Mails in QuarantÃƒÂ¤ne (' . $qCount . ')';
+                    $errors[] = 'Mails in Quarantäne (' . $qCount . ')';
                 }
             }
         }
@@ -272,7 +272,7 @@ class MailcowMonitor extends IPSModuleStrict
                 if (strcmp($latestVersion, $localVersion) > 0) {
                     $this->SetValue('UpdateAvailable', true);
                     if ($this->ReadPropertyBoolean('AlarmOnUpdate')) {
-                        $errors[] = 'Update verfÃƒÂ¼gbar (' . $latestVersion . ')';
+                        $errors[] = 'Update verfügbar (' . $latestVersion . ')';
                     }
                 } else {
                     $this->SetValue('UpdateAvailable', false);
