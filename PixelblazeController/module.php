@@ -51,7 +51,6 @@ class PixelblazeController extends IPSModuleStrict
 
         // Timer für Auto-Reconnect
         $this->RegisterTimer('ReconnectTimer', 0, 'PB_Reconnect($_IPS[\'TARGET\']);');
-        $this->DR_Register('DevicesGenericSensor');
     }
 
     public function Destroy(): void
@@ -82,6 +81,7 @@ class PixelblazeController extends IPSModuleStrict
         $oldVar = @$this->GetIDForIdent('ActiveProgramID');
         if ($oldVar > 0) {
             $this->UnregisterVariable('ActiveProgramID');
+        $this->DR_Register('DevicesGenericSensor');
         }
 
 

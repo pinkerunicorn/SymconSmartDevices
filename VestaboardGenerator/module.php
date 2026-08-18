@@ -39,7 +39,6 @@ class VestaboardGenerator extends IPSModuleStrict {
         for ($i = 1; $i <= 6; $i++) {
             $this->RegisterVariableString("Line{$i}", "Zeile {$i}", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'list'], $i);
         }
-        $this->DR_Register('DevicesGenericSensor');
     }
 
     public function Destroy(): void {
@@ -52,6 +51,7 @@ class VestaboardGenerator extends IPSModuleStrict {
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
+        $this->DR_Register('DevicesGenericSensor');
         }
         // Removed VestaboardLocal reference
         $ref_ManualUpdateTriggerID = $this->ReadPropertyInteger('ManualUpdateTriggerID');

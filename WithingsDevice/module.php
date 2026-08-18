@@ -85,7 +85,6 @@ class WithingsDevice extends IPSModuleStrict {
         $this->RegisterVariableString("GeminiInsight3", "Insight 3", ['ICON' => 'sparkles'], 12);
         $this->RegisterVariableString("GeminiInsight4", "Insight 4", ['ICON' => 'sparkles'], 13);
         $this->RegisterVariableString("GeminiInsight5", "Insight 5", ['ICON' => 'sparkles'], 14);
-        $this->DR_Register('DevicesGenericSensor');
     }
 
     public function Destroy(): void
@@ -102,6 +101,7 @@ class WithingsDevice extends IPSModuleStrict {
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
+        $this->DR_Register('DevicesGenericSensor');
         }
         $ref_SMTPInstanceID = $this->ReadPropertyInteger('SMTPInstanceID');
         if ($ref_SMTPInstanceID > 1 && @IPS_ObjectExists($ref_SMTPInstanceID)) {

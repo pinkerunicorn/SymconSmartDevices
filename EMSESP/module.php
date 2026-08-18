@@ -48,7 +48,6 @@ class EMSESPDevice extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
-        $this->DR_Register('DevicesGenericSensor');
 
         $children = IPS_GetChildrenIDs($this->InstanceID);
         foreach ($children as $child) {
@@ -69,6 +68,7 @@ class EMSESPDevice extends IPSModuleStrict
                     ];
                     $this->RegisterVariableInteger($ident, $obj['ObjectName'], $presArray, 0);
                     $this->EnableAction($ident);
+        $this->DR_Register('DevicesGenericSensor');
                 }
             }
         }

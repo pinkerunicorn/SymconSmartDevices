@@ -204,13 +204,13 @@ class AsusAiMesh extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
-        $this->DR_Register('DevicesHealth');
 
         // Validate config
         if (empty($this->ReadPropertyString('Host')) || empty($this->ReadPropertyString('Password'))) {
             $this->SetStatus(104); // IS_INACTIVE
             $this->SetTimerInterval('UpdateTimer', 0);
             return;
+        $this->DR_Register('DevicesHealth');
         }
 
         $this->SetStatus(102); // IS_ACTIVE

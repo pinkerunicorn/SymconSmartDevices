@@ -33,7 +33,6 @@ class GoogleSonosTTS extends IPSModuleStrict
         // Register Timers
         $this->RegisterTimer("CleanupTimer", 0, 'GSTTS_CleanupCache($_IPS[\'TARGET\']);');
         $this->RegisterTimer("ResumeRoonTimer", 0, 'GSTTS_ResumeRoon($_IPS[\'TARGET\']);');
-        $this->DR_Register('DevicesGenericSensor');
         
         
     }
@@ -53,6 +52,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
+        $this->DR_Register('DevicesGenericSensor');
 
         }
         $list_SonosInstances = json_decode($this->ReadPropertyString('SonosInstances'), true);

@@ -30,7 +30,6 @@ class TedeeLock extends IPSModuleStrict
         $this->RegisterAttributeInteger('DetectedLockID', 0);
 
         $this->RegisterVariables();
-        $this->DR_Register('DevicesGenericSensor');
     }
 
     public function Destroy(): void
@@ -109,6 +108,7 @@ class TedeeLock extends IPSModuleStrict
             $this->SetTimerInterval('StatusUpdateTimer', 0);
             $this->SetStatus(104);
             return;
+        $this->DR_Register('DevicesGenericSensor');
         }
         $this->SetTimerInterval('StatusUpdateTimer', 900000);
         // --- Auto-generated References ---

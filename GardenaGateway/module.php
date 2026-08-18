@@ -88,13 +88,13 @@ class GardenaGateway extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
-        $this->DR_Register('DevicesHealth');
 
         if ($this->ReadPropertyString('AppKey') !== '' && $this->ReadPropertyString('AppSecret') !== '') {
             $this->SetStatus(102);
             $this->SetMidnightResetTimer();
             // Start connection in the background to avoid blocking Symcon startup
             $this->SetTimerInterval('StartConnection', 2000);
+        $this->DR_Register('DevicesHealth');
         } else {
             $this->SetStatus(104);
         }

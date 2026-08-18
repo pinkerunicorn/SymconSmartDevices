@@ -6,8 +6,11 @@ require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
+
 class SmartFountain extends IPSModuleStrict
 {
+    use DeviceAvailability_Trait;
     use DeviceRegistration_Trait;
     use SmartLog_Trait;
 
@@ -15,6 +18,7 @@ class SmartFountain extends IPSModuleStrict
     {
         // Never delete this line!
         parent::Create();
+        $this->DA_RegisterAvailability(900);
 
         // --- Properties ---
         $this->RegisterPropertyInteger('PumpTargetID', 0);
@@ -49,7 +53,6 @@ class SmartFountain extends IPSModuleStrict
         $this->RegisterTimer('ChoreographyTimer', 0, 'SFTN_Tick($_IPS[\'TARGET\']);');
         
         // Variables will be configured via SetupVariablePresentations in ApplyChanges
-        $this->DR_Register('DevicesGenericSensor');
     }
 
     public function Destroy(): void
@@ -63,10 +66,13 @@ class SmartFountain extends IPSModuleStrict
     {
         // Never delete this line!
         parent::ApplyChanges();
+        $this->DA_ApplyPresentation();
+        $this->DA_SetAvailable(true);
 
         // --- References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
+        $this->DR_Register('DevicesGenericSensor');
         }
         
         $pumpTargetID = $this->ReadPropertyInteger('PumpTargetID');

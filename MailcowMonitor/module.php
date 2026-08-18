@@ -73,7 +73,6 @@ class MailcowMonitor extends IPSModuleStrict
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'clock-rotate-left'
         ], 4);
-        $this->DR_Register('DevicesGenericSensor');
     }
 
     public function Destroy(): void
@@ -111,6 +110,7 @@ class MailcowMonitor extends IPSModuleStrict
                 'SHOW_PREVIEW' => true,
                 'OPTIONS'      => $containerOptions
             ], 5);
+        $this->DR_Register('DevicesGenericSensor');
         } else {
             $this->UnregisterVariable('ContainersRunning');
         }

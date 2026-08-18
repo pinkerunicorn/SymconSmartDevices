@@ -82,7 +82,6 @@ class GardenaIrrigationControl extends IPSModuleStrict
 
         $this->DA_RegisterWatchdog();
         $this->DA_RegisterAvailability();
-        $this->DR_Register('DevicesGenericSensor');
     }
 
     public function Destroy(): void
@@ -100,6 +99,7 @@ class GardenaIrrigationControl extends IPSModuleStrict
         $deviceID = $this->ReadPropertyString('DeviceID');
         if (empty($deviceID)) {
             $this->SetStatus(200);
+        $this->DR_Register('DevicesGenericSensor');
         } else {
             $this->SetStatus(102);
             $this->SetReceiveDataFilter('');

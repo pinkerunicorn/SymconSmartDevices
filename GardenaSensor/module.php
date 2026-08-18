@@ -80,7 +80,6 @@ class GardenaSensor extends IPSModuleStrict
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'clock-rotate-left'
         ], 901);
-        $this->DR_Register('DevicesGenericSensor');
     }
 
     public function Destroy(): void
@@ -98,6 +97,7 @@ class GardenaSensor extends IPSModuleStrict
         $deviceID = $this->ReadPropertyString('DeviceID');
         if (empty($deviceID)) {
             $this->SetStatus(200);
+        $this->DR_Register('DevicesGenericSensor');
         } else {
             $this->SetStatus(102);
             $this->SetReceiveDataFilter('');

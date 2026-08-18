@@ -62,7 +62,6 @@ class WLEDDevice extends IPSModuleStrict
         $this->RegisterTimer('StateRefreshTimer', 0, 'WLED_RequestFullState($_IPS[\'TARGET\']);');
         $this->RegisterTimer('FetchListsTimer', 0, 'WLED_RefreshLists($_IPS[\'TARGET\']);');
         $this->RegisterAttributeString('LastPayloadHash', '');
-        $this->DR_Register('DevicesGenericSensor');
     }
 
     public function Destroy(): void
@@ -96,6 +95,7 @@ class WLEDDevice extends IPSModuleStrict
             $connected = $this->HasActiveParent();
             $this->SetTimerInterval('ReconnectTimer', $connected ? 0 : ($interval * 1000));
             $this->SetTimerInterval('StateRefreshTimer', 2000);
+        $this->DR_Register('DevicesGenericSensor');
         } else {
             $this->SetTimerInterval('ReconnectTimer', 0);
             $this->SetTimerInterval('StateRefreshTimer', 0);
