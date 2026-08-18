@@ -73,6 +73,30 @@ class MailcowMonitor extends IPSModuleStrict
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'clock-rotate-left'
         ], 4);
+
+        $alarmOptions = json_encode([
+            [
+                'Value' => false, 'Caption' => 'Alles OK', 'IconValue' => 'check', 'IconActive' => true,
+                'ColorActive' => true, 'ColorDisplay' => 0x00FF00, 'ContentColorActive' => false,
+                'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00FF00
+            ],
+            [
+                'Value' => true, 'Caption' => 'Alarm', 'IconValue' => 'triangle-exclamation', 'IconActive' => true,
+                'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false,
+                'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000
+            ]
+        ]);
+
+        $this->RegisterVariableBoolean('SystemAlarm', 'System Alarm', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'bell',
+            'OPTIONS'      => $alarmOptions
+        ], 8);
+
+        $this->RegisterVariableString('AlarmMessage', 'Alarm Details', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'message'
+        ], 9);
     }
 
     public function Destroy(): void
@@ -258,10 +282,11 @@ class MailcowMonitor extends IPSModuleStrict
 
         $this->SetValue('LastUpdate', date('d.m.Y H:i:s'));
         
-        if (count($errors) > 0) {
-            $this->DA_SetAvailable(false, implode(' | ', $errors));
-        } else {
-            $this->DA_SetAvailable(true);
-        }
+        $hasErrors = count($errors) > 0;
+        $this->SetValue('SystemAlarm', $hasErrors);
+        $this->SetValue('AlarmMessage', $hasErrors ? implode(' | ', $errors) : 'Keine Alarme');
+
+        // Since we reached the end successfully without API failure, the device is online
+        $this->DA_SetAvailable(true);
     }
 }
