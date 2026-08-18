@@ -106,8 +106,8 @@ class AirthingsWavePlus extends IPSModuleStrict
     {
         // Timer fired -> no data received for 'Timeout' minutes
         $this->SetTimerInterval('WatchdogTimer', 0); // Stop timer until new data arrives
-        $this->SetValue('Online', false);
-        $this->SetValue('Alarm', true);
+        $this->SetValueIfChanged('Online', false);
+        $this->SetValueIfChanged('Alarm', true);
         $this->SLogInfo('AirthingsWavePlus: Watchdog ausgelöst: Keine Daten seit ' . $this->ReadPropertyInteger('Timeout') . ' Minuten empfangen!');
     }
     
@@ -123,6 +123,12 @@ class AirthingsWavePlus extends IPSModuleStrict
 
     public function ReceiveData(string $JSONString): string
     {
+        $hash = md5($JSONString);
+        if ($this->GetBuffer('LastPayloadHash') === $hash) {
+            return "OK";
+        }
+        $this->SetBuffer('LastPayloadHash', $hash);
+
         try {
             $data = json_decode($JSONString);
             if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
@@ -148,14 +154,14 @@ class AirthingsWavePlus extends IPSModuleStrict
             // Set general device online status from ESPHome LWT if available
             if ($topic === $base . '/status') {
                 $isOnline = (strtolower($payloadStr) === 'online');
-                $this->SetValue('Online', $isOnline);
+                $this->SetValueIfChanged('Online', $isOnline);
                 if ($isOnline) {
-                    $this->SetValue('Alarm', false);
+                    $this->SetValueIfChanged('Alarm', false);
                     $this->ResetWatchdog();
                 $this->DA_ResetWatchdog(1800);
                 $this->DA_SetAvailable(true);
                 } else {
-                    $this->SetValue('Alarm', true);
+                    $this->SetValueIfChanged('Alarm', true);
                     $this->SetTimerInterval('WatchdogTimer', 0);
                 }
                 return "OK";
@@ -175,35 +181,35 @@ class AirthingsWavePlus extends IPSModuleStrict
                 // Map ESPHome default topic names to variables
                 // Use @IPS_GetObjectIDByIdent instead of GetIDForIdent to avoid Exceptions in Strict Mode
                 if (strpos($topic, 'temp') !== false && @IPS_GetObjectIDByIdent('AirTemp', $this->InstanceID) !== false) {
-                    $this->SetValue('AirTemp', $value);
+                    $this->SetValueIfChanged('AirTemp', $value);
                     $updated = true;
                 } elseif (strpos($topic, 'hum') !== false && @IPS_GetObjectIDByIdent('AirHum', $this->InstanceID) !== false) {
-                    $this->SetValue('AirHum', $value);
+                    $this->SetValueIfChanged('AirHum', $value);
                     $updated = true;
                 } elseif (strpos($topic, 'press') !== false && @IPS_GetObjectIDByIdent('AirPress', $this->InstanceID) !== false) {
-                    $this->SetValue('AirPress', $value);
+                    $this->SetValueIfChanged('AirPress', $value);
                     $updated = true;
                 } elseif (strpos($topic, 'batt') !== false && @IPS_GetObjectIDByIdent('AirBatt', $this->InstanceID) !== false) {
                     // ESPHome liefert Spannung (z.B. 3.3V). Airthings verwendet 2x AA Batterien.
                     // Voll = 3.3V (100%), Leer = ~2.2V (0%)
                     $pct = (($value - 2.2) / (3.3 - 2.2)) * 100;
                     $pct = max(0, min(100, $pct)); // Clamp between 0 and 100
-                    $this->SetValue('AirBatt', round($pct));
+                    $this->SetValueIfChanged('AirBatt', round($pct));
                     $updated = true;
                 } elseif (strpos($topic, 'co2') !== false && @IPS_GetObjectIDByIdent('AirCO2', $this->InstanceID) !== false) {
-                    $this->SetValue('AirCO2', (int)$value);
+                    $this->SetValueIfChanged('AirCO2', (int)$value);
                     $updated = true;
                 } elseif ((strpos($topic, 'voc') !== false || strpos($topic, 'tvoc') !== false) && @IPS_GetObjectIDByIdent('AirVOC', $this->InstanceID) !== false) {
-                    $this->SetValue('AirVOC', (int)$value);
+                    $this->SetValueIfChanged('AirVOC', (int)$value);
                     $updated = true;
                 } elseif ((strpos($topic, 'radon_long_term') !== false || strpos($topic, 'radon_lt') !== false) && @IPS_GetObjectIDByIdent('AirRadonLT', $this->InstanceID) !== false) {
-                    $this->SetValue('AirRadonLT', (int)$value);
+                    $this->SetValueIfChanged('AirRadonLT', (int)$value);
                     $updated = true;
                 } elseif (strpos($topic, 'radon') !== false && @IPS_GetObjectIDByIdent('AirRadonST', $this->InstanceID) !== false) {
                     // Check if it's not the long term to avoid double matching
                     if (strpos($topic, 'long') === false && strpos($topic, 'lt') === false) {
                         $radonVal = (int)$value;
-                        $this->SetValue('AirRadonST', $radonVal);
+                        $this->SetValueIfChanged('AirRadonST', $radonVal);
                         $updated = true;
                         
                         $tMed = $this->ReadPropertyInteger('RadonThresholdMedium');
@@ -219,15 +225,15 @@ class AirthingsWavePlus extends IPSModuleStrict
                             $status = 1;
                         }
                         if (@IPS_GetObjectIDByIdent('AirRadonStatus', $this->InstanceID) !== false) {
-                            $this->SetValue('AirRadonStatus', $status);
+                            $this->SetValueIfChanged('AirRadonStatus', $status);
                         }
                     }
                 }
                 
                 // Reset Watchdog on any sensor update
                 if ($updated) {
-                    $this->SetValue('Online', true);
-                    $this->SetValue('Alarm', false);
+                    $this->SetValueIfChanged('Online', true);
+                    $this->SetValueIfChanged('Alarm', false);
                     $this->ResetWatchdog();
                 $this->DA_ResetWatchdog(1800);
                 $this->DA_SetAvailable(true);
@@ -285,5 +291,15 @@ class AirthingsWavePlus extends IPSModuleStrict
         $elements[] = ["type" => "NumberSpinner", "name" => "RadonThresholdCritical", "caption" => "Schwelle 'Kritisch'"];
         
         return json_encode(["elements" => $elements]);
+    }
+
+
+    protected function SetValueIfChanged(string $ident, mixed $value): bool
+    {
+        if ($this->GetValue($ident) !== $value) {
+            $this->SetValue($ident, $value);
+            return true;
+        }
+        return false;
     }
 }

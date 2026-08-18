@@ -163,8 +163,8 @@ class PixelblazeController extends IPSModuleStrict
                         $brightness = 100;
                     }
                     $this->SetBrightness((float)$brightness);
-                    $this->SetValue('Power', true);
-                    $this->SetValue('Brightness', $brightness);
+                    $this->SetValueIfChanged('Power', true);
+                    $this->SetValueIfChanged('Brightness', $brightness);
                     $this->UpdateVisibility(true);
                     $this->SLogInfo("Angeschaltet mit Helligkeit: " . $brightness . "%");
                 } else {
@@ -174,8 +174,8 @@ class PixelblazeController extends IPSModuleStrict
                         $this->WriteAttributeInteger('LastBrightness', $current);
                     }
                     $this->SetBrightness(0.0);
-                    $this->SetValue('Power', false);
-                    $this->SetValue('Brightness', 0);
+                    $this->SetValueIfChanged('Power', false);
+                    $this->SetValueIfChanged('Brightness', 0);
                     $this->UpdateVisibility(false);
                     $this->SLogInfo("Ausgeschaltet. Letzte Helligkeit " . $current . "% gespeichert.");
                 }
@@ -183,14 +183,14 @@ class PixelblazeController extends IPSModuleStrict
 
             case 'Brightness':
                 $this->SetBrightness((float)$Value);
-                $this->SetValue('Brightness', (int)$Value);
+                $this->SetValueIfChanged('Brightness', (int)$Value);
                 
                 if ($Value > 0) {
-                    $this->SetValue('Power', true);
+                    $this->SetValueIfChanged('Power', true);
                     $this->UpdateVisibility(true);
                     $this->SLogInfo("Helligkeit auf " . $Value . "% gesetzt (Gerät AN).");
                 } else {
-                    $this->SetValue('Power', false);
+                    $this->SetValueIfChanged('Power', false);
                     $this->UpdateVisibility(false);
                     $this->SLogInfo("Helligkeit auf 0% gesetzt (Gerät AUS).");
                 }
@@ -203,7 +203,7 @@ class PixelblazeController extends IPSModuleStrict
                     $progId = $map[(int)$Value]['id'];
                     $progName = $map[(int)$Value]['name'];
                     $this->SetActiveProgram($progId);
-                    $this->SetValue('ActiveProgram', (int)$Value);
+                    $this->SetValueIfChanged('ActiveProgram', (int)$Value);
                     $this->SLogInfo("Programm gewechselt auf: " . $progName);
                 } else {
                     $this->SLogInfo("Fehler: Programm-Index " . $Value . " nicht gefunden.");
@@ -252,6 +252,12 @@ class PixelblazeController extends IPSModuleStrict
 
     public function ReceiveData(string $JSONString): string
     {
+        $hash = md5($JSONString);
+        if ($this->GetBuffer('LastPayloadHash') === $hash) {
+            return "OK";
+        }
+        $this->SetBuffer('LastPayloadHash', $hash);
+
         $this->SendDebug("RawReceiveData", $JSONString, 0);
         $data = json_decode($JSONString, true);
         $this->DA_ResetWatchdog(120);
@@ -286,8 +292,8 @@ class PixelblazeController extends IPSModuleStrict
                             if (isset($payload['brightness'])) {
                                 $brightness = (int)round((float)$payload['brightness'] * 100.0);
                                 if ($brightness != $this->GetValue('Brightness')) {
-                                    $this->SetValue('Brightness', $brightness);
-                                    $this->SetValue('Power', $brightness > 0);
+                                    $this->SetValueIfChanged('Brightness', $brightness);
+                                    $this->SetValueIfChanged('Power', $brightness > 0);
                                     $this->UpdateVisibility($brightness > 0);
                                 }
                             }
@@ -298,7 +304,7 @@ class PixelblazeController extends IPSModuleStrict
                                 if (isset($payload['activeProgram']['name'])) {
                                     $progName = $payload['activeProgram']['name'];
                                     if ($this->GetValue('ActiveProgramName') !== $progName) {
-                                        $this->SetValue('ActiveProgramName', $progName);
+                                        $this->SetValueIfChanged('ActiveProgramName', $progName);
                                     }
                                 }
 
@@ -308,7 +314,7 @@ class PixelblazeController extends IPSModuleStrict
                                     foreach ($map as $index => $progData) {
                                         if ($progData['id'] === $progId) {
                                             if ($index != $this->GetValue('ActiveProgram')) {
-                                                $this->SetValue('ActiveProgram', $index);
+                                                $this->SetValueIfChanged('ActiveProgram', $index);
                                             }
                                             break;
                                         }
@@ -479,6 +485,16 @@ class PixelblazeController extends IPSModuleStrict
     ]
 }
 EOT;
+    }
+
+
+    protected function SetValueIfChanged(string $ident, mixed $value): bool
+    {
+        if ($this->GetValue($ident) !== $value) {
+            $this->SetValue($ident, $value);
+            return true;
+        }
+        return false;
     }
 }
 

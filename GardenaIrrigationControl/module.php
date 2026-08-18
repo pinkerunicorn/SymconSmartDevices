@@ -109,6 +109,12 @@ class GardenaIrrigationControl extends IPSModuleStrict
 
     public function ReceiveData(string $JSONString): string
     {
+        $hash = md5($JSONString);
+        if ($this->GetBuffer('LastPayloadHash') === $hash) {
+            return "OK";
+        }
+        $this->SetBuffer('LastPayloadHash', $hash);
+
         $data = json_decode($JSONString, true);
         if (!is_array($data)) {
             return '';
@@ -131,20 +137,20 @@ class GardenaIrrigationControl extends IPSModuleStrict
 
         if ($serviceType === 'COMMON') {
             if (isset($attributes['batteryLevel']['value'])) {
-                $this->SetValue('BatteryLevel', (int)$attributes['batteryLevel']['value']);
+                $this->SetValueIfChanged('BatteryLevel', (int)$attributes['batteryLevel']['value']);
             }
             if (isset($attributes['batteryState']['value'])) {
-                $this->SetValue('BatteryStatus', $this->MapBatteryStatus((string)$attributes['batteryState']['value']));
+                $this->SetValueIfChanged('BatteryStatus', $this->MapBatteryStatus((string)$attributes['batteryState']['value']));
             }
             if (isset($attributes['rfLinkLevel']['value'])) {
-                $this->SetValue('RFLinkLevel', (int)$attributes['rfLinkLevel']['value']);
+                $this->SetValueIfChanged('RFLinkLevel', (int)$attributes['rfLinkLevel']['value']);
             }
         } elseif ($serviceType === 'VALVE_SET') {
             if (isset($attributes['state']['value'])) {
-                $this->SetValue('MasterValveState', $this->MapMasterValveState((string)$attributes['state']['value']));
+                $this->SetValueIfChanged('MasterValveState', $this->MapMasterValveState((string)$attributes['state']['value']));
             }
             if (isset($attributes['lastErrorCode']['value'])) {
-                $this->SetValue('LastErrorCode', $this->MapLastErrorCode((string)$attributes['lastErrorCode']['value']));
+                $this->SetValueIfChanged('LastErrorCode', $this->MapLastErrorCode((string)$attributes['lastErrorCode']['value']));
             }
         }
 
@@ -203,5 +209,15 @@ class GardenaIrrigationControl extends IPSModuleStrict
             default:
                 return 9;
         }
+    }
+
+
+    protected function SetValueIfChanged(string $ident, mixed $value): bool
+    {
+        if ($this->GetValue($ident) !== $value) {
+            $this->SetValue($ident, $value);
+            return true;
+        }
+        return false;
     }
 }

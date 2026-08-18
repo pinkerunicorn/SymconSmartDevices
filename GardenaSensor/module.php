@@ -107,6 +107,12 @@ class GardenaSensor extends IPSModuleStrict
 
     public function ReceiveData(string $JSONString): string
     {
+        $hash = md5($JSONString);
+        if ($this->GetBuffer('LastPayloadHash') === $hash) {
+            return "OK";
+        }
+        $this->SetBuffer('LastPayloadHash', $hash);
+
         $data = json_decode($JSONString, true);
         if (!is_array($data)) {
             return '';
@@ -129,30 +135,30 @@ class GardenaSensor extends IPSModuleStrict
         $attributes = $data['Attributes'] ?? [];
 
         if (isset($attributes['soilHumidity']['value'])) {
-            $this->SetValue('SoilMoisture', (int)$attributes['soilHumidity']['value']);
+            $this->SetValueIfChanged('SoilMoisture', (int)$attributes['soilHumidity']['value']);
         }
         if (isset($attributes['soilTemperature']['value'])) {
-            $this->SetValue('SoilTemperature', (float)$attributes['soilTemperature']['value']);
+            $this->SetValueIfChanged('SoilTemperature', (float)$attributes['soilTemperature']['value']);
         }
         if (isset($attributes['ambientTemperature']['value'])) {
-            $this->SetValue('AmbientTemperature', (float)$attributes['ambientTemperature']['value']);
+            $this->SetValueIfChanged('AmbientTemperature', (float)$attributes['ambientTemperature']['value']);
         }
         if (isset($attributes['lightIntensity']['value'])) {
-            $this->SetValue('LightIntensity', (int)$attributes['lightIntensity']['value']);
+            $this->SetValueIfChanged('LightIntensity', (int)$attributes['lightIntensity']['value']);
         }
 
         if (isset($attributes['batteryState']['value'])) {
-            $this->SetValue('BatteryStatus', $this->MapBatteryStatus((string)$attributes['batteryState']['value']));
+            $this->SetValueIfChanged('BatteryStatus', $this->MapBatteryStatus((string)$attributes['batteryState']['value']));
         }
         
         if (isset($attributes['batteryLevel']['value'])) {
-            $this->SetValue('BatteryLevel', (int)$attributes['batteryLevel']['value']);
+            $this->SetValueIfChanged('BatteryLevel', (int)$attributes['batteryLevel']['value']);
         }
         if (isset($attributes['rfLinkLevel']['value'])) {
-            $this->SetValue('RFLinkLevel', (int)$attributes['rfLinkLevel']['value']);
+            $this->SetValueIfChanged('RFLinkLevel', (int)$attributes['rfLinkLevel']['value']);
         }
 
-        $this->SetValue('LastUpdate', date('d.m.Y H:i:s'));
+        $this->SetValueIfChanged('LastUpdate', date('d.m.Y H:i:s'));
 
         return '';
     }
@@ -179,5 +185,15 @@ class GardenaSensor extends IPSModuleStrict
             'NO_BATTERY' => 5,
             default => 6,
         };
+    }
+
+
+    protected function SetValueIfChanged(string $ident, mixed $value): bool
+    {
+        if ($this->GetValue($ident) !== $value) {
+            $this->SetValue($ident, $value);
+            return true;
+        }
+        return false;
     }
 }

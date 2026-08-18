@@ -244,7 +244,7 @@ class GardenaValve extends IPSModuleStrict
         $this->DA_ApplyPresentation();
 
         if ($this->GetValue('WateringDuration') === 0) {
-            $this->SetValue('WateringDuration', 30);
+            $this->SetValueIfChanged('WateringDuration', 30);
         $this->DR_Register('DevicesGenericSensor');
         }
 
@@ -260,6 +260,12 @@ class GardenaValve extends IPSModuleStrict
 
     public function ReceiveData(string $JSONString): string
     {
+        $hash = md5($JSONString);
+        if ($this->GetBuffer('LastPayloadHash') === $hash) {
+            return "OK";
+        }
+        $this->SetBuffer('LastPayloadHash', $hash);
+
         $data = json_decode($JSONString, true);
         if (!is_array($data)) {
             return '';
@@ -286,8 +292,8 @@ class GardenaValve extends IPSModuleStrict
 
         if (isset($attributes['activity']['value'])) {
             $activity = $this->MapValveActivity((string)$attributes['activity']['value']);
-            $this->SetValue('ValveActivity', $activity);
-            $this->SetValue('Watering', ($activity === 1 || $activity === 2));
+            $this->SetValueIfChanged('ValveActivity', $activity);
+            $this->SetValueIfChanged('Watering', ($activity === 1 || $activity === 2));
             
             if ($activity === 1 || $activity === 2) {
                 $this->SetTimerInterval('CountdownTimer', 1000);
@@ -296,18 +302,18 @@ class GardenaValve extends IPSModuleStrict
                 // WICHTIG: RemainingTime sofort auf 0 setzen wenn Ventil geschlossen!
                 // Sonst denkt SmartLawnAI durch den RemainingSeconds-Fallback,
                 // das Ventil waere noch offen (Race Condition).
-                $this->SetValue('RemainingTime', 0);
+                $this->SetValueIfChanged('RemainingTime', 0);
             }
         }
 
         if (isset($attributes['duration']['value'])) {
-            $this->SetValue('RemainingTime', (int)$attributes['duration']['value']);
+            $this->SetValueIfChanged('RemainingTime', (int)$attributes['duration']['value']);
         }
 
         if (isset($attributes['error']['value'])) {
             $errorStr = (string)$attributes['error']['value'];
             $error = $this->MapValveError($errorStr);
-            $this->SetValue('ValveError', $error);
+            $this->SetValueIfChanged('ValveError', $error);
 
             // Kritische Fehler loggen
             if (in_array($errorStr, ['VALVE_BROKEN', 'FROST_PREVENTS_STARTING', 'LOW_BATTERY_PREVENTS_STARTING', 'VALVE_POWER_SUPPLY_FAILED'])) {
@@ -316,10 +322,10 @@ class GardenaValve extends IPSModuleStrict
         }
         
         if (isset($attributes['batteryLevel']['value'])) {
-            $this->SetValue('BatteryLevel', (int)$attributes['batteryLevel']['value']);
+            $this->SetValueIfChanged('BatteryLevel', (int)$attributes['batteryLevel']['value']);
         }
 
-        $this->SetValue('LastUpdate', date('d.m.Y H:i:s'));
+        $this->SetValueIfChanged('LastUpdate', date('d.m.Y H:i:s'));
 
         return '';
     }
@@ -332,12 +338,12 @@ class GardenaValve extends IPSModuleStrict
             case 'CountdownTimer':
                 $remaining = $this->GetValue('RemainingTime');
                 if ($remaining > 1) {
-                    $this->SetValue('RemainingTime', $remaining - 1);
+                    $this->SetValueIfChanged('RemainingTime', $remaining - 1);
                 } else {
                     // Countdown abgelaufen - Status zuruecksetzen
-                    $this->SetValue('RemainingTime', 0);
-                    $this->SetValue('Watering', false);
-                    $this->SetValue('ValveActivity', 0);
+                    $this->SetValueIfChanged('RemainingTime', 0);
+                    $this->SetValueIfChanged('Watering', false);
+                    $this->SetValueIfChanged('ValveActivity', 0);
                     $this->SetTimerInterval('CountdownTimer', 0);
                 }
                 break;
@@ -351,7 +357,7 @@ class GardenaValve extends IPSModuleStrict
                 break;
 
             case 'WateringDuration':
-                $this->SetValue('WateringDuration', (int)$Value);
+                $this->SetValueIfChanged('WateringDuration', (int)$Value);
                 break;
 
             default:
@@ -460,4 +466,14 @@ class GardenaValve extends IPSModuleStrict
         };
     }
 
+
+
+    protected function SetValueIfChanged(string $ident, mixed $value): bool
+    {
+        if ($this->GetValue($ident) !== $value) {
+            $this->SetValue($ident, $value);
+            return true;
+        }
+        return false;
+    }
 }

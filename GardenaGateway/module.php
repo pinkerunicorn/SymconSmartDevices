@@ -364,7 +364,7 @@ class GardenaGateway extends IPSModuleStrict
             // API-Call erst nach Erfolg zählen (kein doppeltes Zählen bei 401-Retry)
             $calls = $this->ReadAttributeInteger('ApiCallsToday') + 1;
             $this->WriteAttributeInteger('ApiCallsToday', $calls);
-            $this->SetValue('ApiCalls', $calls);
+            $this->SetValueIfChanged('ApiCalls', $calls);
             if (empty($response)) {
                 return [];
             }
@@ -377,6 +377,12 @@ class GardenaGateway extends IPSModuleStrict
 
     public function ReceiveData(string $JSONString): string
     {
+        $hash = md5($JSONString);
+        if ($this->GetBuffer('LastPayloadHash') === $hash) {
+            return "OK";
+        }
+        $this->SetBuffer('LastPayloadHash', $hash);
+
         $data = json_decode($JSONString, true);
         $payload = $data['Buffer'] ?? '';
         if (empty($payload)) {
@@ -539,7 +545,7 @@ class GardenaGateway extends IPSModuleStrict
             case 'MidnightReset':
                 $this->WriteAttributeInteger('ApiCallsToday', 0);
                 $this->WriteAttributeString('ApiCallsDate', date('Y-m-d'));
-                $this->SetValue('ApiCalls', 0);
+                $this->SetValueIfChanged('ApiCalls', 0);
                 $this->SetMidnightResetTimer();
                 $this->SLogInfo('API-Call Counter zurückgesetzt.');
                 break;
@@ -577,5 +583,15 @@ class GardenaGateway extends IPSModuleStrict
             return 'Token erfolgreich erneuert und WebSocket verbunden.';
         }
         return 'Fehler bei der Token-Erneuerung.';
+    }
+
+
+    protected function SetValueIfChanged(string $ident, mixed $value): bool
+    {
+        if ($this->GetValue($ident) !== $value) {
+            $this->SetValue($ident, $value);
+            return true;
+        }
+        return false;
     }
 }

@@ -84,6 +84,12 @@ class EMSESPDevice extends IPSModuleStrict
 
     public function ReceiveData(string $JSONString): string
     {
+        $hash = md5($JSONString);
+        if ($this->GetBuffer('LastPayloadHash') === $hash) {
+            return "OK";
+        }
+        $this->SetBuffer('LastPayloadHash', $hash);
+
         $data = json_decode($JSONString, true);
         if (!isset($data['Buffer'])) {
             return "";
@@ -293,11 +299,21 @@ class EMSESPDevice extends IPSModuleStrict
         
         $this->SendDataToParent(json_encode($data));
         
-        $this->SetValue($Ident, $Value);
+        $this->SetValue($ident, $value);
     }
 
     public function ProcessTestPayload(string $Topic, string $Payload): void
     {
         $this->ProcessMQTTMessage($Topic, $Payload);
+    }
+
+
+    protected function SetValueIfChanged(string $ident, mixed $value): bool
+    {
+        if ($this->GetValue($ident) !== $value) {
+            $this->SetValue($ident, $value);
+            return true;
+        }
+        return false;
     }
 }
