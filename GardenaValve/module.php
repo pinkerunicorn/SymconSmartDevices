@@ -229,13 +229,20 @@ class GardenaValve extends IPSModuleStrict
 
         // --- WateringCommandResult Buffer fuer Fehler-Propagierung ---
         // Wird von Gateway via ForwardData-Response befuellt
+        $this->DR_Register('DevicesGenericSensor');
     }
+
+    public function Destroy(): void
+    {
+        parent::Destroy();
+        $this->DR_Unregister();
+    }
+
 
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
-        $this->DR_Register('DevicesSwitch');
 
         if ($this->GetValue('WateringDuration') === 0) {
             $this->SetValue('WateringDuration', 30);

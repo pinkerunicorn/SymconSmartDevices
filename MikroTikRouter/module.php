@@ -114,13 +114,20 @@ class MikroTikRouter extends IPSModuleStrict
 
         $this->RegisterVariableInteger('ActionReboot', 'Neustarten', 'MIKROTIK.Action', 103);
         $this->EnableAction('ActionReboot');
+
+        $this->DR_Register('DevicesGenericSensor');
+    }
+
+    public function Destroy(): void
+    {
+        parent::Destroy();
+        $this->DR_Unregister();
     }
 
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
-        $this->DR_Register('DevicesHealth');
 
 
 

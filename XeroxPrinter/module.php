@@ -40,12 +40,20 @@ class XeroxPrinter extends IPSModuleStrict
 
         // Feste Variablen
         $this->RegisterVariableInteger('LastUpdate', 'â± Letztes erfolgreiches Update', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'clock-rotate-left'], 999);
+        $this->DR_Register('DevicesGenericSensor');
     }
+
+    public function Destroy(): void
+    {
+        parent::Destroy();
+        $this->DR_Unregister();
+    }
+
 
     public function ApplyChanges(): void{
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
-        $this->DR_Register('DevicesHealth');
+
         if (empty($this->ReadPropertyString('Host'))) {
             $this->SetStatus(104);
             return;

@@ -30,7 +30,15 @@ class TedeeLock extends IPSModuleStrict
         $this->RegisterAttributeInteger('DetectedLockID', 0);
 
         $this->RegisterVariables();
+        $this->DR_Register('DevicesGenericSensor');
     }
+
+    public function Destroy(): void
+    {
+        parent::Destroy();
+        $this->DR_Unregister();
+    }
+
     private function RegisterVariables(): void
     {
         $stateIntervals = json_encode([
@@ -95,7 +103,7 @@ class TedeeLock extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
-        $this->DR_Register('DevicesSwitch');
+
         $this->RegisterVariables();
         if (empty($this->ReadPropertyString('BridgeIP'))) {
             $this->SetTimerInterval('StatusUpdateTimer', 0);

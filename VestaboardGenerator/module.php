@@ -39,11 +39,16 @@ class VestaboardGenerator extends IPSModuleStrict {
         for ($i = 1; $i <= 6; $i++) {
             $this->RegisterVariableString("Line{$i}", "Zeile {$i}", ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'list'], $i);
         }
+        $this->DR_Register('DevicesGenericSensor');
+    }
+
+    public function Destroy(): void {
+        parent::Destroy();
+        $this->DR_Unregister();
     }
 
     public function ApplyChanges(): void {
         parent::ApplyChanges();
-        $this->DR_Register('DevicesGenericSensor');
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);

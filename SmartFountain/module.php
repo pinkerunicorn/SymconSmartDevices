@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
+
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 
 class SmartFountain extends IPSModuleStrict
 {
+    use DeviceRegistration_Trait;
     use SmartLog_Trait;
 
     public function Create(): void
@@ -46,7 +49,15 @@ class SmartFountain extends IPSModuleStrict
         $this->RegisterTimer('ChoreographyTimer', 0, 'SFTN_Tick($_IPS[\'TARGET\']);');
         
         // Variables will be configured via SetupVariablePresentations in ApplyChanges
+        $this->DR_Register('DevicesGenericSensor');
     }
+
+    public function Destroy(): void
+    {
+        parent::Destroy();
+        $this->DR_Unregister();
+    }
+
 
     public function ApplyChanges(): void
     {

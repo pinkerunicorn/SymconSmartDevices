@@ -62,7 +62,15 @@ class WLEDDevice extends IPSModuleStrict
         $this->RegisterTimer('StateRefreshTimer', 0, 'WLED_RequestFullState($_IPS[\'TARGET\']);');
         $this->RegisterTimer('FetchListsTimer', 0, 'WLED_RefreshLists($_IPS[\'TARGET\']);');
         $this->RegisterAttributeString('LastPayloadHash', '');
+        $this->DR_Register('DevicesGenericSensor');
     }
+
+    public function Destroy(): void
+    {
+        parent::Destroy();
+        $this->DR_Unregister();
+    }
+
 
     public function GetCompatibleParents(): string
     {
@@ -78,7 +86,6 @@ class WLEDDevice extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
-        $this->DR_Register('DevicesLightColor');
 
         $this->RegisterOptionalVariables();
 

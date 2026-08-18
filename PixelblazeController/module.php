@@ -51,7 +51,15 @@ class PixelblazeController extends IPSModuleStrict
 
         // Timer für Auto-Reconnect
         $this->RegisterTimer('ReconnectTimer', 0, 'PB_Reconnect($_IPS[\'TARGET\']);');
+        $this->DR_Register('DevicesGenericSensor');
     }
+
+    public function Destroy(): void
+    {
+        parent::Destroy();
+        $this->DR_Unregister();
+    }
+
 
     public function GetCompatibleParents(): string
     {
@@ -69,7 +77,6 @@ class PixelblazeController extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
-        $this->DR_Register('DevicesLightColor');
 
         // Alte String-Variable löschen falls vorhanden
         $oldVar = @$this->GetIDForIdent('ActiveProgramID');

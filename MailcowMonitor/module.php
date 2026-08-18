@@ -73,15 +73,20 @@ class MailcowMonitor extends IPSModuleStrict
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'clock-rotate-left'
         ], 4);
+        $this->DR_Register('DevicesGenericSensor');
     }
+
+    public function Destroy(): void
+    {
+        parent::Destroy();
+        $this->DR_Unregister();
+    }
+
 
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
-        $this->DR_Register('DevicesHealth');
-
-
 
         if ($this->ReadPropertyBoolean('MonitorContainers')) {
             $containerOptions = json_encode([

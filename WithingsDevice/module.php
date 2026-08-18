@@ -85,12 +85,20 @@ class WithingsDevice extends IPSModuleStrict {
         $this->RegisterVariableString("GeminiInsight3", "Insight 3", ['ICON' => 'sparkles'], 12);
         $this->RegisterVariableString("GeminiInsight4", "Insight 4", ['ICON' => 'sparkles'], 13);
         $this->RegisterVariableString("GeminiInsight5", "Insight 5", ['ICON' => 'sparkles'], 14);
+        $this->DR_Register('DevicesGenericSensor');
     }
+
+    public function Destroy(): void
+    {
+        parent::Destroy();
+        $this->DR_Unregister();
+    }
+
 
     public function ApplyChanges(): void {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
-        $this->DR_Register('DevicesGenericSensor');
+
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);

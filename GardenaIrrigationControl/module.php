@@ -82,13 +82,20 @@ class GardenaIrrigationControl extends IPSModuleStrict
 
         $this->DA_RegisterWatchdog();
         $this->DA_RegisterAvailability();
+        $this->DR_Register('DevicesGenericSensor');
     }
+
+    public function Destroy(): void
+    {
+        parent::Destroy();
+        $this->DR_Unregister();
+    }
+
 
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
-        $this->DR_Register('DevicesGenericSensor');
 
         $deviceID = $this->ReadPropertyString('DeviceID');
         if (empty($deviceID)) {
