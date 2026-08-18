@@ -116,7 +116,7 @@ if (!trait_exists('DeviceAvailability_Trait')) {
                 }
             }
 
-            $wasAvailable = (bool)GetValue($varId);
+            $wasAvailable = (bool)$this->GetValue('DeviceAvailable');
 
             // Nur reagieren wenn sich der Status ändert
             if ($wasAvailable === $available) {
@@ -163,7 +163,7 @@ if (!trait_exists('DeviceAvailability_Trait')) {
             if ($varId === false || !IPS_VariableExists($varId)) {
                 return true;
             }
-            return (bool)GetValue($varId);
+            return (bool)$this->GetValue('DeviceAvailable');
         }
 
         // -------------------------------------------------------------------
