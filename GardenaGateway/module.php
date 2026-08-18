@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
+require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
 
 class GardenaGateway extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use DeviceAvailability_Trait;
+    use DeviceRegistration_Trait;
 
     public function Create(): void
     {
@@ -103,6 +105,10 @@ class GardenaGateway extends IPSModuleStrict
 
         // Keep-Alive Ping (Gardena Idle-Timeout: 150s, Ping alle 120s wie HA/openHAB)
         $this->SetTimerInterval('WSPing', 120000);
+
+        $this->DR_Register('DevicesHealth', [
+            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
+        ]);
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data): void

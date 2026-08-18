@@ -5,12 +5,14 @@ declare(strict_types=1);
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
+require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
 
 class AsusAiMesh extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use DeviceAvailability_Trait;
     use SmartHttp_Trait;
+    use DeviceRegistration_Trait;
 
     // ASUS API Constants
     private const ASUS_USER_AGENT = 'asusrouter-Android-DUTUtil-1.0.0.201';
@@ -244,6 +246,10 @@ class AsusAiMesh extends IPSModuleStrict
         } else {
             $this->SetTimerInterval('UpdateTimer', 0);
         }
+
+        $this->DR_Register('DevicesHealth', [
+            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
+        ]);
     }
 
     /**

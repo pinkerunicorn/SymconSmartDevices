@@ -5,12 +5,14 @@ declare(strict_types=1);
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
 
 class MailcowMonitor extends IPSModuleStrict
 {
     use DeviceAvailability_Trait;
     use SmartHttp_Trait;
     use SmartLog_Trait;
+    use DeviceRegistration_Trait;
 
     public function Create(): void
     {
@@ -136,6 +138,10 @@ class MailcowMonitor extends IPSModuleStrict
         } else {
             $this->SetTimerInterval('UpdateTimer', 0);
         }
+
+        $this->DR_Register('DevicesHealth', [
+            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
+        ]);
     }
 
     public function Update(): void

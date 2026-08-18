@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
+require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
 
 class GardenaValve extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use DeviceAvailability_Trait;
+    use DeviceRegistration_Trait;
 
     public function Create(): void
     {
@@ -245,6 +247,10 @@ class GardenaValve extends IPSModuleStrict
             $this->SetStatus(102);
             $this->SetReceiveDataFilter('');
         }
+
+        $this->DR_Register('DevicesSwitch', [
+            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
+        ]);
     }
 
     public function ReceiveData(string $JSONString): string

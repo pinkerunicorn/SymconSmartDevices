@@ -5,11 +5,13 @@ declare(strict_types=1);
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/WLEDConstants.php';
+require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
 
 class WLEDDevice extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use DeviceAvailability_Trait;
+    use DeviceRegistration_Trait;
 
     public function Create(): void
     {
@@ -100,6 +102,10 @@ class WLEDDevice extends IPSModuleStrict
         }
 
         $this->updateControlState();
+
+        $this->DR_Register('DevicesLightColor', [
+            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
+        ]);
     }
 
     private function RegisterOptionalVariables(): void

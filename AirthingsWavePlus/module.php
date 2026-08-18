@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
+require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
 
 class AirthingsWavePlus extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use DeviceAvailability_Trait;
+    use DeviceRegistration_Trait;
 
     public function Create(): void
     {
@@ -97,6 +99,9 @@ class AirthingsWavePlus extends IPSModuleStrict
                 $this->DA_ResetWatchdog(1800);
                 $this->DA_SetAvailable(true);
 
+        $this->DR_Register('DevicesGenericSensor', [
+            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
+        ]);
     }
     
     public function WatchdogTriggered(): void
