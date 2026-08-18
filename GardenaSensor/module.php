@@ -86,6 +86,7 @@ class GardenaSensor extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesGenericSensor');
 
         $deviceID = $this->ReadPropertyString('DeviceID');
         if (empty($deviceID)) {
@@ -95,9 +96,6 @@ class GardenaSensor extends IPSModuleStrict
             $this->SetReceiveDataFilter('');
         }
 
-        $this->DR_Register('DevicesGenericSensor', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
     public function ReceiveData(string $JSONString): string

@@ -69,6 +69,7 @@ class PixelblazeController extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesLightColor');
 
         // Alte String-Variable löschen falls vorhanden
         $oldVar = @$this->GetIDForIdent('ActiveProgramID');
@@ -119,9 +120,6 @@ class PixelblazeController extends IPSModuleStrict
         
         $this->UpdateVisibility($this->GetValue('Power'));
 
-        $this->DR_Register('DevicesLightColor', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
     private function UpdateVisibility(bool $isVisible): void

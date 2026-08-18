@@ -79,6 +79,7 @@ class MailcowMonitor extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesHealth');
 
 
 
@@ -139,9 +140,6 @@ class MailcowMonitor extends IPSModuleStrict
             $this->SetTimerInterval('UpdateTimer', 0);
         }
 
-        $this->DR_Register('DevicesHealth', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
     public function Update(): void

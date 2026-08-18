@@ -45,6 +45,7 @@ class XeroxPrinter extends IPSModuleStrict
     public function ApplyChanges(): void{
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesHealth');
         if (empty($this->ReadPropertyString('Host'))) {
             $this->SetStatus(104);
             return;
@@ -96,9 +97,6 @@ class XeroxPrinter extends IPSModuleStrict
             $this->SetTimerInterval('UpdateTimer', 0);
         }
 
-        $this->DR_Register('DevicesHealth', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
     public function UpdateStatus(): void

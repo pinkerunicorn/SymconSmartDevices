@@ -41,6 +41,7 @@ class GoogleSonosTTS extends IPSModuleStrict
         // Never delete this line!
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesGenericSensor');
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
@@ -72,9 +73,6 @@ class GoogleSonosTTS extends IPSModuleStrict
         $this->SetTimerInterval("CleanupTimer", 86400000);
         $this->SubscribeToCentralStates(['PresenceMode', 'ActivityMode']);
 
-        $this->DR_Register('DevicesGenericSensor', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
     public function ClearCache(): void

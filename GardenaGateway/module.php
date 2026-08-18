@@ -88,6 +88,7 @@ class GardenaGateway extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesHealth');
 
         if ($this->ReadPropertyString('AppKey') !== '' && $this->ReadPropertyString('AppSecret') !== '') {
             $this->SetStatus(102);
@@ -106,9 +107,6 @@ class GardenaGateway extends IPSModuleStrict
         // Keep-Alive Ping (Gardena Idle-Timeout: 150s, Ping alle 120s wie HA/openHAB)
         $this->SetTimerInterval('WSPing', 120000);
 
-        $this->DR_Register('DevicesHealth', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data): void

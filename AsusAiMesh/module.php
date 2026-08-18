@@ -204,6 +204,7 @@ class AsusAiMesh extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesHealth');
 
         // Validate config
         if (empty($this->ReadPropertyString('Host')) || empty($this->ReadPropertyString('Password'))) {
@@ -247,9 +248,6 @@ class AsusAiMesh extends IPSModuleStrict
             $this->SetTimerInterval('UpdateTimer', 0);
         }
 
-        $this->DR_Register('DevicesHealth', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
     /**

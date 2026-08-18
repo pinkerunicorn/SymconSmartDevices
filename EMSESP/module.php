@@ -48,6 +48,7 @@ class EMSESPDevice extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesGenericSensor');
 
         $children = IPS_GetChildrenIDs($this->InstanceID);
         foreach ($children as $child) {
@@ -79,9 +80,6 @@ class EMSESPDevice extends IPSModuleStrict
         $topic = $this->ReadPropertyString('MQTTTopic');
         $this->SetReceiveDataFilter('.*' . preg_quote($topic, '.') . '.*');
 
-        $this->DR_Register('DevicesGenericSensor', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
     public function ReceiveData(string $JSONString): string

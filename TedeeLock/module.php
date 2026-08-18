@@ -95,6 +95,7 @@ class TedeeLock extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesSwitch');
         $this->RegisterVariables();
         if (empty($this->ReadPropertyString('BridgeIP'))) {
             $this->SetTimerInterval('StatusUpdateTimer', 0);
@@ -134,9 +135,6 @@ class TedeeLock extends IPSModuleStrict
             $this->RegisterWebhookAtBridge();
         }
 
-        $this->DR_Register('DevicesSwitch', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
 

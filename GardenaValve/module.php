@@ -235,6 +235,7 @@ class GardenaValve extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesSwitch');
 
         if ($this->GetValue('WateringDuration') === 0) {
             $this->SetValue('WateringDuration', 30);
@@ -248,9 +249,6 @@ class GardenaValve extends IPSModuleStrict
             $this->SetReceiveDataFilter('');
         }
 
-        $this->DR_Register('DevicesSwitch', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
     public function ReceiveData(string $JSONString): string

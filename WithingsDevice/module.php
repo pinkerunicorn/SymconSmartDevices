@@ -90,6 +90,7 @@ class WithingsDevice extends IPSModuleStrict {
     public function ApplyChanges(): void {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesGenericSensor');
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
@@ -116,9 +117,6 @@ class WithingsDevice extends IPSModuleStrict {
         $this->UpdatePresentations();
         $this->UpdateConnectionStatus();
 
-        $this->DR_Register('DevicesHealth', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
     /**

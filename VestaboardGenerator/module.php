@@ -43,6 +43,7 @@ class VestaboardGenerator extends IPSModuleStrict {
 
     public function ApplyChanges(): void {
         parent::ApplyChanges();
+        $this->DR_Register('DevicesGenericSensor');
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
@@ -104,9 +105,6 @@ class VestaboardGenerator extends IPSModuleStrict {
         $this->UpdateSleepTimer();
         $this->UpdateWakeupTimer();
 
-        $this->DR_Register('DevicesGenericSensor', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
     public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void {

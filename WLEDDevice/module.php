@@ -78,6 +78,7 @@ class WLEDDevice extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesLightColor');
 
         $this->RegisterOptionalVariables();
 
@@ -103,9 +104,6 @@ class WLEDDevice extends IPSModuleStrict
 
         $this->updateControlState();
 
-        $this->DR_Register('DevicesLightColor', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
     private function RegisterOptionalVariables(): void

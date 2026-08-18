@@ -120,6 +120,7 @@ class MikroTikRouter extends IPSModuleStrict
     {
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesHealth');
 
 
 
@@ -143,9 +144,6 @@ class MikroTikRouter extends IPSModuleStrict
             $this->SetTimerInterval('CheckUpdateTimer', 0);
         }
 
-        $this->DR_Register('DevicesHealth', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
 
     public function RequestAction(string $Ident, mixed $Value): void

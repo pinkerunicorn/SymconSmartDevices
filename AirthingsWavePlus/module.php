@@ -88,6 +88,7 @@ class AirthingsWavePlus extends IPSModuleStrict
         // Never delete this line!
         parent::ApplyChanges();
         $this->DA_ApplyPresentation();
+        $this->DR_Register('DevicesGenericSensor');
 
         // Register MQTT Filter
         $topic = $this->ReadPropertyString('MQTTBaseTopic');
@@ -99,9 +100,6 @@ class AirthingsWavePlus extends IPSModuleStrict
                 $this->DA_ResetWatchdog(1800);
                 $this->DA_SetAvailable(true);
 
-        $this->DR_Register('DevicesGenericSensor', [
-            'Reachable_VarID' => $this->GetIDForIdent('DeviceAvailable'),
-        ]);
     }
     
     public function WatchdogTriggered(): void
