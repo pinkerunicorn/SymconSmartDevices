@@ -53,6 +53,7 @@ class WLEDDevice extends IPSModuleStrict
         $this->EnableAction('Brightness');
 
         $this->RegisterVariableInteger('Color', 'Farbe', [
+            'ICON' => 'palette',
             'PRESENTATION' => VARIABLE_PRESENTATION_COLOR,
             'ENCODING' => 0
         ], 10);
