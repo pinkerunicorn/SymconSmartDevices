@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
-require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
-
 class GardenaIrrigationControl extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use DeviceAvailability_Trait;
-    use DeviceRegistration_Trait;
-
     public function Create(): void
     {
         parent::Create();
@@ -87,8 +83,7 @@ class GardenaIrrigationControl extends IPSModuleStrict
     public function Destroy(): void
     {
         parent::Destroy();
-        $this->DR_Unregister();
-    }
+        }
 
 
     public function ApplyChanges(): void
@@ -99,7 +94,6 @@ class GardenaIrrigationControl extends IPSModuleStrict
         $deviceID = $this->ReadPropertyString('DeviceID');
         if (empty($deviceID)) {
             $this->SetStatus(200);
-        $this->DR_Register('DevicesGenericSensor');
         } else {
             $this->SetStatus(102);
             $this->SetReceiveDataFilter('');

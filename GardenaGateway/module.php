@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
-require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
-
 class GardenaGateway extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use DeviceAvailability_Trait;
-    use DeviceRegistration_Trait;
-
     public function Create(): void
     {
         parent::Create();
@@ -94,7 +90,6 @@ class GardenaGateway extends IPSModuleStrict
             $this->SetMidnightResetTimer();
             // Start connection in the background to avoid blocking Symcon startup
             $this->SetTimerInterval('StartConnection', 2000);
-        $this->DR_Register('DevicesHealth');
         } else {
             $this->SetStatus(104);
         }

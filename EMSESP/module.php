@@ -3,12 +3,9 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
-require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
 class EMSESPDevice extends IPSModuleStrict
 {
     use DeviceAvailability_Trait;
-    use DeviceRegistration_Trait;
-
     private const KEY_MAP = [
         'curflowtemp'     => ['name' => 'Vorlauftemperatur', 'icon' => 'temperature', 'suffix' => ' Ã‚Â°C', 'decimals' => 1],
         'outdoortemp'     => ['name' => 'AuÃƒÅ¸entemperatur', 'icon' => 'temperature', 'suffix' => ' Ã‚Â°C', 'decimals' => 1],
@@ -68,8 +65,7 @@ class EMSESPDevice extends IPSModuleStrict
                     ];
                     $this->RegisterVariableInteger($ident, $obj['ObjectName'], $presArray, 0);
                     $this->EnableAction($ident);
-        $this->DR_Register('DevicesGenericSensor');
-                }
+        }
             }
         }
 

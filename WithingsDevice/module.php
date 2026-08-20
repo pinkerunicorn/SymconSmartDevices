@@ -4,14 +4,10 @@ declare(strict_types=1);
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
-require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
-
 class WithingsDevice extends IPSModuleStrict {
     use SmartLog_Trait;
     use DeviceAvailability_Trait;
     use SmartHttp_Trait;
-    use DeviceRegistration_Trait;
-
     /** @var array<string, bool> Cache für bereits angelegte Variablen-Idents (innerhalb eines Request-Zyklus) */
     private array $createdIdents = [];
 
@@ -90,8 +86,7 @@ class WithingsDevice extends IPSModuleStrict {
     public function Destroy(): void
     {
         parent::Destroy();
-        $this->DR_Unregister();
-    }
+        }
 
 
     public function ApplyChanges(): void {
@@ -101,7 +96,6 @@ class WithingsDevice extends IPSModuleStrict {
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
-        $this->DR_Register('DevicesGenericSensor');
         }
         $ref_SMTPInstanceID = $this->ReadPropertyInteger('SMTPInstanceID');
         if ($ref_SMTPInstanceID > 1 && @IPS_ObjectExists($ref_SMTPInstanceID)) {

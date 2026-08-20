@@ -6,15 +6,12 @@ require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 require_once __DIR__ . '/../libs/Trait_CentralStateAware.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
-require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
-
 class GoogleSonosTTS extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use DeviceAvailability_Trait;
     use CentralStateAware_Trait;
     use SmartHttp_Trait;
-    use DeviceRegistration_Trait;
     public function Create(): void{
         // Never delete this line!
         parent::Create();
@@ -40,8 +37,7 @@ class GoogleSonosTTS extends IPSModuleStrict
     public function Destroy(): void
     {
         parent::Destroy();
-        $this->DR_Unregister();
-    }
+        }
 
 
     public function ApplyChanges(): void{
@@ -52,8 +48,6 @@ class GoogleSonosTTS extends IPSModuleStrict
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
-        $this->DR_Register('DevicesGenericSensor');
-
         }
         $list_SonosInstances = json_decode($this->ReadPropertyString('SonosInstances'), true);
         if (is_array($list_SonosInstances)) {

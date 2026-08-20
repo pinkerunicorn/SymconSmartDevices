@@ -4,15 +4,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
-require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
-
 class PixelblazeController extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use DeviceAvailability_Trait;
-    use DeviceRegistration_Trait;
-
-
     public function Create(): void
     {
         parent::Create();
@@ -56,8 +51,7 @@ class PixelblazeController extends IPSModuleStrict
     public function Destroy(): void
     {
         parent::Destroy();
-        $this->DR_Unregister();
-    }
+        }
 
 
     public function GetCompatibleParents(): string
@@ -81,7 +75,6 @@ class PixelblazeController extends IPSModuleStrict
         $oldVar = @$this->GetIDForIdent('ActiveProgramID');
         if ($oldVar > 0) {
             $this->UnregisterVariable('ActiveProgramID');
-        $this->DR_Register('DevicesGenericSensor');
         }
 
 

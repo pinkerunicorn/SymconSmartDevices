@@ -4,7 +4,6 @@ declare(strict_types=1);
 require_once __DIR__ . '/../libs/Trait_CentralStateAware.php';
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
-require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 
 class VestaboardGenerator extends IPSModuleStrict {
@@ -12,7 +11,6 @@ class VestaboardGenerator extends IPSModuleStrict {
 
     use CentralStateAware_Trait;
     use DeviceAvailability_Trait;
-    use DeviceRegistration_Trait;
     use SmartHttp_Trait;
 
     public function Create(): void {
@@ -45,15 +43,13 @@ class VestaboardGenerator extends IPSModuleStrict {
 
     public function Destroy(): void {
         parent::Destroy();
-        $this->DR_Unregister();
-    }
+        }
 
     public function ApplyChanges(): void {
         parent::ApplyChanges();
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
-        $this->DR_Register('DevicesGenericSensor');
         }
         // Removed VestaboardLocal reference
         $ref_ManualUpdateTriggerID = $this->ReadPropertyInteger('ManualUpdateTriggerID');

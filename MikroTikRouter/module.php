@@ -5,15 +5,11 @@ declare(strict_types=1);
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
-require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
-
 class MikroTikRouter extends IPSModuleStrict
 {
     use SmartLog_Trait;
     use DeviceAvailability_Trait;
     use SmartHttp_Trait;
-    use DeviceRegistration_Trait;
-
     public function Create(): void
     {
         parent::Create();
@@ -131,8 +127,7 @@ class MikroTikRouter extends IPSModuleStrict
     public function Destroy(): void
     {
         parent::Destroy();
-        $this->DR_Unregister();
-    }
+        }
 
     public function ApplyChanges(): void
     {
@@ -146,7 +141,6 @@ class MikroTikRouter extends IPSModuleStrict
             $this->SetTimerInterval('UpdateTimer', 0);
             $this->SetTimerInterval('CheckUpdateTimer', 0);
             return;
-        $this->DR_Register('DevicesGenericSensor');
         }
 
         $this->SetStatus(102);

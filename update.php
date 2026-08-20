@@ -26,12 +26,12 @@ foreach ($modules as $mod) {
     
     // 1. Add require_once
     if (strpos($content, 'Trait_DeviceRegistration.php') === false) {
-        $content = preg_replace('/(declare\(strict_types=1\);)/i', "$1\n\nrequire_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';", $content, 1);
+        $content = preg_replace('/(declare\(strict_types=1\);)/i', "$1\n\n", $content, 1);
     }
     
     // 2. Add use trait
-    if (strpos($content, 'use DeviceRegistration_Trait;') === false) {
-        $content = preg_replace('/(class\s+[A-Za-z0-9_]+\s+extends\s+[A-Za-z0-9_]+[^{]*\{)/i', "$1\n    use DeviceRegistration_Trait;", $content, 1);
+    if (strpos($content, '') === false) {
+        $content = preg_replace('/(class\s+[A-Za-z0-9_]+\s+extends\s+[A-Za-z0-9_]+[^{]*\{)/i', "$1\n    ", $content, 1);
     }
     
     $deviceType = 'DevicesGenericSensor';
@@ -43,20 +43,20 @@ foreach ($modules as $mod) {
     // 3. Add to Create() am Ende
     $createRegex = '/(public\s+function\s+Create\s*\(\)\s*(?::\s*void\s*)?\{.*?)(\n\s*\})/is';
     if (preg_match($createRegex, $content)) {
-        $content = preg_replace($createRegex, "$1\n        \$this->DR_Register('$deviceType');$2", $content, 1);
+        $content = preg_replace($createRegex, "$1\n        \$2", $content, 1);
     } else {
         echo "No Create method in $mod\n";
     }
     
     // 4. Add or update Destroy()
     if (strpos($content, 'public function Destroy()') === false && strpos($content, 'public function Destroy (') === false && strpos($content, 'public function Destroy:') === false) {
-        $destroyFunc = "\n    public function Destroy(): void\n    {\n        parent::Destroy();\n        \$this->DR_Unregister();\n    }\n";
+        $destroyFunc = "\n    public function Destroy(): void\n    {\n        parent::Destroy();\n        \\n    }\n";
         // Insert after Create method
         $content = preg_replace('/(public\s+function\s+Create\s*\(\)\s*(?::\s*void\s*)?\{.*?\n\s*\})/is', "$1\n$destroyFunc", $content, 1);
     } else {
         $destroyRegex = '/(public\s+function\s+Destroy\s*\(\)\s*(?::\s*void\s*)?\{.*?)(\n\s*\})/is';
         if (preg_match($destroyRegex, $content)) {
-            $content = preg_replace($destroyRegex, "$1\n        \$this->DR_Unregister();$2", $content, 1);
+            $content = preg_replace($destroyRegex, "$1\n        \$2", $content, 1);
         } else {
             echo "Failed to match Destroy in $mod despite strpos\n";
         }
