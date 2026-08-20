@@ -5,6 +5,7 @@ require_once __DIR__ . '/../libs/Trait_CentralStateAware.php';
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 require_once __DIR__ . '/../libs/Trait_DeviceRegistration.php';
+require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
 
 class VestaboardGenerator extends IPSModuleStrict {
     use SmartLog_Trait;
@@ -12,6 +13,7 @@ class VestaboardGenerator extends IPSModuleStrict {
     use CentralStateAware_Trait;
     use DeviceAvailability_Trait;
     use DeviceRegistration_Trait;
+    use SmartHttp_Trait;
 
     public function Create(): void {
         parent::Create();
@@ -617,31 +619,17 @@ class VestaboardGenerator extends IPSModuleStrict {
         }
 
         $headers = [
-            'X-Vestaboard-Local-Api-Key: ' . $token,
-            'Content-Type: application/json'
+            'X-Vestaboard-Local-Api-Key: ' . $token
         ];
 
-        $body = json_encode($layout);
+        // Wir nutzen den SmartHttp_Trait für Logging und stabileren cURL Aufbau (wie im alten Local-Modul)
+        $response = $this->HttpRequest($ip, 'POST', $headers, $layout, 10, false);
 
-        $ch = curl_init($ip);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        if (curl_errno($ch)) {
-            $this->DA_SetAvailable(false, curl_error($ch));
-        } elseif ($httpCode !== 200) {
-            $this->DA_SetAvailable(false, 'HTTP Error ' . $httpCode);
+        if ($response === null) {
+            $this->DA_SetAvailable(false, 'Lokale API nicht erreichbar oder HTTP Fehler');
         } else {
             $this->DA_SetAvailable(true);
         }
-
-        curl_close($ch);
     }
 
     private function ConvertTextToArray(string $text): array {
